@@ -101,7 +101,7 @@
             local loaded = package.loaded[name]
             if loaded then return loaded end
             web.co = coroutine.running()
-            web.send("require", path)
+            web.require(path)
             local res = coroutine.yield()
             package.loaded[name] = res
            return res
