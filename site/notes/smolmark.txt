@@ -1,0 +1,153 @@
+# quick let's make a somewhat markdowny thing that isn't good!
+:template lua
+:pub Zk7OIH
+:blurb It'd be cool if Mark Heap had a brother called Mark Down but names don't work like that in Britan >:(
+
+I don't know! It's an example of _something._ And it's not incredibly large.
+
+Anyway we're going translate from our thing to the Hypertext Markup Language. So:
+
+``` prelude
+escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+function tagged(tag)
+  return function(s)
+    return "<" .. tag .. ">" .. escape(s) .. "</" .. tag .. ">"
+  end
+end
+```
+
+We can test it:
+
+``` repl
+print(tagged("p")([["3 is < 4" & '4 > 3']]))
+```
+
+Okay.
+
+A ton of functionality:
+
+* Two levels of headings, `#` and `##`.
+* Preformatted text. Lines that start with two spaces.
+* Empty lines!!!
+* Regular text paragraphs.
+
+In some kind of order:
+
+``` prelude
+states = {
+  { pattern = "^  (.*)$", open = "<pre><code>", close = "</code></pre>", f = escape, br = "\n" },
+  { pattern = "^(%s*)$", close = "",  f = function(str) return "" end },
+  { pattern = "^## *(.*)$", close = "\n", f = tagged("h2") },
+  { pattern = "^# *(.*)$", close = "\n", f = tagged("h1") },
+  { pattern = "^ *(.*)$", open = "<p>", close = "</p>\n", f = escape, br = "<br>" }
+}
+
+function parseline(str)
+  for _, state in ipairs(states) do
+    local text = str:match(state.pattern)
+    if text then return { state = state, text = state.f(text) } end
+  end
+  error("unreachable")
+end
+```
+
+Test:
+
+``` repl
+function printline(s)
+  local res = parseline(s)
+  print((" "):rep(10 - #res.state.pattern) .. res.state.pattern .. ': ' .. res.text)
+end
+
+printline([[# H1!]])
+printline([[## H2?]])
+printline([[  some code]])
+printline([[]])
+printline([[normal text :)]])
+```
+
+Looks probably good.
+
+We're only doing "document structure" stuff here, so that's almost it. (We can pretend that we're doing something more sophisticated with the bits of text, like having special text formatting syntax and maybe support for links. Won't bother actually doing any of that. But we can pretend.)
+
+Opening and closing things and switching between our states:
+
+``` prelude
+function parse(lines)
+  local state = states[2]
+  local function f(line)
+    for line in lines do
+      local res = parseline(line)
+      if res.state ~= state then
+        if state.close then coroutine.yield(state.close) end
+        state = res.state
+        if state.open then coroutine.yield(state.open) end
+      elseif state.br then
+        coroutine.yield(state.br)
+      end
+      coroutine.yield(res.text)
+    end
+    if state.close then coroutine.yield(state.close) end 
+  end
+  return coroutine.wrap(f)
+end
+
+function parsestring(str)
+  return parse(str:gmatch("[^\n]*"))
+end
+
+function html(str)
+  local res = {}
+  for html in parsestring(str) do
+    table.insert(res, html)
+  end
+  return table.concat(res)
+end
+```
+
+Let's try:
+
+``` repl
+teststring = [[
+# Hello
+
+Meep moop.
+
+## Some code
+
+Okay.
+
+  if this then
+    that
+  else
+    nope
+  end
+
+More regular text.
+]]
+
+print(html(teststring))
+```
+
+And we can put the HTML onto this page:
+
+``` repl
+web.html(html(teststring))
+```
+
+Mlep.
+
+The code is Lua code btw.
+

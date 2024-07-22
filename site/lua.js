@@ -8,9 +8,18 @@
   let currentOut = null;
   const print = (str) => {
     if (currentOut !== null) {
-      currentOut.append(elem("samp", {}, str), "\n");
+      currentOut.console.append(elem("samp", {}, str), "\n");
     } else {
       console.log(str);
+    }
+  };
+  const html = (str) => {
+    if (currentOut !== null) {
+      const el = elem("div", {});
+      el.innerHTML = str;
+      currentOut.append(el);
+    } else {
+      console.log("html: " + str);
     }
   };
   let Module;
@@ -30,7 +39,7 @@
         text = arguments.join(" ");
       }
       if (currentOut !== null) {
-        currentOut.append(
+        currentOut.console.append(
           elem("span", { className: "error" }, text),
           elem("br")
         );
@@ -44,6 +53,10 @@
           return;
         }
         print("return: " + payload);
+      } else if (code == "html") {
+          html(payload);
+      } else {
+        console.error(`unkown code sent from Lua. code: "%o". payload: %o`, code, payload);
       }
     }
   };
@@ -60,13 +73,15 @@
     const ta = elem("textarea", {
       value: element.innerText,
     });
+    const toolbar = elem("div", { className: "toolbar" });
+    const consoleout = elem("pre", { className: "output" });
+    const out = elem("div", { }, consoleout);
+    out.console = consoleout;
     const run = (e) => {
       currentOut = out;
       Module.ccall("run_lua", "number", ["string"], [ta.value]);
       currentOut = null;
     };
-    const toolbar = elem("div", { className: "toolbar" });
-    const out = elem("pre", { className: "output" });
     element.after(ta, toolbar, out);
     element.remove();
     resizeta(ta);
@@ -78,13 +93,33 @@
       ta.oninput = () => resizeta(ta);
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
-        elem("button", { className: "toolbar-button", title: "Clear output", onclick: (e) => { out.replaceChildren(); } }, "⎚"));
+        elem(
+          "button", {
+            className: "toolbar-button",
+            title: "Clear output",
+            onclick: (e) => {
+              consoleout.replaceChildren();
+              out.replaceChildren(consoleout);
+            }
+          },
+          "⎚")
+        );
     }
   };
 
   window.addEventListener("load", (e) => {
     initWasmModule(ModuleConfig).then((aModule) => {
       Module = aModule;
+      Module.ccall("run_lua", "number", ["string"], [`
+      local send = webSend
+      webSend = nil
+      web = {}
+      local Web = {}
+      setmetatable(web, Web)
+      function Web:__index(code)
+        return function(payload) send(code, payload) end
+      end
+      `]);
       for (const el of document.querySelectorAll(".lua")) {
         create(el)
       };

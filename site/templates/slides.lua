@@ -11,7 +11,7 @@ return function(url)
   end
   return {
     before = function(token)
-        return templates.beforetitle .. templates.title(token)
+        return templates.beforetitle(url) .. templates.title(token)
             .. [[<style>]]
             .. templates.css("30rem")
             ..

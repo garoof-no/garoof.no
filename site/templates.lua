@@ -1,11 +1,14 @@
 local gd = require("gd")
 
-local beforetitle = [[<!DOCTYPE html>
+local function beforetitle(url)
+  return [[<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="]] .. url("/gfx/frog.svg") .. [[" sizes="any" type="image/svg+xml">
     ]]
+end
 
 local aftercontent = [[</body>
 </html>
@@ -29,6 +32,7 @@ hr { margin: 1.5rem 0 1.5rem 0; }
 img { max-width: 100%; }
 textarea { width: 100%;  font-size: 1.05rem; color: var(--text); background-color: var(--bg2); border-color: var(--accent); }
 button { background-color: var(--bg2); border-top: 1px solid var(--accent); border-right: 1px solid var(--accent3); border-bottom: 1px solid var(--accent3); border-left: 1px solid var(--accent); }
+button:active { border-top: 1px solid var(--accent3); border-left: 1px solid var(--accent3); }
 time { font-style: italic; }
 :is(h1, h2, h3):target::after { content: " ⇐"; }
 a { color: var(--accent); }

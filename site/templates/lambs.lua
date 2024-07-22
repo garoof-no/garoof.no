@@ -8,7 +8,7 @@ pretable.prelude = gd.prewriterf("lambs prelude")
 return function(url)
   return {
    before = function(token)
-    return templates.beforetitle .. templates.title(token)
+    return templates.beforetitle(url) .. templates.title(token)
       .. '<script src="' .. url("/lambs.js") .. '" defer></script>'
       .. templates.style .. '</head><body>'
       .. templates.nav(url, token)

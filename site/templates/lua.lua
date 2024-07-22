@@ -8,7 +8,7 @@ pretable.prelude = gd.prewriterf("lua prelude")
 return function(url)
   return {
    before = function(token)
-    return templates.beforetitle .. templates.title(token)
+    return templates.beforetitle(url) .. templates.title(token)
       .. '<script src="' .. url("/lua-wasm.js") .. '" defer></script>'
       .. '<script src="' .. url("/lua.js") .. '" defer></script>'
       .. '<style>'
