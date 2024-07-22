@@ -10,5 +10,5 @@ Note that:
 * ^/notes/lambs.txt lambdas^
 * ^me https://social.vivaldi.net/@garoof am mastodon^
 
-The following is somewhat blog:
+The following is _kind of_ blog:
 
