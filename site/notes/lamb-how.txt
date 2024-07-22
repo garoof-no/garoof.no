@@ -1,0 +1,73 @@
+# How do the lambdas?
+:blurb How to lambda on blog?
+:pub Zd7EHO
+:template lambs
+
+^./lambs.txt (There's a list with all the lambda notes here.)^
+
+Assuming you're viewing this in a web browser with JavaScript and so on...
+
+Some editors are readonly. Its content is evaluated when page loads or so. Mostly for adding definitions to toplevel so they can be used later in the post:
+``` prelude
+id ≜ λx.x
+0 ≜ λf.λx.x
+ω ≜ λx.x x
+```
+
+----
+
+In the regular editors we can do stuff.
+``` repl
+(can do stuff here)
+```
+
+Normal text-editor-stuff should work. Also:
+
+* ctrl+l inserts a `λ` (or you can use `\` instead of `λ`)
+* ctrl+d inserts a `≜` (or you can use `:=` instead of `≜`)
+* ctrl+enter is used to add a definition to toplevel, or remove a definition, or do one step of evaluation
+* shift+enter is used to do a bunch of evaluation (stops when the term is on normal form, or after a thousand steps of evaluation)
+* ctrl+r is used to replace the names used in toplevel definitions with terms from the definitions
+
+ctrl+enter, shift+enter and ctrl+r all work on the line the cursor is on. Results are printed on new line(s), after. (And the cursor moves to end of result.)
+
+----
+
+So, normally, if we have written some term that uses some of the toplevel defintions, we do ctrl+r and then either ctrl+enter a few times, or shift+enter once.
+
+``` repl
+(λa.λb.b a) 0 ω 0
+```
+
+Lines with `≜` (or `:=` are for definitons). ctrl+enter on a line that goes like <identifier> ≜ <term> adds a definition.
+
+``` repl
+S ≜ λn.λf.λx.f (n f x)
+```
+
+(Most characters can be used in identifiers. But not whitespace ones, and not the ones that are used for other stuff: `:`, `\`, `≜`, `λ`, `.`, `(`, `)`.)
+
+The terms used in definitions can use the names of definitions that already exist. We can define `2` like this now, as long as we have defined `0` and `S` first: (ctrl+enter)
+``` repl
+2 ≜ S (S 0)
+```
+
+(We can evaluate it to check that the result looks reasonably twoish. Two applications of f is very two-like, so the result should look like `λf.λx.f (f x)`. (ctrl+r, then shift+enter))
+
+``` repl
+2
+```
+
+If we wanna get rid of a definition we can do `<identifier> ≜`. We’ll remove `ω` (it’s scary): (ctrl+enter)
+``` repl
+ω ≜
+```
+
+If we try to evaluate the thing we did earler, we won’t get the same result now, since `ω` will just be treated as some free variable... (ctrl+r, then shift+enter)
+``` repl
+(λa.λb.b a) 0 ω 0
+```
+
+----
+
+That’s more or less it. In posts like this it’s mostly enough to do ctrl+enter on definitions, and ctrl+r and then shift+enter on other stuff...

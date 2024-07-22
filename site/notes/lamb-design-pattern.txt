@@ -1,0 +1,78 @@
+# A design pattern?
+:blurb Datatypes and Church encody stuff with constructing and destructing things.
+:pub Ze1GGu
+:template lambs
+
+^./lambs.txt (There's a list with all the lambda notes here.)^
+
+^./lamb-succ.txt Previously we made zero and successor:^
+``` prelude
+0 ≜ λf.λx.x
+
+S ≜ λn.λf.λx.f (n f x)
+```
+
+Now there are some things. Or maybe this encourages a way of thinking about some things.
+
+One thing is: We can think that any natural number must necessarily be built from 0 and a series of Ses. (and if want to we can think about the types of things and think that `0 : nat` and `S : nat -> nat`)
+
+Another thing is: A number like this is a function. And that function kind of is the “eliminator function” for that number. An “eliminator function” like this is similar to the foldr-function for lists: We can think of it as a function for doing “constructor replacement.”
+
+If we have a number built from `S (S 0)`, and we wanna replace the `S`es with `foo`s and the `0` with `bar`, we can apply the number to `foo` and `bar`:
+``` repl
+(S (S 0)) foo bar
+```
+
+----
+
+Let's say we have the numbers 2 and 3:
+``` repl
+S (S 0)
+
+S (S (S 0))
+```
+
+Reduced to normal form:
+``` repl
+2 ≜ λf.λx.f (f x)
+
+3 ≜ λf.λx.f (f (f x))
+```
+
+And let's say we want to add them together. If we want the sum, we can take the number 2 and do the “constructor replacement” thing. The number 2 is built from the `0`-constructor and 2 `S`-contructors: `S (S 0)`. We should be able to get sum by taking that number and, keeping all the `S`es, replacing the 0 with 3: `S (S 3)`.
+
+We'll try. Taking the number 2, we replace `S` with `S`, which should let us “keep” all the `S`es, and we replace 0 with 3:
+``` repl
+2 S 3
+```
+
+We get 5 :)
+
+A bit of abstraction and we will have a +-function.
+``` repl
++ ≜ λa.λb.a S b
+
++ 2 3
+```
+
+----
+
+Or maybe we want to multiply 2 by 3.
+
+This time the idea is that we want to replace things so that we turn the number 2, or `S (S 0)`, into `+ 3 (+ 3 0)`. We replace the `S`es with a function that adds 3 to something, and we replace 0 with 0:
+``` repl
+2 (+ 3) 0
+```
+
+6!
+
+Again, abstraction:
+``` repl
+* ≜ λa.λb.a (+ b) 0
+
+* 2 3
+```
+
+----
+
+(So, uh. In my experience, thinking about these things in terms of constructors and constructor replacement lets me look away from the “inner workings” of the numbers a little bit, and also make the things feel slightly more like working with datatypes in e.g. an ML dialect. It sometimes makes some things clearer to me. But like, we totally did do addition and multiplication earlier, and it’s not like the functions we did here are very different from those earlier ones. Just a little different.)

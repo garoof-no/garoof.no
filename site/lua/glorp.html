@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Glorp</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { display: flex; flex-direction: row; gap: 1rem; }
+      body > div { display: flex; flex-direction: column; gap: 0.3rem; }
+      textarea { font-size: 1.05rem; width: 40rem; height: 75vh; }
+      p, pre, ul, hr { margin: 1rem 0 1rem 0;padding: 0; }
+      figure { margin: 0 0 1rem 0.5rem;padding: 0; }
+      h1, h2, h3 { margin: 2rem 0 0rem 0; padding: 0; }
+      h1 { font-size: 2.2rem; }
+      h2 { font-size: 1.4rem; }
+      h3 { font-size: 1.1rem; }
+      blockquote { padding: 0 0 0 0.5rem; margin: 0 0 0 0.5rem; border-left: 0.1rem solid #444444; }
+      pre { overflow-x: auto; }
+      pre, code { font-family: monospace; font-size: 1.05rem; white-space: pre; }
+      ul { list-style-position: inside; }
+      li { margin: 0;padding: 0; }
+      hr { margin: 1.5rem 0 1.5rem 0; }
+      .right { margin-left: auto; display: flex; flex-direction: row; gap: 1rem; }
+    </style>
+    <script src="./../lua-wasm.js" defer></script>
+    <script src="./lz-string-1.4.4.js" defer></script>
+    <script src="./halp.js" defer></script>
+  </head>
+  <body>
+    <div>
+      <textarea id="editor">local function foo(a, b)
+  return string.rep(b, a)
+end
+            
+return foo(10, "hello") .. " world"</textarea>
+      <div class="right">
+        <div>
+          <label for="autorun" id="autolabel">autorun:</label>
+          <input type="checkbox" name="checkbox" id="autorun" checked>
+        </div>
+        <button id="run">run ▶</button>
+      </div>
+      <div class="right" id="forlink"></div>
+    </div>
+    <div id="result"></div>
+  </body>
+</html>

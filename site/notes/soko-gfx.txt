@@ -1,0 +1,121 @@
+# Drawing a Sokoban level
+:blurb “imageSmoothingEnabled = false” is JavaScript for “tighten up”
+:template js
+:pub Zj26LE
+
+JavaScript is not a Lisp and a web browser is not a Lisp machine. But, you know, definitely more Lisp machiney than most of the things that _everyone has installed_. I like how alive things are in them, and how lots of fun stuff is like very within reach if you’re in one :)
+
+^https://en.wikipedia.org/wiki/Sokoban Sokoban is fun stuff.^
+
+Anyway, this is best viewed in a browser with JavaScript enabled. You can click the play/run-buttons to run the JavaScript in the embedded editors. It should behave mostly like running the same code in the JavaScript console. (Hitting F12 or something and finding the console might also be useful if you wanna look around and inspect stuff more or something.)
+
+## A level
+
+^http://www.sokobano.de/wiki/index.php?title=Level_format Sokoban level format.^
+* `#` is wall
+* space is empty floor
+* `.` is goal square
+* `@` is player, or `+` if the player is on a goal square
+* `$` is box, or `*` if the box is on a goal square
+
+``` repl
+const levelString = `
+#########
+#  $ @..#
+# $ $   #
+#  ###  #
+# $     #
+##  ##..#
+#########
+`;
+const level = levelString.slice(1, -1).split("\n").map(x => x.split(""));
+console.log(level);
+```
+
+## Image onto a canvas
+We have a variable called `outElement` here. `outElement` is just some `div`, and like it’d also work to just do `document.body.appendChild(...)` or something, but `outElement` is automatically moved to where we’re at when we run some code:
+
+``` html
+<img id="sprites" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAwCAYAAABwrHhvAAABnElEQVRYR+2XPU4DMRCFba5AREWdkhOkp+EkKRFnSIVS5gCcgSbX4AypkLgCPy/SoNm345/dWSlIjBtW8jjz+b3x2OSvn5EcY7fOjtUp5SUAbm+uixCn949Umw+ARRTwFIEb4GWzGuRvec7zAeBWIPoAFIhGFH1AK/D/GpHHf6ytNqKccyq9V2pz+OH7/RDt+GijFgGQ4Gm7Tc+HwwgCcxgWnCR+uPs8x7y+XSV84y8GgzQBsAgQepTAkFySMYCsB4iG6AKwxGNlJLlO1APxC8CyigWlIrMAJNZKXLLiDGD5zQBICOm1JVIDvbsXCKkNWNENwEpoBbjidWzLhhEAF1uPBawAr+Gdy/xIAWuXJQB9BGsAnFwr0gTo2b3EsA2146iP4sCCUsKa/xpAdqcbEH/rAsS3GwA7l8airdDHjsFGjcg6crxrOYJyDLkGON6yADHFViyNCEFWj2/NM4D7MuqtB2+c+/+CAAgFQoE/q8DFGtFir+I50i76Kp4K0PsuNK/jqcmseO35rFfxHAi5NfVNOeV3sD4uo4sr8A04kCebViQoKwAAAABJRU5ErkJggg==" alt="">
+```
+
+``` repl
+const spriteSheet = document.getElementById("sprites");
+outElement.appendChild(spriteSheet);
+```
+
+The sprite sheet is a set of 8 sprites. Each sprite is 16×16 pixels.
+
+We’ll create a canvas and put it in the `outElement`.
+^https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage Then we can get a `CanvasRenderingContext2D` and use `drawImage` on that.^
+Also we turn off image smoothing because pixels. Also also, we multiply some numbers by 3, because more pixels.
+
+``` repl
+const canvas = document.createElement("canvas");
+outElement.replaceChildren(canvas);
+const scale = 3;
+canvas.width = spriteSheet.width  * scale;
+canvas.height = spriteSheet.height * scale;
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+ctx.drawImage(
+  spriteSheet,
+  0,
+  0,
+  spriteSheet.width * scale,
+  spriteSheet.height * scale
+);
+```
+
+## Drawing one square
+
+We’re going to need objects with `x` and `y` properties for a bunch of stuff. First for positions of sprites. Later for positions in the level and also for directions the player can move in. We make a `vector` data structure:
+
+``` repl
+const vector = (x, y) => ({ x: x, y: y });
+console.log(vector(4, 2));
+```
+
+We’ll create an object for keeping track of where in the sprite sheet the different sprites are. Then, by passing a bunch of arguments to `drawImage` we can specify coordinates and width/height both for the part of the source image we want to draw and for the destination in the canvas. (The last 4 arguments are “destination” arguments. The ones that are multiplied by `scale`.)
+
+``` repl
+const sprites = {
+  " ": vector(0, 0), // top left is empty floor
+  "#": vector(1, 0), // top right is wall
+  "@": vector(0, 1), // middle left is player
+  "+": vector(0, 1), // same sprite for player on goal square
+  "$": vector(1, 1), // middle right is “box”
+  ".": vector(0, 2), // bottom left is goal square
+  "*": vector(1, 2), // middle left is “box” on a goal square
+};
+
+const drawSquare = (square, position) => {
+  const sprite = sprites[square];
+  ctx.drawImage(
+    spriteSheet,
+    sprite.x * 16,
+    sprite.y * 16,
+    16,
+    16,
+    position.x * 16 * scale,
+    position.y * 16 * scale,
+    16 * scale,
+    16 * scale
+  );
+};
+
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+drawSquare("@", vector(1, 2));
+```
+
+## Drawing the level
+
+``` repl
+canvas.width = level[0].length * 16 * scale;
+canvas.height = level.length * 16 * scale;
+ctx.imageSmoothingEnabled = false;
+level.forEach((row, y) => row.forEach((square, x) => drawSquare(square, vector(x, y))));
+```
+
+Is level.

@@ -1,0 +1,43 @@
+# Some numbery functions
+:blurb Some lambda calculus.
+:pub Zd76Hg
+:template lambs
+
+^./lambs.txt (There's a list with all the lambda notes here.)^
+
+Somewhat a test-post, for having not-dead lambda calculus within a post. If you're viewing this in a web browser and it runs the JavaScript and so on, it should be interactive.
+
+^../lambdas.html (There’s also kind of a lambda playground over here.)^
+
+To try, put cursor on line below and do ctrl+enter couple of times:
+
+``` repl
+(λx.λy.y x) bar foo
+```
+
+If it works (if the ctrl+enter-business leads to a line that goes `foo bar`), we can make a few numbers... (ctrl+enter each line).
+``` repl
+0 ≜ λf.λx.x
+1 ≜ λf.λx.f x
+2 ≜ λf.λx.f (f x)
+5 ≜ λf.λx.f (f (f (f (f x))))
+```
+
+The idea, or at least one way to look at it, is that the number five is the function that does something five times. So, if we want to `foo` a `bar` five times, then we can... (ctrl+r to replace `5` with the lambdas from the definition we did above. Then ctrl+enter a couple of times.)
+``` repl
+5 foo bar
+```
+
+Which maybe evaluated to `foo (foo (foo (foo (foo bar))))`. Five `foo`s.
+
+Okay. Addition is pretty numbery. Below is a function that takes arguments `a` and `b`, and gives back, uh, a `λf.λx.`-function. This function applies `f` to `x` and it will do that “`b` times.” And it will apply `f` to the result of that “`a` times.” Hopefully that amounts to `f` being applied  “`a` + `b` times” to `x` (ctrl+enter on line below)
+``` repl
++ ≜ λa.λb.λf.λx.a f (b f x)
+```
+
+If things seem fine so far, we can try to use it. ctrl+r on line below to replace the names of the things we’ve defined with their lambdas. Then ctrl+enter a bunch of times to evaluate. (Or shift+enter one time.)
+``` repl
++ 5 (+ 5 2)
+```
+
+It’s maybe twelve! (Hopefully.)

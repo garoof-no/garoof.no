@@ -1,0 +1,5 @@
+# Llama the ultimate object
+:blurb If it looks like an object, walks like an object, and spits you in the face like an object, then it probably
+:pub Zd1QMb
+
+It does extend animal.

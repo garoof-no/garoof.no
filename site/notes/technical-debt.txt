@@ -1,0 +1,10 @@
+# The 4 types of technical debt
+:blurb Tech, ni, cal and debt.
+:pub Ze6LMI
+
+I think this title is pretty thought leader because it sounds like fairly assertive and also has a number in it.
+
+* Technical debt
+* Not technical debt
+* Technical not debt
+* Not technical not debt

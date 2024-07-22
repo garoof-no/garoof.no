@@ -1,0 +1,48 @@
+# Successor
+:blurb +1
+:pub ZdEVGR
+:template lambs
+
+^./lambs.txt (There's a list with all the lambda notes here.)^
+
+We have made some numbers and some functions for working with numbers. Also some other datatypes.
+
+We haven’t really done so here, but sometimes when we define numbers we fuss more about how they are constructed, about what the constructors are. We say things like: “A natural number is zero or it is the successor of a natural number.” (In a Standard ML we might say: `datatype nat = Zero | Succ of nat`)
+
+We can do something similar but with the lambdas.
+
+---
+
+We already know what zero looks like:
+``` repl
+0 ≜ λf.λx.x
+```
+
+We do not know that successor looks like:
+``` repl
+S ≜ λn.λf.λx.f (n f x)
+```
+It takes a number, `n`, as its argument. `S` applied to `n` should return a number that is one larger than `n`.
+
+(Remember: The number `n` is a function that, if given two arguments, applies the first argument `n` times to the second.)
+
+So, `S` takes a number, `n`, as its argument, and returns one of those `λf.λx.`-functions. Within that function we do `n f x` (we apply `n` to `f` and `x`). This should amount to applying `f` “`n` times” to `x`. And then we apply `f` to the result of `n f x”, so that in total `f` should be applied “`n`+1 times” to `x`.
+
+We can test it some and see if it looks right:
+``` repl
+S 0
+
+S (S 0)
+
+S (S (S 0))
+
+S (S (S (S (S 0))))
+```
+
+And like that’s it, that’s our successor. Maybe less impressive than the addition and multiplication functions we did earlier. But it’s kind of cool:
+
+* We have zero-and-successor constructors. Much like the grown-ups have.
+* We can build any natural number with `0` and `S`. We have `0`, and we can throw `S`es at it until we have the number we really want.
+* Related: We kind of don’t really have to write the `λf.λx.`-bit ever again. Unless we want to. If we’re defining addition and we stick to `0` and `S`, we won’t have to do the `λf.λx.`-bit in order to construct the result-number.
+
+Will take a look at that last ting later.

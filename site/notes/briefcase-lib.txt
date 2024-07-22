@@ -1,0 +1,8 @@
+# Briefcases and libraries
+:blurb Devs should use more microfiche.
+:pub Zj1RH6
+
+> Each of these projects contributed its own lessons, tools and techniques. Moore carried microfiche listings of all previous projects in his briefcase, and often referred to them to get the code for some unique primitive or driver from the past. Frequently used words might become a standard fixture of the system. Also, improved techniques for solving common problems were integrated into the system.
+^https://www.forth.com/resources/forth-programming-language/ The Evolution of Forth^
+
+A thing I like about Chuck Moore’s briefcase is that “briefcase” kind of sounds like it could be a metaphor of the same kind as “library.” Clearly more personal and less “published works” than a library, but you can have some pretty of useful stuff there. Maybe sets of ideas/“patterns”, tricks and techniques and ways of thinking about things. Not necessarily complete and final solutions but like, things you bring along with you because they’ve worked for you.

@@ -1,0 +1,134 @@
+# A little JavaScript, a few sums
+:blurb Tagging some unions in JS.
+:pub ZeC7GL
+:template js
+
+^https://gist.github.com/Glorp/4c7917ad351e1340b07b1cdeb827d62c Standard ML code^
+^https://gist.github.com/Glorp/fc614dae2d91b79c4c7d4c96785da558 JavaScript code^
+^https://mitpress.mit.edu/books/little-mler The Little MLer^
+
+In chapter 6 of The Little MLer there is some stuff.
+
+There is `fruit`:
+```
+datatype fruit =
+    Peach
+  | Apple
+  | Pear
+  | Lemon
+  | Fig
+```
+
+There is `tree`:
+```
+datatype tree =
+    Bud
+  | Flat of fruit * tree
+  | Split of tree * tree
+```
+
+There is height, which looks _kind of_ like this in the book:
+```
+(* height : tree -> int *)
+fun height Bud = 0
+  | height (Flat(_,  t)) = 1 + height (t)
+  | height (Split(s, t)) = 1 + Int.max (height(s), height(t))
+```
+
+And some other stuff that we don’t want for this. Anyway we can make a couple of trees:
+```
+val smol_tree = Split (Bud, Flat (Peach, Bud))
+val larger_tree = Split (Flat (Apple, Flat (Lemon, Bud)), Flat (Peach, Bud))
+```
+
+And so in a REPL:
+```
+- height smol_tree;
+val it = 2 : int
+
+- height larger_tree;
+val it = 3 : int
+```
+
+Okay.
+
+----
+
+So JavaScript is a pretty nonstandard ML. If you view this in a web browser you should be able to click the play/run buttons to run the JavaScript.
+
+In the book we use sums for the tree-stuff. Sums are also sometimes called tagged unions. We will make a `tag`-function for tagging some stuff and then try to tag something:
+``` repl
+const tag = t => (...args) => ({ tag: t, values: [...args] });
+console.log(tag("label")(1, "horse", [2,3]));
+```
+Which gives us an object with `"label"` for its `tag` and `[1, "horse", [2, 3]]` for its `values`. That is the tag and the stuff we passed in. Good. We can make constructors and some trees now:
+
+``` repl
+// fruit constructors:
+const Peach = tag("Peach")();
+const Apple = tag("Apple")();
+const Pear = tag("Pear")();
+const Lemon = tag("Lemon")();
+const Fig = tag("Fig")();
+
+// tree constructors:
+const Bud = tag("Bud")();
+const Flat = tag("Flat");
+const Split = tag("Split");
+
+smol_tree = Split(Bud, Flat(Peach, Bud));
+const larger_tree = Split(Flat(Apple, Flat(Lemon, Bud)), Flat(Peach, Bud));
+
+console.log(smol_tree);
+```
+
+So we have half the sum stuff now. We can construct. We want destruct.
+
+Okay with sums it’s like, in order to construct a value you have to do _one of the things_. A fruit is a peach _or_ an apple _or_ one of the other ones. In order to construct one we only have to choose one of them.
+
+But when we’re going to destruct a value, that value can be any one of the things, so we have to know how to deal with _all the things_. We have to know what to do if it is a peach _and_ we have to know what to do if it is an apple _and_ so on. 
+
+So if we have a product of all the things, like maybe an object along the lines of:
+```
+{
+  Peach: // what to do if it is a peach
+  Apple: // what to do if it is an apple
+  // and so on...
+}
+```
+Then we can use the tag from the sum-thing to look up the “what to do” in the product-thing. We will make a `match`-function for destructing sums:
+
+``` repl
+const match = cases => x => cases[x.tag](...x.values);
+
+const is_apple =
+  match(
+    {
+      Peach: () => false,
+      Apple: () => true,
+      Pear: () => false,
+      Lemon: () => false,
+      Fig: () => false
+    }
+  );
+
+console.log(is_apple(Apple));
+console.log(is_apple(Fig));
+```
+Gives us `true` and `false`. Seems fine.
+
+`height` then:
+``` repl
+const height =
+  match(
+    {
+      Bud: () => 0,
+      Flat: (_, t) => 1 + height(t),
+      Split: (a, b) => 1 + Math.max(height(a), height(b))
+    }
+  );
+
+console.log(height(smol_tree));
+console.log(height(larger_tree));
+```
+Gives us 2 and 3. Okay.

@@ -1,0 +1,44 @@
+# Lambdas
+:template lambs
+
+Bla blah. This is a collection of notes with lambda calculus stuff. The posts tend to come with a kind of live lambda calculus environment where we can run examples or play around.
+
+The ones called “How/What do the lambdas?” are more introductiony than the others, with stuff about syntax and semantics and how the editors work and such.
+
+^./lamb-nums.txt Some numbery functions^
+^./lamb-how.txt How do the lambdas?^
+^./lamb-what.txt What do the lambdas?^
+^./lamb-bools.txt Some booly functions^
+^./lamb-pairs.txt Pairs^
+^./lamb-succ.txt Successor^
+^./lamb-design-pattern.txt A design pattern?^
+
+Also a lambda playground:
+
+``` repl
+| ctrl+l inserts λ
+| ctrl+d inserts ≜
+| ctrl+enter does one step of evaluation or define/undefine
+| ctrl+r rewrites stuff and replaces names defined elsewhere with their definitions
+| shift+enter does lots of evaluation
+| right-click and Show definitions to list the available definitions
+
+| e.g.
+| put cursor on line below and ctrl+enter
+0 ≜ λf.λx.x
+
+| put cursor on line below and ctrl+enter
+S ≜ λn.λf.λx.f (n f x)
+
+| put cursor on line below and ctrl+enter
+2 ≜ S (S 0)
+
+| put cursor on line below and ctrl+enter
++ ≜ λa.λb.a S b
+
+| put cursor on line below and ctrl+enter
+6 ≜ + 2 (+ 2 2)
+
+| put cursor on line below and ctrl+r, then shift+enter
++ 6 6
+```

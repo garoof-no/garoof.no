@@ -1,0 +1,16 @@
+# Types of functions
+:blurb Functions are sometimes a useful way to think about things.
+:pub Ze6BLK
+
+Blah. So functions are fun and for me they are often a useful way to think about programs.
+
+And then, for me, types more or less come with the territory. A function applied to an argument can be evaluated to a result value. When I think about a function, I tend to think about things like:
+
+* What do arguments I can apply this to look like?
+* Which expressions are likely to evaluate to things I can use as arguments?
+* What will results I get from applying the function look like?
+* Where can I use such results?
+
+And that is like, type stuff, far as I can tell.
+
+(Which is not to say that the thinking is necessarily in terms of a type _system_, or that any of this has a thing to do with type _checking_, or anything. Just, types, okay yes.)

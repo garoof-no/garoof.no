@@ -1,0 +1,89 @@
+# Solving a number problem using idiomatic LISP
+:blurb Lisp! Parentheses!
+:pub Zd3SGs
+
+Hi okay one time I ran into a number problem that went something like this: “How many (natural) numbers less than or equal to one million are there whose digits add up to forty-two?”
+
+Okay let’s solve this using Racket. Racket is a maybe a LISP. In LISP, pretty much the only thing that matters is you have to use parentheses.
+
+> Parentheses essentially are the basis of computation.
+―Robert Constable, 8 minutes or so into `https://www.youtube.com/watch?v=OubXOd0Twl4 this OPLSS 2015 lecture^
+
+Anyway we can stare at this problem for a while and then notice three things.
+* One thing is that the digits in one million do not add up to forty-two.
+* Another thing is that the numbers less than one million all have six digits (or they might as well have, and can be padded with leading zeroes).
+* Anothother thing is that forty-two divided by six equals seven.
+
+So. We only need to care about numbers that have six digits, and if every digit is seven they add up to forty-two. More, if the digits in a number are “balanced around seven” they also add up to forty-two. (A six can be made up for by an eight, a three by two nines, and so on.)
+
+Okay so that’s extremely good to know. We pretty much just wanna balance stuff. And parentheses are like incredibly good things to balance.
+
+----
+
+Racket comes with a `read`-procedure. `read` reads an expression from something, and it makes sure parentheses are balanced. Problem solved, then, more or less...
+
+```
+#lang racket
+```
+
+We need some halp. `read-string` will `read` a string until its end. If any parentheses are out of balance, read will throw and the `with-handlers-bit` will catch and make it so that we return the number zero. Otherwise one.
+
+```
+(define (read-string s)
+  (with-handlers
+      ([(λ (_) #t) (λ (_) 0)])
+    (define in (open-input-string s))
+    (let loop ()
+      (unless (eof-object? (read in))
+        (loop)))
+    1))
+```
+
+Woop woop. We can use `read-string` to kind of check if a string has balanced parentheses. If we can turn numbers into strings, so that a string only has balanced parentheses in it if the digits in the number add up to forty-two, then stuff.
+
+`number->chars` will turn a number into a list of characters, maybe padded with some zeroes:
+
+```
+(define (number->chars n)
+  (string->list (~a n
+                    #:min-width 6
+                    #:pad-string "0")))
+```
+
+Now we can have one character for every digit in a number. We make a `char->string`-function that will turn a character like that into a string. The string will have parentheses that are just as much balanced as the digit was balanced around seven:
+
+```
+(define (char->string c)
+  (match c
+    [#\0 "((((((("]
+    [#\1 "(((((("]
+    [#\2 "((((("]
+    [#\3 "(((("]
+    [#\4 "((("]
+    [#\5 "(("]
+    [#\6 "("]
+    [#\8 ")"]
+    [#\9 "))"]
+    [_ "horses"]))
+```
+
+So, in order to turn a number into a good string, we use `number->chars`, then `char->string` each digit-character. And then adjust as necessary: We will sort the characters in the string so that any left parentheses come before any right parentheses. `number->string` does:
+
+```
+(define (number->string n)
+  (define char-list
+    (map char->string (number->chars n)))
+
+  (list->string
+   (sort (append* (map string->list char-list))
+         char<?)))
+```
+
+Now all that remains is to pick the numbers we care about, then feed to `read-string` the strings we get by applying `number->string`. `read-string` should return one if things are balanced and zero if not, so if we add together all those zeroes and ones we’re good.
+
+```
+(for/sum ([n (in-range 1000000)])
+  (read-string (number->string n)))
+```
+
+You can get the full program at blah. Put it into your DrRacket, press F5 or so, and voi—some 20 seconds wait—là, you will have an answer.

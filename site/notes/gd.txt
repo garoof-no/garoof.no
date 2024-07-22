@@ -1,0 +1,131 @@
+# Glorpdown
+:pub Zk7NML
+:blurb Dawn of glorp.
+
+
+Glorpdown is plaintexty and mildly line-oriented, not totally unlike ^https://geminiprotocol.net/docs/gemtext.gmi Gemtext^. (Although at this point also _a little_ less similar to Gemtext than it used to be.) I use it for this website. The implementation of the current version tends to be here: ^../gd.lua gd.lua^. This is kind of documentation, maybe mostly test page.
+
+## Headings
+
+Lines that start with `#`, `##` or `###`.
+
+```
+# one
+## two
+### three
+```
+# one
+## two
+### three
+
+## Quotes
+
+Lines that start with `>`.
+
+```
+> blep
+```
+> blep
+
+## Horizontal line
+
+Lines that start with at least three `-`-characters.
+
+```
+---
+```
+---
+
+## Lists
+
+Lines that start with `*`.
+
+```
+* one
+* two
+```
+* one
+* two
+
+## Preformatted text
+
+Lines that starts with at least two `\``-characters. Following lines are preformatted text, until there's a line that starts with the same number of `\``-characters. Text-part of line that turns preformatted text _off_ is caption. (Text-part of the one that turns it _on_ can potentially be picked up by renderer for rendering things differently or something.)
+
+This:
+
+````
+``
+code here
+```
+not turned off yet so things are still code
+`` Description of the code 
+````
+
+Is rendered as:
+
+``
+code here
+```
+not turned off yet so things are still code
+`` Description of the code 
+
+## Drawings
+
+Preformatted but with "drawing" on the turn-on-line:
+
+````
+``` drawing
+                 .-----+
+.------+--.   .->| asd |
+| blep |  |  /   '-----+
+'------+--+-' 
+``` A drawing
+````
+``` drawing
+                 .-----+
+.------+--.   .->| asd |
+| blep |  |  /   '-----+
+'------+--+-' 
+``` A drawing
+
+## Img
+
+````
+``` img
+https://loremflickr.com/320/240/dog
+``` Probably a dog
+````
+
+``` img
+https://loremflickr.com/320/240/dog
+``` Probably a dog
+
+## Text
+
+Other lines are empty or they're lines with regular text. Text can be formatted a little. Text between two `\``-characters is code. Text between two `_`-characters is emphasized. Formatting cannot be nested. `\\` is used for escaping. Escaping works for any character, but can be useful for formatting characters, escape characters, and characters at the start of a line (e.g. if you want a regular text line to start with `=>`).
+
+```
+\=> Text line with `code with \`-character` and _emphasis with `-character_.
+```
+
+\=> Text line with `code with \`-character` and _emphasis with `-character_.
+
+And `^` is used for links. Mostly same mechanism as for formatting. So you cannot emphasise text within a link and so on...
+
+```
+^https://dailyotter.org/^ and ^https://dailybunny.org/ bunny^.
+```
+
+^https://dailyotter.org/^ and ^https://dailybunny.org/ bunny^.
+
+## Key-value pairs
+
+Lines that start with `:` followed by and then some non-whitespace character. Stuff directly after the `:` is the key. The text part of the line is the value. Used for some things. This page has a ^./datetime.txt timestamp^ and a description kind of attached to the first heading:
+
+```
+:pub Zk7NML
+:blurb Dawn of glorp.
+```
+
+Okay I think that's mostly it.
+

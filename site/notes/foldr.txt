@@ -1,0 +1,64 @@
+# Something, foldr, sugar
+:blurb foldr and constructor replacement.
+:pub ZdA4Lw
+
+I dunno. Does taking away some sugar and infixity make some things more clear?
+
+Some Standard ML:
+```
+- nonfix +;
+nonfix +
+- + (1, 2);
+val it = 3 : int
+- nonfix ::;
+nonfix ::
+- :: (1, :: (2, :: (3, nil)));
+val it = [1,2,3] : int list
+- foldr + 0 (:: (1, :: (2, :: (3, nil))));
+val it = 6 : int
+```
+
+(We removed the infix thing from `+` and `::` (the plus function and the list “cons”). They take tupled arguments. Infix `1 + 2` is nonfix `+ (1, 2)`, and so on.)
+
+Here, I guess we can say that
+```
+foldr + 0 (:: (1, :: (2, :: (3, nil))))
+```
+is kind of equivalent to
+```
++ (1, + (2, + (3, 0))).
+```
+
+And it is maybe more clear how 
+```
++ (1, + (2, + (3, 0)))
+```
+is similar to the list 
+```
+0 (:: (1, :: (2, :: (3, nil)))
+```
+
+It is like the list we but with the list constructors, `::` and `nil`, replaced with `+` and `0` (the first two values we gave to `foldr`).
+
+Also maybe unsurprising that
+```
+foldr :: nil (:: (1, :: (2, :: (3, nil))))
+```
+will be equivalent to
+```
+:: (1, :: (2, :: (3, nil)))
+```
+and evaluate to a list that looks like the one we started with?
+
+----
+(At least, more clear than when saying that
+```
+foldr (op +) 0 [1, 2, 3]
+```
+is equivalent to
+```
+1 + (2 + (3 + 0))?)
+```
+----
+
+And also like maybe not I dunno.

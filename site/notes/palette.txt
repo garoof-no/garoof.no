@@ -1,0 +1,124 @@
+# An 8-bit palette
+:blurb A colourful array of colours.
+:pub Zj45Gw
+:template js
+
+Bla blah. Some JavaScript for treating single bytes as RGB-values. Only works in browser with JavaScript and so on.
+
+^https://en.wikipedia.org/wiki/8-bit_color From Wikipedia:^
+> The simplest form of quantization is to simply assign 3 bits to red, 3 bits to green and 2 bits to blue, as the human eye is less sensitive to blue light.
+```
+Bit    7  6  5  4  3  2  1  0
+Data   R  R  R  G  G  G  B  B
+```
+
+So that’s like 3-bit values (0-7) for R and G and a 2-bit value (0-3) for B. I multiply the R and G values by 36 and the B values by 85. Because that seems fine.
+
+Anyway run the code below to get a palette with clickable colours. Can also adjust some values and things in the code:
+
+``` repl
+rFactor = 36;
+gFactor = 36;
+bFactor = 85;
+pal = palette();
+div = document.createElement("div");
+div.style.width = "10rem";
+div.style.height = "5rem";
+outElement.replaceChildren(pal, div);
+pal.addEventListener("selectColor", (e) => (div.style.background = e.detail.color));
+```
+
+## Stylesheet stuff
+^./elem.txt (With `elem` function from other post.)^
+``` prelude
+const elem = (tagName, props, ...children) => {
+  const el = Object.assign(document.createElement(tagName), props);
+  el.replaceChildren(...children);
+  return el;
+};
+
+const styles = `
+.palette {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+}
+.square {
+  box-sizing: border-box;
+  border: none;
+  width: 2rem;
+  height: 2rem;
+}
+.selectedColor {
+  border-style: dashed;
+}
+`;
+document.head.appendChild(elem("style", {}, styles));
+```
+
+## Implementation details
+
+`colorFromByte` gets the RGB-values from a byte and returns some hex:
+``` prelude
+let rFactor = 36;
+let gFactor = 36;
+let bFactor = 85;
+const colorFromByte = (byte) => {
+  const r = ((byte & 0b11100000) >> 5) * rFactor;
+  const g = ((byte & 0b00011100) >> 2) * gFactor;
+  const b = (byte & 0b00000011) * bFactor;
+  const hex = (i) => i.toString(16).padStart(2, "0");
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+};
+console.log(colorFromByte(15));
+```
+
+Which is _kind of_ it. But also code for making palette that can be put on page:
+
+``` prelude
+const palette = () => {
+  const colors = elem("div", { className: "palette" });
+  let selectedColor = 0;
+  const buttons = [];
+  const selectColor = (idx) => {
+    buttons[selectedColor].classList.remove("selectedColor");
+    selectedColor = idx;
+    buttons[selectedColor].classList.add("selectedColor");
+  };
+
+  const rowLength = 4;
+  
+  for (let row = 0; row < 256 / rowLength; row++) {
+    const rowDiv = elem("div", { className: "row" });
+    colors.appendChild(rowDiv);
+    for (let col = 0; col < rowLength; col++) {
+      const byte = (row * rowLength) + col;
+      const button = elem("button", { className: "square" });
+      rowDiv.appendChild(button);
+      buttons.push(button);
+      const color = colorFromByte(byte);
+      button.style.background = color;
+      button.onclick = () => {
+        selectColor(byte);
+        colors.dispatchEvent(
+          new CustomEvent("selectColor", {
+            detail: { byte: byte, color: color },
+          })
+        );
+      };
+    }
+  }
+  colors.selectColor = (idx) => {
+    if (idx >= 0 && idx < colorButtons.length) {
+      selectColor(idx);
+    }
+  };
+  return colors;
+};
+let pal;
+let div;
+```

@@ -1,0 +1,97 @@
+# Some booly functions
+:blurb Business logic!
+:pub Zd7TN2
+:template lambs
+
+^./lambs.txt (There's a list with all the lambda notes here.)^
+
+Bit of prelude first. ^./lamb-nums.txt Some stuff from an earlier numbery post:^
+
+``` prelude
+0 ≜ λf.λx.x
+1 ≜ λf.λx.f x
+2 ≜ λf.λx.f (f x)
+5 ≜ λf.λx.f (f (f (f (f x))))
++ ≜ λa.λb.λf.λx.a f (b f x)
+```
+
+(And in the earlier post we said something like: The number n is a function that, if given two arguments, applies the first argument n times to the second. The +-function takes the numbers `a` and `b` as arguments and gives back a new `λf.λx.`-function that applies `f` “`a` times” to the result of applying `f` “`b` times” to `x`.)
+
+We can do multiplication as well before moving on. Multiplication is like addition, just more. We will make a function that, if given the numbers `a` and `b` as arguments will start with the number zero, and add `a` “`b` times” to it:
+
+``` repl
+* ≜ λa.λb.b (+ a) 0
+
+* 5 2
+```
+
+----
+
+Soo. We have several numbers and also a couple of ways to make more numbers. So we pretty much have business: We can decide that one of the numbers is the number of monies and another one is the number of products. If we also have booleans we can do business logic.
+
+Booleans are used for if-then-else. We have a stuff we maybe wanna do and another stuff we maybe wanna do instead, and we use a boolean to pick one of the stuffs. So, we would like to have a true-value and a false-value, and we wanna set things up so that something like `if true stuff otherstuff` will evaluate to `stuff`, and something like `if false stuff otherstuff` will evalute to `otherstuff`.
+
+We will make the two boolean values be functions. (A reasonably easy choice, so long as we can only make functions in our language.) `true` will, if given two arguments, return the first one. `false`, if given two arguments, will return the second one.
+
+``` repl
+true ≜ λa.λb.a
+false ≜ λa.λb.b
+
+true stuff otherstuff
+
+false stuff otherstuff
+```
+
+Okay so it looks like `true stuff otherstuff` evaluates to `stuff` just fine on its own, and `false stuff otherstuff` evaluates to `otherstuff`, and we don’t really need `if`. But if we want an `if` we can have one. It can take a boolean as its first argument and then two more arguments, and then just hand those two last arguments over to the boolean.
+
+``` repl
+if ≜ λb.λt.λe.b t e
+
+if true stuff otherstuff
+
+if false stuff otherstuff
+```
+
+Should get same results as with just the booleans. (If we want to, we can redefine `if` to be the identity function, `λx.x`. Will work fine.)
+
+----
+
+Okay, some boolean logic bits:
+
+* `not` takes one boolean, `b`. If `b` is `true`, we return `false`. If `b` is `false`, we return `true`.
+* `and` takes two booleans, `a` and `b`. If `a` is `true`, we return `b`. If `a` is `false`, we return `false`.
+* `or` takes two booleans, `a` and `b`. If `a` is `true`, we return `true`. If `a` is `false`, we return `b`.
+
+``` repl
+not ≜ λb.if b false true
+and ≜ λa.λb.if a b false
+or ≜ λa.λb.if a true b
+
+if (and (or true false) (not false)) stuff otherstuff
+```
+
+We’ll do some boolean stuff with numbers. We can check if a number is zero by giving it two arguments. The first argument is a function that always returns false: `λ_.false`. If the number is not zero this function will be applied to something and we’ll get `false` back. The second argument is `true`. If the number is zero this `true` will be returned, without any applying of the `λ_.false` function.
+
+``` repl
+zero? ≜ λn.n (λ_.false) true
+
+zero? 0
+
+zero? 2
+```
+
+Good. Now we can do everyday business logic things. Like you know when boss is like hey we need a program that checks if the number of monies times the number of products is zero and if it is zero we should add five to the number of monies and if it is not zero we should multiply the number of products by 2. No problem:
+
+``` repl
+do-business ≜ λmonies.λproducts.if (zero? (* monies products)) (+ 2 monies) (* 2 products)
+
+do-business 2 5
+
+do-business 2 0
+```
+
+That’s a lot of business.
+
+----
+
+(Oh. If we cared about side effects or performance or something, we could worry about stuff like: Will the else-stuff be evaluated even if the boolean is true and we really only want the then-stuff? We don’t really care, since it’s going to correctly return the stuff we want either way. But if we cared: We’re evaluating things in normal order, and will give the then-stuff and the else-stuff to the boolean first, before we “step into” any of the then-stuff or else-stuff. So in the case of true the else-stuff will disappear before we do anything with it.)

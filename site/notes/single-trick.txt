@@ -1,0 +1,12 @@
+# "as if the conceptual problems of programming could be solved by a single trick"
+:blurb Terrible dogmatism.
+:pub Zk46MO
+
+Probably my favourite Dijkstra quote:
+
+> Please don't fall into the trap of believing that I am terribly dogmatical about [the go to statement]. I have the uncomfortable feeling that others are making a religion out of it, as if the conceptual problems of programming could be solved by a single trick, by a simple form of coding discipline!
+
+Dijkstra, quoted by Knuth in ^https://dl.acm.org/doi/10.1145/356635.356640 Structured Programming with go to Statements^.
+
+Every now and then my mind kind of goes "there is no trick to it," and I think of this quote. Every now and then there is some piece of "work," some uh, some piece of """intellectual activity""" or something, that you actually have to perform. You can can ask around and talk to people, you can look into how similar things have been solved previously, you can find the patterns and the best practices and so on. And that can be helpful and it can leave you better equipped to do the work. But you still have to do the actual thing.
+

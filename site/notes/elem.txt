@@ -1,0 +1,51 @@
+# JavaScript DOM framework
+:blurb Creating an element.
+:pub Zj44IY
+:template js
+
+I tend to write a helper function for making a DOM element and these days it tend to end up looking kind of like this:
+
+``` prelude
+const elem = (tagName, props, ...children) => {
+  const el = Object.assign(document.createElement(tagName), props);
+  el.replaceChildren(...children);
+  return el;
+};
+```
+
+* `tagName` is the tag name.
+* `Object.assign` copies all the `props` over, so I can pass in `className` and such through that.
+* `replaceChildren` puts the rest of the arguments in there.
+
+So uh we can use it for things. Beep boop:
+
+``` repl
+const styles = `
+.red {
+  background-color: red;
+}
+.blue {
+  background-color: blue;
+}
+.green {
+  background-color: green;
+}
+`;
+document.head.appendChild(elem("style", {}, styles));
+
+outElement.appendChild(
+  elem(
+    "div",
+    {},
+    elem("p", { className: "red" }, "blue"),
+    elem("p", { className: "blue" }, "red"),
+    elem(
+      "p",
+      {
+        onclick: (e) => e.target.classList.toggle("green"),
+      },
+      "green?"
+    )
+  )
+);
+```

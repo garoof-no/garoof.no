@@ -1,0 +1,362 @@
+local math = require("math")
+
+local function point(x, y)
+  return { x = x, y = y, key = x .. "," .. y }
+end
+
+local function points(lend)
+  local i = lend.idx
+  local off = 0 - lend.off
+  local other = lend.other.idx
+  local ended = false
+  local line = lend.line
+  return function()
+    if ended then return nil end
+    local currenti = i
+    i = i + off
+    local res = line[currenti]
+    if currenti == other then
+      ended = true
+    end
+    return currenti, res
+  end
+end
+
+local function samedir(a, b)
+  if a.x == b.x and a.y == b.y then
+    return true
+  elseif a.x == 0 and b.x == 0 then
+    return (a.y > 0 and b.y > 0) or (a.y < 0 and b.y < 0)
+  elseif a.y == 0 and b.y == 0 then
+    return (a.x > 0 and b.x > 0) or (a.x < 0 and b.x < 0)
+  else
+    return false
+  end
+end
+
+local function dir(from, to)
+  return point(to.x - from.x, to.y - from.y)
+end
+
+local function newlines()
+
+  local lines = {}
+  local extendible = {}
+
+  local function line(from, to)
+    local line = { from, to }
+    local first = { line = line, idx = 1, off = -1, dir = dir(to, from) }
+    local last = { line = line, idx = 2, off = 1, dir = dir(from, to) }
+    first.other = last
+    last.other = first
+    line["first"] = first
+    line["last"] = last
+    table.insert(lines, line)
+    extendible[from.key] = first
+    extendible[to.key] = last
+    return line
+  end
+
+  local function extend(lend, point)
+    local line = lend.line
+    local i = lend.idx
+    local prev = line[i]
+    extendible[prev.key] = nil
+    extendible[point.key] = lend
+
+    local newdir = dir(prev, point)
+    if not samedir(newdir, lend.dir) then
+      i = i + lend.off
+    end  
+    line[i] = point
+    lend.idx = i
+    lend.dir = newdir
+    return line
+  end
+
+  local function unstend(lend)
+    local p = lend.line[lend.idx]
+    extendible[p.key] = nil
+  end
+
+  local function join(first, last)
+    local fline = first.line
+    local lline = last.line
+    if first == last then
+      error("oh no")
+    elseif fline == lline then
+      fline.closed = true
+      unstend(first)
+      unstend(last)
+      return fline
+    else
+      local flen = math.abs(first.idx - first.other.idx)
+      local llen = math.abs(last.idx - last.other.idx)
+      local keep, remove
+      if flen >= llen then keep, remove = first, last
+      else keep, remove = last, first end
+      local rline = remove.line
+      unstend(rline.first)
+      unstend(rline.last)
+      for i, p in (points(remove)) do
+        extend(keep, p)
+        rline[i] = nil
+      end
+      rline.first = nil
+      rline.last = nil
+      rline.nothing = true
+      return keep.line
+    end
+  end
+
+  lines.add = function(fromx, fromy, tox, toy)
+    local from, to = point(fromx, fromy), point(tox, toy)
+    local first = extendible[from.key]
+    local last = extendible[to.key]
+    if first and last then
+      return join(first, last)
+    elseif first then
+      return extend(first, to)
+    elseif last then
+      return extend(last, from)
+    else
+      return line(from, to)
+    end
+  end
+  return lines
+end
+
+local space, horiz, vert, bottom, top, lowhoriz = 32, 45, 124, 46, 39, 95
+local fslash, bslash = 47, 92
+local plus = 43
+local arrl, arrr, arru, arrd = 60, 62, 94, 86
+
+local function set(...)
+  local res = {}
+  for _, v in ipairs({...}) do res[v] = true end
+  return res
+end
+
+local verts = set(vert, plus, bottom)
+local vertsu = set(vert, plus, bottom, arru)
+local vertsd = set(vert, plus, top, arrd)
+local horis = set(horiz, plus, top, bottom)
+local horisl = set(horiz, plus, top, bottom, arrl)
+local horisr = set(horiz, plus, top, bottom, arrr)
+
+function newmap()
+  local map = { w = 0, h = 0 }
+
+  map.addline = function(str)
+    str = str or ""
+    local row = {}
+    local x = 0
+    local y = map.h + 1
+    map.h = y
+    for _, code in utf8.codes(str) do
+      x = x + 1
+      if code ~= space then
+        local key = x .. "," .. y
+        local value = point(x, y)
+        value.code = code
+        map[key] = value
+        table.insert(map, value)
+      end
+    end
+    map.w = math.max(map.w, x )
+  end
+  map.at = function(x, y)
+    local res = map[x .. "," .. y]
+    return res and res.code
+  end
+  return map
+end
+
+local function escapechar(c)
+  if c == "<" then return "&lt;"
+  elseif c == ">" then return "&gt;"
+  elseif c == '"' then return "&quot;"
+  elseif c == "'" then return "&apos;"
+  elseif c == "&" then return "&amp;"
+  else return c
+  end
+end
+
+local function escape(str)
+  local res = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+local function i(n)
+  local floored = math.floor(n)
+  return floored == n and floored or n
+end
+
+local function render(map, out, size)
+  size = size or 16
+  local cellw, cellh = i(size * 0.55), i(size)
+  local xscale, yscale = i(cellw / 4), i(cellh / 8)
+  local res = nil
+
+  local lines = newlines()
+  local texts = {}
+  local text = nil
+
+  local function newtext(c, p)
+    text = { c }
+    text.first = p
+    text.last = p
+    table.insert(texts, text)
+    return text
+  end
+
+  local function addchar(c, p)
+    if text and text.last.y == p.y then
+      if text.last.x == p.x - 1 then
+        table.insert(text, c)
+        text.last = p
+        return
+      elseif text.last.x == p.x - 2 then
+        table.insert(text, space)
+        table.insert(text, c)
+        text.last = p
+        return
+      end
+    end
+    newtext(c, p)
+  end
+
+  for _, p in ipairs(map) do
+    local x = p.x
+    local y = p.y
+    local code = p.code
+    local bx = x * 4
+    local by = y * 8
+    local added = false
+    local function add(x1, y1, x2, y2)
+      lines.add(x1, y1, x2, y2)
+      added = true
+    end
+    if code == horiz then add(bx, by + 4, bx + 4, by + 4)
+    elseif code == vert then add(bx + 2, by, bx + 2, by + 8)
+    elseif code == lowhoriz then add(bx, by + 8, bx + 4, by + 8)
+    elseif code == fslash then add(bx, by + 8, bx + 4, by)
+    elseif code == bslash then add(bx, by, bx + 4, by + 8)
+    elseif code == bottom then
+      local px, py = bx + 2, by + 6
+      local l, r = map.at(x - 1, y), map.at(x + 1, y)
+      local d = map.at(x, y + 1)
+      local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
+      local added = false
+      if horisl[l] then add(bx, by + 4, px, py) end
+      if dl == fslash or l == lowhoriz then
+        add(bx, by + 8, px, py)
+      end
+      if vertsd[d] then add(bx + 2, by + 8, px, py) end
+      if dr == bslash or r == lowhoriz then
+        add(px, py, bx + 4, by + 8)
+      end
+      if horisr[r] then add(px, py, bx + 4, by + 4) end
+    elseif code == top then
+      local px, py = bx + 2, by + 2
+      local l, r = map.at(x - 1, y), map.at(x + 1, y)
+      local u = map.at(x, y - 1)
+      local ul, ur = map.at(x - 1, y - 1), map.at(x + 1, y - 1)
+      if horisl[l] then add(bx, by + 4, px, py) end
+      if ul == bslash then add(bx, by, px, py) end
+      if vertsu[u] then add(bx + 2, by, px, py) end
+      if ur == fslash then add(px, py, bx + 4, by) end
+      if horisr[r] then add(px, py, bx + 4, by + 4) end
+    elseif code == plus then
+      local px, py = bx + 2, by + 4
+      local l, r = map.at(x - 1, y), map.at(x + 1, y)
+      local u, d = map.at(x, y - 1), map.at(x, y + 1)
+      if horisl[l] then add(bx, by + 4, px, py) end
+      if vertsd[d] then add(bx + 2, by + 8, px, py) end
+      if horisr[r] then add(px, py, bx + 4, by + 4) end
+      if vertsu[u] then add(bx + 2, by, px, py) end
+    elseif code == arrl then
+      local r = map.at(x + 1, y)
+      if horis[r] then
+        add(bx + 4, by + 4, bx, by + 4)
+        add(bx, by + 4, bx + 4, by + 2)
+        add(bx, by + 4, bx + 4, by + 6)
+      end
+    elseif code == arrr then
+      local l = map.at(x - 1, y)
+      if horis[l] then
+        add(bx, by + 4, bx + 4, by + 4)
+        add(bx + 4, by + 4, bx, by + 2)
+        add(bx + 4, by + 4, bx, by + 6)
+      end
+    elseif code == arru then
+      local d = map.at(x, y + 1)
+      if verts[d] then
+        add(bx + 2, by + 8, bx + 2, by)
+        add(bx + 2, by, bx, by + 4)
+        add(bx + 2, by, bx + 4, by + 4)
+      end
+    elseif code == arrd then
+      local u = map.at(x, y - 1)
+      if verts[u] then
+        add(bx + 2, by, bx + 2, by + 8)
+        add(bx + 2, by + 8, bx, by + 4)
+        add(bx + 2, by + 8, bx + 4, by + 4)
+      end
+    elseif code and not added then
+      addchar(code, p)
+    end
+  end
+
+  local style = [[<style>svg { stroke: currentColor; fill: none; } ]]
+  style = style .. [[text { stroke: none; fill: currentColor; ]]
+  style = style .. [[font-family: monospace; ]]
+  style = style .. [[font-size: ]] .. size .. [[px; ]]
+  style = style .. [[dominant-baseline: hanging; text-anchor: start; }</style>]]
+
+  local function lineSvg(line)
+    if line.nothing then
+      return ""
+    end
+    local strs = {}
+    for i, p in points(line.first) do
+      table.insert(strs, p.x * xscale .. "," .. p.y * yscale)
+    end
+    local type = line.closed and '<polygon points="' or '<polyline points="'
+    return type .. table.concat(strs, " ") .. '" />'
+  end
+
+  
+  local w, h = ((map.w + 2) * cellw), ((map.h + 2) * cellh)
+  out('<svg width="' .. w .. '" height="' .. h .. '" viewBox="0 0 ' .. w .. ' ' .. h .. '" xmlns="http://www.w3.org/2000/svg">')
+  out(style)
+  for k, v in ipairs(lines) do
+    out(lineSvg(v))
+  end
+
+  for k, v in ipairs(texts) do
+    local x = v.first.x * 4 * xscale
+    local y = v.first.y * 8 * yscale
+    local str = escape(utf8.char(table.unpack(v)))
+    out('<text x="' .. x ..'" y="' .. y .. '">' .. str .. '</text>')
+  end
+
+  out("</svg>")
+  if res then return table.concat(res) end
+end
+
+function svg(str, size)
+  local map = newmap()
+  for line in str:gmatch("[^\n]*") do
+    map.addline(line)
+  end
+  local res = {}
+  render(map, function(str) table.insert(res, str) end, size)
+  return table.concat(res)
+end
+
+return {
+  newmap = newmap,
+  render = render,
+  svg = svg
+}

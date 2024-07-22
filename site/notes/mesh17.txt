@@ -1,0 +1,30 @@
+# Code Mesh and infinite llamas
+:blurb Y combinator.
+:pub ZdDAPK
+
+Kind of a companion post for a Code Mesh talk we did:
+^http://www.codemesh.io/codemesh2017/jonas-winje Infinite Lambda Calculus^
+
+^https://github.com/Glorp/lambs/tree/mesh17 The code we used for the talk^
+^https://github.com/Glorp/lambs/blob/mesh17/lambs/mesh.txt The file we ended up with in the talk (it is what it is)^
+
+`./lambs.txt Also there are some lambdas over here^
+
+----
+
+Maybe the talk has a main point. Goes like this:
+
+* We wanna get something like infinite, or at least pretty infinite, loops.
+* Lambda calculus is Turing complete, but it kind of wasn’t supposed to be?
+* Turing complete things can probably do infinite loops,
+* Type systems tend to get rid of like accidental Turing completeness.
+
+We can come up with a recipe for making a loopy thing:
+* Look for a tiny expression that wouldn't typecheck if we had a type system-and-checker (if the type system doesn’t like an expression, then maybe that expression has something to do with Turing completeness and leads to infinite loops)
+* Type checkers sure don’t like `λx.x x`
+* `(λx.x x) (λx.x x)` goes on and on. Maybe for forever.
+* Adding e.g. `foo` like so: `(λx.x x) (λx.foo (x x))` will give us as many `foo`s as we want. Doing a few steps of evaluation will get us `foo (foo ((λx.foo (x x)) (λx.foo (x x))))`. If we do more steps we get more `foo`s.
+* We can do this with any `f`, instead of just with `foo`, because lambda abstraction: `λf.(λx.x x) (λx.f (x x))`
+*One step of evaluation takes us from `λf.(λx.x x) (λx.f (x x))` to `λf.(λx.f (x x)) (λx.f (x x))`
+
+`λf.(λx.f (x x)) (λx.f (x x))` is the Y combinator :)

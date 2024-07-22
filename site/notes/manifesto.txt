@@ -1,0 +1,7 @@
+# Manifesto for software development
+:blurb I like smol.
+:pub ZeC6DJ
+
+Small over large.
+
+I value the item on the left more.

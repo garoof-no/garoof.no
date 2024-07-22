@@ -1,0 +1,60 @@
+# Land of some other order
+:blurb Order of evaluation-stuff.
+:pub Zf6BEE
+
+We start with
+```
+#lang racket
+```
+or
+```
+#lang lazy
+```
+
+And make some natural and/or unnatural numbers:
+```
+(struct zero () #:transparent)
+(struct succ (pred) #:transparent)
+
+(define one (succ (zero)))
+(define two (succ one))
+(define (inf) (succ (inf)))
+```
+
+And a less-than-or-equal-to function:
+```
+(define (<= a b)
+  (cond
+    [(zero? a) #t]
+    [(zero? b) #f]
+    [else (<= (succ-pred a) (succ-pred b))]))
+```
+
+(`<=` is a function with parameters `a` and `b`: If `a` is zero then true else if `b` is zero then false else try with one-less-than-`a` and one-less-than-`b` instead.)
+
+Okay. We can try to apply the function to some arguments. The following are are fine and evaluate to `#t` and `#f`.
+```
+(<= one two)
+
+(<= two one)
+```
+
+If we started with `#lang racket` the next two will run forever and we won’t get values back. If we started with `#lang lazy` they’re fine and evaluate to `#t` and `#f`.
+```
+(<= two (inf))
+
+(<= (inf) two)
+```
+
+The next one will run forever in both `#lang racket` and `#lang lazy`.
+```
+(<= (inf) (inf))
+```
+
+(Forever means until we are out of memory or something.)
+
+Anyway. We can choose:
+* If we want as many expressions as possible to give back values, we might prefer `#lang lazy`
+* If we want as many applications as possible of `<=` to give back values, we might prefer `#lang racket`
+
+(In `#lang racket` the forever happens when evaluating the `(inf)`-arguments before the `<=`-function is applied. In `#lang lazy` we might have to decide: Is it the `(inf)` or the `<=` that causes forever? Is it reasonably to expect there to be a base case?)

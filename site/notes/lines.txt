@@ -1,0 +1,691 @@
+# Lines
+:blurb For drawing with.
+:pub ZjA7N6
+:template js
+
+(You need to view this in a browser with JavaScript enabled to use the editor.)
+
+``` html
+<div id="lines"></div>
+```
+
+Controls:
+* Add a new lines-point or reposition text: Click within the outlined svg-element.
+* Deselect: Enter or right-click within the outlined svg-element.
+* Add new text: Start writing when no thing is selected.
+* Select things to edit: Click, ctrl-click or shift-click the buttons. Also ctrl+arrow keys. Also ctrl+A.
+* Move selected things: Arrow keys.
+* Remove last point or character of selected thing(s): Backspace.
+* Remove selected things: Delete.
+* Resize drawing: Edit the numbers at the end of the `\`\`\` lines`-line in the textarea.
+
+(Things got a little single-page application here. Some browser keyboard shortcuts are broken. Sorry.)
+
+Text-format:
+* `\`\`\` lines <w h>`: opening with `w×h`-size.
+* `l <x1 y1> ... <xn yn>`: Lines from point to point.
+* `t <x y> <text>`: <text> centered at `x,y`.
+* `\`\`\``: closing line.
+
+Editing the text updates the drawing. Editing the drawing updates the text. Size of drawing can only be edited as text. If you need to edit/move individual points within a series-of-lines-thing that can (currently?) only be done in text.
+
+The coordinate system is like based on the font size. When rendering to svg four units make one `em`.
+
+Inspired by ^https://akkartik.name/lines.html Kartik Agaram’s "Plain text. With lines."^
+
+Used to use this for my Glorpdown stuff, but I'm currently doing some ASCII art to SVG stuff instead. Might put this back in at some point I guess maybe...
+
+## Implementation
+
+(The code below is picked up and executed when this page is loaded.)
+
+### Style
+
+^./elem.txt (With `elem` function from other post.)^
+
+To make the svg-element more self-contained: Adding `svgStyle` to the svg-element later instead of to head. 
+
+``` prelude
+const elem = (tagName, props, ...children) => {
+  const el = Object.assign(document.createElement(tagName), props);
+  el.replaceChildren(...children);
+  return el;
+};
+
+const styles = `
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+}
+
+.lines-button {
+  text-align: left;
+  font-size: 1rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.svg-canvas {
+  outline-style: solid;
+  margin: 0.3rem;
+}
+
+.lines-text {
+  width: 25rem;
+}
+.selection-marker {
+  width: 1rem;
+}
+`;
+document.head.appendChild(elem("style", {}, styles));
+
+const svgStyle = `
+<style>
+  svg {
+    stroke: currentColor;
+    fill: none;
+  }
+  text {
+    stroke: none;
+    dominant-baseline: middle;
+    text-anchor: middle;
+    fill: currentColor;
+  }
+  .selected {
+    stroke: #00ff00;  
+  }
+  text.selected {
+    stroke: none;
+    fill: #00ff00;
+  }
+</style>
+`;
+```
+
+### Vectors
+
+For positions, sizes, directions. Vectors support addition.
+
+``` prelude
+class Vector {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  add(v) {
+    return new Vector(this.x + v.x, this.y + v.y);
+  }
+  static get left() {
+    return new Vector(-1, 0);
+  }
+  static get right() {
+    return new Vector(1, 0);
+  }
+  static get up() {
+    return new Vector(0, -1);
+  }
+  static get down() {
+    return new Vector(0, 1);
+  }
+}
+```
+
+### A drawing has things in it
+
+The content of a drawing is a bunch of things. A thing is some lines or some text. There’s some stuff we can (attempt to) do to things:
+
+* We can move a thing.
+* We can add a position to a thing or set the position of a thing.
+* We can (attempt to) add a character to a thing.
+* We can “go back.” This is vaguely undo-like, but really more backspace-like.
+
+``` prelude
+class Lines {
+  constructor(positions) {
+    this.positions = positions === undefined ? [] : positions;
+  }
+  match(cases) {
+    return cases.lines(this.positions);
+  }
+  move(vec) {
+    this.positions = this.positions.map((pos) => pos.add(vec));
+  }
+  addPosition(position) {
+    this.positions.push(position);
+  }
+  addCharacter(c) {}
+  back() {
+    this.positions.splice(-1, 1);
+  }
+}
+
+class Text {
+  constructor(position, str) {
+    this.position = position;
+    this.str = str === undefined ? "" : str;
+  }
+  match(cases) {
+    return cases.text(this.position, this.str);
+  }
+  move(vec) {
+    this.position = this.position.add(vec);
+  }
+  addPosition(position) {
+    this.position = position;
+  }
+  addCharacter(c) {
+    this.str += c;
+  }
+  back() {
+    this.str = this.str.slice(0, -1);
+  }
+}
+```
+
+A drawing is width×height-size and an ordered list of things. Not too objecty, mostly just data. That’s okay.
+
+``` prelude
+class Drawing {
+  constructor(size = new Vector(60, 40), things = []) {
+    this.size = size;
+    this.things = things;
+  }
+}
+```
+
+Parsing turns strings into things.
+
+``` prelude
+const regCase = (str, list) => {
+  for (const [regex, f] of list) {
+    const match = str.match(regex);
+    if (match !== null) {
+      return f(match);
+    }
+  }
+  return null;
+};
+
+const parse = new (class {
+  vec(str) {
+    const match = str.match(/^\s*(\d+)\s+(\d+)\s*$/);
+    return match === null
+      ? null
+      : new Vector(parseInt(match[1]), parseInt(match[2]));
+  }
+  vecs(str) {
+    const res = [];
+    let rest = str;
+    while (true) {
+      const match = rest.match(/^\s*(\d+)\s+(\d+)\s*(.*)$/);
+      if (match === null) {
+        return res;
+      }
+      res.push(new Vector(parseInt(match[1]), parseInt(match[2])));
+      rest = match[3];
+    }
+  }
+  drawing(str) {
+    const res = new Drawing();
+    for (const line of str.split("\n")) {
+      regCase(line, [
+        [
+          /^```\s+lines\s+(\d+\s+\d+)\s*$/,
+          (match) => {
+            res.size = this.vec(match[1]);
+          },
+        ],
+        [
+          /^l(.*)$/,
+          (match) => {
+            res.things.push(new Lines(this.vecs(match[1])));
+          },
+        ],
+        [
+          /^t\s*(\d+\s+\d+)\s+(.*)$/,
+          (match) => {
+            res.things.push(new Text(this.vec(match[1]), match[2]));
+          },
+        ],
+      ]);
+    }
+    return res;
+  }
+})();
+```
+
+And unparsing turns things into strings.
+
+``` prelude
+const unparse = new (class {
+  thing(thing) {
+    return thing.match({
+      text: (position, str) => `t ${position.x} ${position.y} ${str}`,
+      lines: (positions) => {
+        let str = "l";
+        for (const pos of positions) {
+          str += ` ${pos.x} ${pos.y}`;
+        }
+        return str;
+      },
+    });
+  }
+  drawing(drawing) {
+    let res = "``` lines ";
+    res += `${drawing.size.x} ${drawing.size.y}`;
+    drawing.things.forEach((t) => {
+      res += `\n${this.thing(t)}`;
+    });
+    res += "\n```";
+    return res;
+  }
+})();
+```
+
+### Selection
+
+A selection is used for keeping track of which things are selected when editing a drawing. It’s not too concerned with the actual things, just _where_ in the ordered list they are. So it holds onto a set of indices and the total number of things.
+
+``` prelude
+class Selection {
+  constructor(limit = 0) {
+    this.limit = limit;
+    this.ids = new Set();
+  }
+  isSelected(id) {
+    return this.ids.has(id);
+  }
+  hasSelection() {
+    return this.ids.size > 0;
+  }
+  valid(id) {
+    return id !== null && id >= 0 && id < this.limit;
+  }
+  wrap(id) {
+    if (this.limit < 1) {
+      return null;
+    }
+    let res = id;
+    while (res < 0) {
+      res += this.limit;
+    }
+    while (res >= this.limit) {
+      res -= this.limit;
+    }
+    return res;
+  }
+  select(id) {
+    if (this.valid(id)) {
+      this.ids = new Set([id]);
+    }
+  }
+  deselect() {
+    this.ids = new Set();
+  }
+  selectAll() {
+    for (let i = 0; i < this.limit; i++) {
+      this.add(i);
+    }
+  }
+  add(id) {
+    if (!this.valid(id)) {
+      return;
+    }
+    this.ids.add(id);
+  }
+  remove(id) {
+    this.ids.delete(id);
+  }
+  toggle(id) {
+    if (this.isSelected(id)) {
+      this.remove(id);
+    } else {
+      this.add(id);
+    }
+  }
+  expand(id) {
+    const min = Math.min(id, ...this.ids);
+    const max = Math.max(id, ...this.ids);
+    for (let i = min; i <= max; i++) {
+      this.add(i);
+    }
+  }
+  move(num) {
+    if (!this.hasSelection()) {
+      if (num < 0) {
+        this.ids = new Set([0]);
+      } else if (num > 0) {
+        this.ids = new Set([-1]);
+      }
+    }
+    const res = new Set();
+    for (const i of this.ids) {
+      res.add(this.wrap(i + num));
+    }
+    this.ids = res;
+  }
+  resize(limit) {
+    this.limit = limit;
+    for (const id of this.ids) {
+      if (id >= limit) {
+        this.ids.delete(id);
+      }
+    }
+  }
+  itemsFrom(list) {
+    const res = [];
+    for (let i = 0; i < this.limit; i++) {
+      if (this.isSelected(i)) {
+        res.push(list[i]);
+      }
+    }
+    return res;
+  }
+}
+```
+### State
+
+The state ties things together. Keeps track of drawing and selection and has methods for stuff you can do.
+
+``` prelude
+class State {
+  constructor(drawing = new Drawing()) {
+    this.drawing = drawing;
+    this.position = new Vector(0, 0);
+    this.selection = new Selection(drawing.things.length);
+  }
+  selectedThings() {
+    return this.selection.itemsFrom(this.drawing.things);
+  }
+  pushThing(thing) {
+    this.drawing.things.push(thing);
+    this.selection.resize(this.drawing.things.length);
+    this.selection.select(this.drawing.things.length - 1);
+  }
+  selectedDo(f, orelse = () => {}) {
+    if (this.selection.hasSelection()) {
+      this.selectedThings().forEach(f);
+    } else {
+      orelse();
+    }
+  }
+  move(vec) {
+    this.selectedDo((thing) => thing.move(vec));
+  }
+  addPosition() {
+    this.selectedDo(
+      (thing) => thing.addPosition(this.position),
+      () => this.pushThing(new Lines([this.position]))
+    );
+  }
+  addCharacter(c) {
+    this.selectedDo(
+      (thing) => thing.addCharacter(c),
+      () => this.pushThing(new Text(this.position, c))
+    );
+  }
+  delete() {
+    this.drawing.things = this.drawing.things.filter(
+      (thing, id) => !this.selection.isSelected(id)
+    );
+    this.selection.deselect();
+    this.selection.resize(this.drawing.things.length);
+  }
+  back() {
+    this.selectedDo((thing) => thing.back());
+  }
+}
+```
+
+### Drawing into svg-element
+
+Rendering “into” an existing svg-element instead of returning a new thing. Since we have set up an svg-element, with events hooked up and such, that we want to keep using.
+
+(Considered returning just the inner svg-stuff, but the scaling of things is kind of tied up to the height and width of the svg-element, so blah blah cohesion maybe.)
+
+``` prelude
+const svgScale = (size)  => (v) => {
+  return {
+    x: `${v.x * (100 / size.x)}%`,
+    y: `${v.y * (100 / size.y)}%`,
+  };
+};
+
+const drawToSvg = (state, svg) => {
+  const drawing = state.drawing;
+  const scale = svgScale(drawing.size);
+  svg.setAttribute("width", `${drawing.size.x / 4}em`);
+  svg.setAttribute("height", `${drawing.size.y / 4}em`);
+  let res = svgStyle;
+  drawing.things.forEach((thing, id) => {
+    const selected = state.selection.isSelected(id) ? ` class="selected"` : "";
+    thing.match({
+      lines: (positions) => {
+        let prev = null;
+        for (const current of positions) {
+          if (prev !== null) {
+            const scaledPrev = scale(prev);
+            const scaledCurrent = scale(current);
+            res += `<line${selected} x1="${scaledPrev.x}" y1="${scaledPrev.y}" x2="${scaledCurrent.x}" y2="${scaledCurrent.y}" />`;
+          }
+          prev = current;
+        }
+      },
+      text: (position, str) => {
+        const scaled = scale(position);
+        res += `<text${selected} x="${scaled.x}" y="${scaled.y}">${str}</text>`;
+      },
+    });
+  });
+  svg.innerHTML = res;
+};
+```
+
+### Making an editor
+
+A bunch of code:
+
+``` prelude
+const editor = (state) => {
+  const posEl = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle"
+  );
+  posEl.setAttribute("r", "2");
+
+  const div = elem("div", { className: "row" });
+  const buttons = div.appendChild(elem("div", { className: "buttons" }));
+  const svgCol = div.appendChild(elem("div", { className: "column" }));
+
+  const svg = svgCol.appendChild(
+    document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  );
+  svg.classList.add("svg-canvas");
+  const p = svgCol.appendChild(elem("p"));
+
+  const textarea = div.appendChild(elem("textarea", { className: "lines-text" }));
+  textarea.oninput = () => {
+    state.drawing = parse.drawing(textarea.value);
+    state.selection.deselect();
+    state.selection.resize(state.drawing.things.length);
+    render.drawing();
+    render.buttons();
+  };
+
+  const render = new (class {
+    drawing() {
+      drawToSvg(state, svg);
+      render.mouse();
+    }
+    mouse() {
+      const scaled = svgScale(state.drawing.size)(state.position);
+      posEl.setAttribute("cx", scaled.x);
+      posEl.setAttribute("cy", scaled.y);
+      svg.appendChild(posEl);
+      p.innerText = `${state.position.x},${state.position.y}`;
+    }
+    buttons() {
+      buttons.replaceChildren();
+      state.drawing.things.forEach((thing, i) => {
+        const str = unparse.thing(thing);
+        buttons.appendChild(
+          elem(
+            "div",
+            { className: "row" },
+            elem(
+              "div",
+              { className: "selection-marker" },
+              state.selection.isSelected(i) ? ">" : ""
+            ),
+            elem(
+              "button",
+              {
+                className: "lines-button",
+                onclick: (e) => {
+                  if (e.shiftKey) {
+                    state.selection.expand(i);
+                  } else if (e.ctrlKey || e.metaKey) {
+                    state.selection.toggle(i);
+                  } else {
+                    state.selection.select(i);
+                  }
+                  render.drawing();
+                  render.buttons();
+                },
+              },
+              str.length > 38 ? str.slice(0, 35) + "..." : str
+            )
+          )
+        );
+      });
+    }
+    text() {
+      textarea.value = unparse.drawing(state.drawing);
+    }
+  })();
+
+  const posFromMouse = (e, size) => {
+    const point = new DOMPoint(e.clientX, e.clientY);
+    const translated = point.matrixTransform(svg.getScreenCTM().inverse());
+    const box = svg.getBoundingClientRect();
+    const x = Math.round((translated.x / box.width) * size.x);
+    const y = Math.round((translated.y / box.height) * size.y);
+    return new Vector(x, y);
+  };
+
+  svg.onmousemove = (e) => {
+    state.position = posFromMouse(e, state.drawing.size);
+    render.mouse();
+  };
+  svg.oncontextmenu = (e) => e.preventDefault();
+  svg.onmousedown = (e) => {
+    state.position = posFromMouse(e, state.drawing.size);
+    render.mouse();
+    if (e.buttons < 2) {
+      state.addPosition();
+    }
+    if (e.buttons == 2) {
+      state.selection.deselect();
+    }
+    render.drawing();
+    render.buttons();
+    render.text();
+  };
+
+  const keyToSelectionOffset = (key) => {
+    return key === "ArrowUp" ? -1 : key === "ArrowDown" ? 1 : null;
+  };
+  const keyToDir = (key) => {
+    return key === "ArrowLeft"
+      ? Vector.left
+      : key === "ArrowRight"
+      ? Vector.right
+      : key === "ArrowUp"
+      ? Vector.up
+      : key === "ArrowDown"
+      ? Vector.down
+      : null;
+  };
+
+  document.onkeydown = (e) => {
+    const active = document.activeElement.tagName;
+    if (active === "INPUT" || active === "TEXTAREA") {
+      return;
+    }
+    const key = e.key;
+    if (e.ctrlKey || e.metaKey) {
+      const y = keyToSelectionOffset(key);
+      if (y !== null) {
+        e.preventDefault();
+        state.selection.move(y);
+        render.buttons();
+        render.drawing();
+        return;
+      }
+      if (key.toLowerCase() === "a") {
+        e.preventDefault();
+        state.selection.selectAll();
+        render.buttons();
+        render.drawing();
+        return;
+      }
+      return;
+    }
+    if (state.selected === null) {
+      return;
+    }
+    if (key === "Enter") {
+      state.selection.deselect();
+    } else if (key === "Delete") {
+      state.delete();
+    } else if (key === "Backspace") {
+      state.back();
+    } else {
+      const dir = keyToDir(key);
+      if (dir !== null) {
+        state.move(dir);
+      } else {
+        if (key.length > 1) {
+          return;
+        }
+        state.addCharacter(e.key);
+      }
+    }
+    e.preventDefault();
+    render.drawing();
+    render.buttons();
+    render.text();
+  };
+  
+  render.mouse();
+  render.drawing();
+  render.text();
+  render.buttons();
+  return div;
+};
+```
+
+We’ll make one and put it somewhere near the top:
+
+``` prelude
+const state = new State(parse.drawing(
+`
+\`\`\` lines 100 60
+l 35 21 35 25
+l 51 21 51 26
+l 31 32 31 32 36 37 48 38 56 32
+t 42 30 o
+\`\`\`
+`
+));
+document.getElementById("lines").replaceWith(editor(state));
+```
