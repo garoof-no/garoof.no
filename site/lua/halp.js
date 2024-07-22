@@ -16,7 +16,7 @@
     let modified = true;
 
     const runLua = () => {
-      result.innerHTML = ""
+      result.replaceChildren();
       const str = editor.value;
       Module.ccall("run_lua", "number", ["string"], [luarun(str)]);
       link = document.createElement("a");
@@ -32,7 +32,9 @@
             text = arguments.join(" ");
           }
           if (text != "emsc") {
-            console.log(text);
+            const p = document.createElement("p");
+            p.innerText = text;
+            result.append(p, document.createElement("br"));
           }
         };
       })(),
@@ -40,6 +42,10 @@
         if (arguments.length > 1) {
           text = arguments.join(" ");
         }
+        const p = document.createElement("p");
+        p.className = "error";
+        p.innerText = text;
+        result.append(p, document.createElement("br"));
         console.error(text);
       },
       send: (code, payload) => {
@@ -50,9 +56,11 @@
           const el = document.createElement("p");
           el.innerText = "return: " + payload;
           result.appendChild(el);
-        } else if (code === "setHTML") {
-          result.innerHTML = payload;
-        } else if (code === "setTitle") {
+        } else if (code === "html") {
+          const div = document.createElement("div");
+          div.innerHTML = payload;
+          result.append(div);
+        } else if (code === "title") {
           document.title = payload;
         } else if (code === "log") {
           console.log(payload);
@@ -72,6 +80,8 @@
           };
           xmlHttp.open("GET", payload, true);
           xmlHttp.send(null);
+        } else {
+          console.error(`unkown code sent from Lua. code: "%o". payload: %o`, code, payload);
         }
       }
     };
@@ -87,11 +97,7 @@
     const prelude = `
     local send = webSend
     web = {
-        send = send,
-        html = function(payload) send("setHTML", payload) end,
-        title = function(payload) send("setTitle",payload) end,
-        log = function(payload) send("log", payload) end,
-        require = function(name, path)
+      require = function(name, path)
             local loaded = package.loaded[name]
             if loaded then return loaded end
             web.co = coroutine.running()
@@ -117,6 +123,12 @@
           return prevRes
       end
     }
+    local Web = {}
+    setmetatable(web, Web)
+    function Web:__index(code)
+      return function(payload) send(code, payload) end
+    end
+    
     webSend = nil
     `;
 

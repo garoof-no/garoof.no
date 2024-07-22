@@ -2,15 +2,11 @@ local draw = require("gd-draw")
 local dt = require("gd-datetime")
 
 local function lineparser(type, startp)
-  local pattern = "^(" .. startp .. ")"
-  local norestPattern = pattern .. "%s*$"
-  pattern = pattern .. "%s+(.-)%s*$"
+  local pattern = "^(" .. startp .. ")%s*(.-)%s*$"
 
   return function(str)
-    local onlystart = str:match(norestPattern)
-    if onlystart then return { type = type, start = onlystart } end
     local start, rest = str:match(pattern)
-    if start then return { type = type, start = start, rest = rest } end
+    if start then return { type = type, start = start, rest = rest ~= "" and rest or nil } end
     return nil
   end
 end
