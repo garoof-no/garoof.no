@@ -96,12 +96,13 @@
 
     const prelude = `
     local send = webSend
+    webSend = nil
     web = {
       require = function(name, path)
             local loaded = package.loaded[name]
             if loaded then return loaded end
             web.co = coroutine.running()
-            web.require(path)
+            send("require", path)
             local res = coroutine.yield()
             package.loaded[name] = res
            return res
@@ -128,8 +129,6 @@
     function Web:__index(code)
       return function(payload) send(code, payload) end
     end
-    
-    webSend = nil
     `;
 
     initWasmModule(ModuleConfig).then((aModule) => {
