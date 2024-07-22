@@ -48,7 +48,7 @@ In some kind of order:
 ``` prelude
 states = {
   { pattern = "^  (.*)$", open = "<pre><code>", close = "</code></pre>", f = escape, br = "\n" },
-  { pattern = "^(%s*)$", close = "",  f = function(str) return "" end },
+  { pattern = "^(%s*)$", f = function(str) return "" end },
   { pattern = "^## *(.*)$", close = "\n", f = tagged("h2") },
   { pattern = "^# *(.*)$", close = "\n", f = tagged("h1") },
   { pattern = "^ *(.*)$", open = "<p>", close = "</p>\n", f = escape, br = "<br>" }
