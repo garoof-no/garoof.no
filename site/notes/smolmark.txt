@@ -80,7 +80,7 @@ printline([[normal text :)]])
 
 Looks probably good.
 
-We're only doing "document structure" stuff here, so that's almost it. (We can pretend that we're doing something more sophisticated with the bits of text, like having special text formatting syntax and maybe support for links. Won't bother actually doing any of that. But we can pretend.)
+We're only doing "document structure" stuff here, so that's almost it. (We can pretend that we're doing something more sophisticated with the bits of text, like maybe we're having special text formatting syntax and maybe support for links. Won't bother actually doing any of that. But we can pretend.)
 
 Opening and closing things and switching between our states:
 
