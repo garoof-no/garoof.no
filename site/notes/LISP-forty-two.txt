@@ -7,7 +7,7 @@ Hi okay one time I ran into a number problem that went something like this: “H
 Okay let’s solve this using Racket. Racket is a maybe a LISP. In LISP, pretty much the only thing that matters is you have to use parentheses.
 
 > Parentheses essentially are the basis of computation.
-―Robert Constable, 8 minutes or so into `https://www.youtube.com/watch?v=OubXOd0Twl4 this OPLSS 2015 lecture^
+―Robert Constable, 8 minutes or so into ^https://www.youtube.com/watch?v=OubXOd0Twl4 this OPLSS 2015 lecture^
 
 Anyway we can stare at this problem for a while and then notice three things.
 * One thing is that the digits in one million do not add up to forty-two.
