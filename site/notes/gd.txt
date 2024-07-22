@@ -128,6 +128,7 @@ And `^` is used for links. Mostly same mechanism as for formatting. So you canno
 Lines that start with `:` followed by and then some non-whitespace character. Stuff directly after the `:` is the key. The text part of the line is the value. Used for some things. This page has a ^./datetime.txt timestamp^ and a description kind of attached to the first heading:
 
 ```
+# Glorpdown
 :pub Zk7NML
 :blurb Dawn of glorp.
 ```
