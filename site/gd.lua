@@ -251,15 +251,13 @@ local function parse(iter)
   return next
 end
 
-local function escapechar(c)
-  if c == "<" then return "&lt;"
-  elseif c == ">" then return "&gt;"
-  elseif c == '"' then return "&quot;"
-  elseif c == "'" then return "&apos;"
-  elseif c == "&" then return "&amp;"
-  else return c
-  end
-end
+local escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
 
 local function escape(str)
   local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
