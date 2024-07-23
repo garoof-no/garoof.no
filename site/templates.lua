@@ -25,7 +25,7 @@ h1, h2, h3 { margin: 2rem 0 0rem 0; padding: 0; }
 h1 { font-size: 2.2rem; } h2 { font-size: 1.4rem; }  h3 { font-size: 1.1rem; }
 blockquote { padding: 0 0 0 0.8rem; margin: 0 0 0 0rem; border-left: 0.1rem solid var(--text); }
 pre { background-color: var(--bg2); overflow-x: auto; }
-pre, code { font-family: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1.05rem; white-space: pre; }
+pre, code { font-family: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1.05em; white-space: pre; }
 ul { list-style-position: inside; }
 li { margin: 0;padding: 0; }
 hr { margin: 1.5rem 0 1.5rem 0; }

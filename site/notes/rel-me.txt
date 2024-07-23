@@ -1,0 +1,135 @@
+# Steps towards rel="me"
+:template lua
+:todo under construction
+
+
+Some context. `lineparser`, when given a start-of-line-pattern and a line type constructs a line-parsing-function. It's used for determining what kind of line something is and also extracting its text content.
+
+``` prelude
+function printtable(t)
+  for k, v in pairs(t) do print(k .. ": " .. v) end
+end
+
+function lineparser(type, startp)
+  local pattern = "^(" .. startp .. ")%s*(.-)%s*$"
+  return function(str)
+    local start, rest = str:match(pattern)
+    if start then return { type = type, start = start, rest = rest ~= "" and rest or nil } end
+    return nil
+  end
+end
+```
+
+For example, for lines that should end up in blockquote-elements in HTML, we could:
+
+``` repl
+local quoteparser = lineparser("quote", ">")
+
+printtable(quoteparser("> Something very wise."))
+```
+
+It's called _line_parser, so it's _mostly_ used for lines. But like obviously also for other stuff. The `linkparser` is used in a context where you have already determined that some piece of text is a link. It picks out the URL and potentially link text:
+
+``` prelude
+linkparser = lineparser("link", "%S+")
+```
+
+``` repl
+printtable(linkparser("https://dailybunny.org/ bunnies"))
+```
+
+We have a unit test:
+
+``` prelude
+function test1()
+  local link = linkparser("https://dailybunny.org/ bunnies")
+  same("link", link.type)
+  same("https://dailybunny.org/", link.start)
+  same("bunnies", link.rest)
+end
+```
+
+``` repl
+runtests(test1)
+```
+
+``` repl
+linkparser = (function()
+  return lineparser("link", "%S+")
+end)()
+
+runtests(test1)
+```
+
+``` repl
+linkparser = (function()
+  local p = lineparser("link", "%S+")
+  return function(str)
+    return p(str)
+  end
+end)()
+
+runtests(test1)
+```
+
+``` prelude
+function test2()
+  local link = linkparser("me https://github.com/Glorp my github")
+  same("me", link.rel)
+  same("link", link.type)
+  same("https://github.com/Glorp", link.start)
+  same("my github", link.rest)
+end
+```
+
+``` repl
+runtests(test1, test2)
+```
+
+``` repl
+linkparser = (function()
+  local p = lineparser("link", "%S+")
+  return function(str)
+    local rest = str:match("^me %s*(.+)$")
+    if rest then
+      local line = p(rest)
+      if line then
+        line.rel = "me"
+        return line
+      end
+    end
+    return p(str)
+  end
+end)()
+
+runtests(test1, test2)
+```
+
+---
+
+``` prelude
+local key = {}
+
+function runtests(...)
+  for _, f in ipairs({...}) do
+    local status, res = pcall(f)
+    if not status then
+      res = type(res) == "table" and res.key == key and res.message or res
+      web.html([[<p style="background: darkred;">]] .. tostring(res) .. [[</p>]])
+      return
+    end
+  end
+  web.html([[<p style="background: green;">this is a green bar</p>]])
+end
+
+function same(expected, actual)
+  if expected ~= actual then
+    error({
+      key = key,
+      message =
+        "expected: " .. tostring(expected) .. ". actual: " .. tostring(actual)
+    })
+  end
+end
+```
+
