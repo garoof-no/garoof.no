@@ -2,8 +2,9 @@ local templates = require("../templates")
 local gd = require("../gd")
 
 local pretable = gd.basepre()
-pretable.repl = gd.prewriterf("lua")
-pretable.prelude = gd.prewriterf("lua prelude")
+pretable.repl = gd.prewriterf("lua repl")
+pretable.run = gd.prewriterf("lua run")
+pretable.prelude = gd.prewriterf("lua prelude run")
 
 return function(url)
   return {

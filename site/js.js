@@ -46,14 +46,16 @@ const outElement = (() => {
     element.remove();
     resizeta(ta);
 
-    if (element.classList.contains("prelude")) {
+    if (element.classList.contains("run")) {
       run();
-      ta.readOnly = true;
-    } else {
+    }
+    if (element.classList.contains("repl")) {
       ta.oninput = () => resizeta(ta);
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
         elem("button", { className: "toolbar-button", title: "Clear output", onclick: (e) => { out.replaceChildren(); } }, "⎚"));
+    } else {
+      ta.readOnly = true;
     }
   };
 
@@ -100,7 +102,10 @@ const outElement = (() => {
       }
     };
 
-    for (const el of document.querySelectorAll(".js")) {
+    for (const el of document.querySelectorAll(".js.prelude")) {
+      create(el)
+    };
+    for (const el of document.querySelectorAll(".js:not(.prelude)")) {
       create(el)
     };
   });

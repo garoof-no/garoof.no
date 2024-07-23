@@ -2,8 +2,9 @@ local templates = require("../templates")
 local gd = require("../gd")
 
 local pretable = gd.basepre()
-pretable.repl = gd.prewriterf("js")
-pretable.prelude = gd.prewriterf("js prelude")
+pretable.repl = gd.prewriterf("js repl")
+pretable.run = gd.prewriterf("js run")
+pretable.prelude = gd.prewriterf("js prelude run")
 
 return function(url)
   return {

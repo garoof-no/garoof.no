@@ -7,7 +7,7 @@ I don't know! It's an example of _something._ And it's not incredibly large.
 
 Anyway we're going translate from our thing to the Hypertext Markup Language. So:
 
-``` prelude
+``` run
 escapechar = {
   ["<"] = "&lt;",
   [">"] = "&gt;",
@@ -45,7 +45,7 @@ A ton of functionality:
 
 In some kind of order:
 
-``` prelude
+``` run
 states = {
   { pattern = "^  (.*)$", open = "<pre><code>", close = "</code></pre>", f = escape, br = "\n" },
   { pattern = "^(%s*)$", f = function(str) return "" end },
@@ -84,7 +84,7 @@ We're only doing "document structure" stuff here, so that's almost it. (We can p
 
 Opening and closing things and switching between our states:
 
-``` prelude
+``` run
 function parse(lines)
   local state = states[2]
   local function f(line)

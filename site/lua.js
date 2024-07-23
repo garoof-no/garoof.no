@@ -86,10 +86,10 @@
     element.remove();
     resizeta(ta);
 
-    if (element.classList.contains("prelude")) {
+    if (element.classList.contains("run")) {
       run();
-      ta.readOnly = true;
-    } else {
+    }
+    if (element.classList.contains("repl")) {
       ta.oninput = () => resizeta(ta);
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
@@ -104,6 +104,8 @@
           },
           "⎚")
         );
+    } else {
+      ta.readOnly = true;
     }
   };
 
@@ -120,7 +122,10 @@
         return function(payload) send(code, payload) end
       end
       `]);
-      for (const el of document.querySelectorAll(".lua")) {
+      for (const el of document.querySelectorAll(".lua.prelude")) {
+        create(el)
+      };
+      for (const el of document.querySelectorAll(".lua:not(.prelude)")) {
         create(el)
       };
     });
