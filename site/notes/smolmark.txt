@@ -3,7 +3,7 @@
 :pub Zk7OIH
 :blurb It'd be cool if Mark Heap had a brother called Mark Down but names don't work like that in Britan >:(
 
-I don't know! It's an example of _something._ And it's not incredibly large.
+I don't know! It's an example of _something._ And it's not incredibly large. Like I guess I kind of want to have a smallish example that touches on some of the things I usually run into with these kinds of things...
 
 Anyway we're going translate from our thing to the Hypertext Markup Language. So:
 
