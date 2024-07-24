@@ -1,7 +1,7 @@
 local draw = require("gd-draw")
 local dt = require("gd-datetime")
 
-local function lineparser(type, startp)
+local function stringparser(type, startp)
   local pattern = "^(" .. startp .. ")%s*(.-)%s*$"
 
   return function(str)
@@ -13,7 +13,7 @@ end
 
 local function preparsers(start)
   return {
-    lineparser("pre>", start),
+    stringparser("pre>", start),
     function (str)
       local res = { type = "pre" }
       local rest = str:match("^(.-)%s*$")
@@ -24,14 +24,14 @@ local function preparsers(start)
 end
 
 local lineparsers = {
-  lineparser("h3", "###"),
-  lineparser("h2","##"),
-  lineparser("h1", "#"),
-  lineparser("quote", ">"),
-  lineparser("hr", "[-][-][-]+"),
-  lineparser("list", "[*]"),
-  lineparser("<pre", "``+"),
-  lineparser("keyval", ":%S*"),
+  stringparser("h3", "###"),
+  stringparser("h2","##"),
+  stringparser("h1", "#"),
+  stringparser("quote", ">"),
+  stringparser("hr", "[-][-][-]+"),
+  stringparser("list", "[*]"),
+  stringparser("<pre", "``+"),
+  stringparser("keyval", ":%S*"),
   function (str)
     local res = { type = "text" }
     local rest = str:match("^%s*(.-)%s*$")
@@ -40,19 +40,13 @@ local lineparsers = {
    end
 }
 
-local linkparser = (function()
-  local p = lineparser("link", "%S+")
-  return function(s)
-    if s:match("^me .*") then
-      local res = p(s:sub(4))
-      if res then
-        res.rel = "me"
-        return res
-      end
-    end
-    return p(s)
+local function linkparser(s)
+  local rel, url, rest = s:match("^%s*(me)%s*(%S+)%s*(.-)%s*$")
+  if not rel then
+    url, rest = s:match("^%s*(%S+)%s*(.-)%s*$")
   end
-end)()
+  return url and { rel = rel, url = url, rest = (rest ~= "") and rest or nil }
+end
 
 local function parseline(parsers, str)
   for _, parse in ipairs(parsers) do
@@ -260,10 +254,10 @@ local function escape(str)
   return res
 end
 
-local renderlink = function(token, url)
-  local fullurl = escape(token.start)
+local function renderlink(token, url)
+  local fullurl = escape(token.url)
   local rel = ''
-  if token.rel then rel = 'rel="me" ' end
+  if token.rel == "me" then rel = 'rel="me" ' end
   local desc = (token.rest and escape(token.rest)) or fullurl
   local u, frag = fullurl:match("(.-)(#.*)")
   if not u then
@@ -475,16 +469,17 @@ end
 
 local function basekvtable()
   return {
-   pub = function(str, meta)
-    local t = dt.fromb60(str)
-    local b = meta.blurb
-      and (' title="' .. strHtml(meta.blurb, nil, true) .. '"')
-      or ""
-    return '<time datetime="' .. t.iso() .. '"' .. b .. '>'
-      .. str .. '</time>'
-   end
+    pub = function(str, meta)
+      local t = dt.fromb60(str)
+      local b = meta.blurb
+        and (' title="' .. strHtml(meta.blurb, nil, true) .. '"')
+        or ""
+      return '<time datetime="' .. t.iso() .. '"' .. b .. '>'
+        .. str .. '</time>'
+    end,
+    html = function(str) return str end
   }
- end
+end
 
 local function titlefrom(token)
   local t = token.type

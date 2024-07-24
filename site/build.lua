@@ -100,9 +100,9 @@ if later["./index.txt"] then
 else
   table.insert(index, gd.parsestring("# index\n:nonav"))
 end
-table.insert(index, gd.parsestring("`` html\n<nav>\n``"))
+table.insert(index, gd.parsestring(":html <nav>"))
 table.insert(index, gd.parse(links(pubrefs)))
-table.insert(index, gd.parsestring("`` html\n</nav>\n``"))
+table.insert(index, gd.parsestring(":html </nav>"))
 local indexref = writeHtml(gd.multiparse(index), "./index.html")
 closeindex()
 
