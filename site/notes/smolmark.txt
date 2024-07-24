@@ -189,10 +189,11 @@ formatting = {
 }
 ```
 
-This is the finicky bit. It's probably not done very well. But the idea is to loop through `str` things by looking for the next interesting character in the string (`str:find("[_\`\\\\^]", startpos)`) and then handle:
+This is the finicky bit. It's probably not done very well. But the idea is to loop through `str` by looking for the next interesting character in the string (`str:find("[_\`\\\\^]", startpos)`) and handle:
 
 * Escaping characters with `\\`.
 * Switching between the different `formatting` modes, and handing strings over to the different functions in that table.
+* Collecting the results in one table, `res`, that can be `concat`ed at the end.
 
 ``` run
 function finickystrhtml(str)
