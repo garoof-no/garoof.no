@@ -8,7 +8,7 @@
   let currentOut = null;
   const print = (str) => {
     if (currentOut !== null) {
-      currentOut.console.append(elem("samp", {}, str), "\n");
+      currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
     } else {
       console.log(str);
     }
@@ -17,7 +17,7 @@
     if (currentOut !== null) {
       const el = elem("div", {});
       el.innerHTML = str;
-      currentOut.append(el);
+      currentOut.append(el, elem("pre", { className: "output" }));
     } else {
       console.log("html: " + str);
     }
@@ -39,7 +39,7 @@
         text = arguments.join(" ");
       }
       if (currentOut !== null) {
-        currentOut.console.append(
+        currentOut.lastElementChild.append(
           elem("span", { className: "error" }, text),
           elem("br")
         );
@@ -74,9 +74,7 @@
       value: element.innerText,
     });
     const toolbar = elem("div", { className: "toolbar" });
-    const consoleout = elem("pre", { className: "output" });
-    const out = elem("div", { }, consoleout);
-    out.console = consoleout;
+    const out = elem("div", { }, elem("pre", { className: "output" }));
     const run = (e) => {
       currentOut = out;
       Module.ccall("run_lua", "number", ["string"], [ta.value]);
@@ -98,8 +96,7 @@
             className: "toolbar-button",
             title: "Clear output",
             onclick: (e) => {
-              consoleout.replaceChildren();
-              out.replaceChildren(consoleout);
+              out.replaceChildren(elem("pre", { className: "output" }));
             }
           },
           "⎚")

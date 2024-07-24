@@ -250,7 +250,7 @@ local function link(str, url)
     fullurl, desc = str:match("^%s*(%S+)%s*(.-)%s*$")
   end
   if not fullurl then return escape(str) end
-  local fullurl = escape(fullurl)
+  fullurl = escape(fullurl)
   rel = rel and 'rel="me"' or ''
   local desc = ((desc ~= "") and escape(desc)) or fullurl
   local u, frag = fullurl:match("(.-)(#.*)")
@@ -302,9 +302,7 @@ local function strhtml(str, url, plain)
       stop()
       return table.concat(res)
     end
-    
     table.insert(current, str:sub(startpos, pos - 1))
-    
     local char = str:sub(pos, pos)
     if char == "\\" then
       table.insert(current, str:sub(pos + 1, pos + 1))

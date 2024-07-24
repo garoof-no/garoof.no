@@ -21,9 +21,11 @@ function escape(str)
   return res
 end
 
-function tagged(tag)
+strhtml = escape
+
+function tagged(tag, inner)
   return function(s)
-    return "<" .. tag .. ">" .. escape(s) .. "</" .. tag .. ">"
+    return "<" .. tag .. ">" .. (inner or strhtml)(s) .. "</" .. tag .. ">"
   end
 end
 ```
@@ -40,6 +42,7 @@ A ton of functionality:
 
 * Two levels of headings, `#` and `##`.
 * Preformatted text. Lines that start with two spaces.
+* Lists. List items are lines that start with `*`.
 * Empty lines!!!
 * Regular text paragraphs.
 
@@ -51,7 +54,8 @@ states = {
   { pattern = "^(%s*)$", f = function(str) return "" end },
   { pattern = "^## *(.*)$", close = "\n", f = tagged("h2") },
   { pattern = "^# *(.*)$", close = "\n", f = tagged("h1") },
-  { pattern = "^ *(.*)$", open = "<p>", close = "</p>\n", f = escape, br = "<br>" }
+  { pattern = "^[*] *(.*)$", open = "<ul>", close = "</ul>\n", f = tagged("li") },
+  { pattern = "^ *(.*)$", open = "<p>", close = "</p>\n", f = function(str) return strhtml(str) end, br = "<br>" }
 }
 
 function parseline(str)
@@ -136,18 +140,133 @@ Okay.
   end
 
 More regular text.
+
+* list
+* of
+* things
+
 ]]
 
 print(html(teststring))
-```
-
-And we can put the HTML onto this page:
-
-``` repl
 web.html(html(teststring))
 ```
 
 Mlep.
 
 The code is Lua code btw.
+
+# actually let's do formatting and links too
+:pub Zk7QO7
+:blurb More texty.
+
+More finicky and less interesting. But, for "completeness" I guess.
+
+We'll have links:
+
+``` run
+function link(str)
+  local url, desc = str:match("^%s*(%S+)%s*(.-)%s*$")
+  if not url then return escape(str) end
+  
+  url = escape(url)
+  local desc = ((desc ~= "") and escape(desc)) or fullurl
+  return '<a href="' .. url .. '">' .. desc .. '</a>'
+end
+```
+
+``` repl
+print(link("https://dailybunny.org/ here be bunnies"))
+```
+
+And code (`\``) and emphasis (`_`).
+
+``` run
+formatting = {
+  ["`"] = tagged("code", escape),
+  ["_"] = tagged("em", escape),
+  ["^"] = link,
+  [""] = escape
+}
+```
+
+This is the finicky bit. It's probably not done very well. But the idea is to loop through `str` things by looking for the next interesting character in the string (`str:find("[_\`\\\\^]", startpos)`) and then handle:
+
+* Escaping characters with `\\`.
+* Switching between the different `formatting` modes, and handing strings over to the different functions in that table.
+
+``` run
+function finickystrhtml(str)
+  local res = {}
+  local current = {}
+  local mode = ""
+  local function switch(char)
+    local s = table.concat(current)
+    local formatted = formatting[plain and "" or mode](s, url)
+    table.insert(res, formatted)
+    current = {}
+    mode = char
+  end
+  local startpos = 1
+  while true do
+    local pos, _ = str:find("[_`\\^]", startpos)
+    if not pos then
+      table.insert(current, str:sub(startpos, #str))
+      switch()
+      return table.concat(res)
+    end
+    
+    table.insert(current, str:sub(startpos, pos - 1))
+    
+    local char = str:sub(pos, pos)
+    if char == "\\" then
+      table.insert(current, str:sub(pos + 1, pos + 1))
+      startpos = pos + 2
+    else
+      if mode == "" then switch(char)
+      elseif char == mode then switch("")
+      else table.insert(current, char)
+      end
+      startpos = pos + 1
+    end
+  end
+end
+```
+
+Oh well. We'll try with and without using the new function:
+
+``` repl
+teststring = [[
+# Hel_lo_
+
+Meep moop. `Beep boop.`
+
+## Some code
+
+Okay, I mean _okay_:
+
+  if this then
+    that
+  else
+    nope
+  end
+
+More regular text and also `more code` and ^https://dailybunny.org/ a bunnylink^.
+
+* list
+* with
+* ^https://dailyotter.org/ otter^
+
+]]
+
+print("more texty:")
+
+strhtml = escape
+web.html(html(teststring))
+
+print("more hypertexty:")
+strhtml = finickystrhtml
+web.html(html(teststring))
+```
+
+Blep.
 
