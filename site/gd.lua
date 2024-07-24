@@ -244,7 +244,7 @@ local function escape(str)
   return res
 end
 
-local function renderlink(str, url)
+local function link(str, url)
   local rel, fullurl, desc = str:match("^%s*(me)%s*(%S+)%s*(.-)%s*$")
   if not rel then
     fullurl, desc = str:match("^%s*(%S+)%s*(.-)%s*$")
@@ -274,7 +274,7 @@ end
 local formatting = {
   ["`"] = tagged("code"),
   ["_"] = tagged("em"),
-  ["^"] = renderlink,
+  ["^"] = link,
   [""] = escape
 }
 
