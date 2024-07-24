@@ -254,7 +254,9 @@ local function escape(str)
   return res
 end
 
-local function renderlink(token, url)
+local function renderlink(str, url)
+  local token = linkparser(str)
+  if not token then return escape(str) end
   local fullurl = escape(token.url)
   local rel = ''
   if token.rel == "me" then rel = 'rel="me" ' end
@@ -271,69 +273,60 @@ local function renderlink(token, url)
   return '<a ' .. rel .. 'href="' .. url(u) .. frag .. '">' .. desc .. '</a>'
 end
 
-local function strText(str)
+local function tagged(open, close)
+  close = close or open
+  return function(s)
+    return "<" .. open .. ">" .. escape(s) .. "</" .. close .. ">"
+  end
+end
+
+local formatting = {
+  ["`"] = tagged("code"),
+  ["_"] = tagged("em"),
+  ["^"] = renderlink,
+  [""] = escape
+}
+
+local function strHtml(str, url, plain)
   if not str then return nil end
+  url = url or function(s) return s end
   local res = {}
-  local mode = nil
-  local curstr = ""
-  local function flush()
-    if curstr ~= "" then
-      table.insert(res, { mode = mode, text = curstr })
-      curstr = ""
-    end
+  local current = {}
+  local mode = ""
+  local function start(c)
+    mode = c
+  end
+  local function stop()
+    local s = table.concat(current)
+    local formatted = formatting[plain and "" or mode](s, url)
+    if mode ~= "" then print(mode, s, formatted) end
+    table.insert(res, formatted)
+    current = {}
+    mode = ""
   end
   local startpos = 1
   while true do
     local pos, _ = str:find("[_`\\^]", startpos)
     if not pos then
-      curstr = curstr .. str:sub(startpos, #str)
-      flush()
-      return res
+      table.insert(current, str:sub(startpos, #str))
+      stop()
+      return table.concat(res)
     end
-    curstr = curstr .. str:sub(startpos, pos - 1)
+    
+    table.insert(current, str:sub(startpos, pos - 1))
+    
     local char = str:sub(pos, pos)
     if char == "\\" then
-      curstr = curstr .. str:sub(pos + 1, pos + 1)
+      table.insert(current, str:sub(pos + 1, pos + 1))
       startpos = pos + 2
     else
-      if mode == nil then
-        flush()
-        mode = char
-      elseif char == mode then
-        flush()
-        mode = nil
-      else
-        curstr = curstr .. char
+      if mode == "" then stop() ; start(char)
+      elseif char == mode then stop()
+      else table.insert(current, char)
       end
       startpos = pos + 1
     end
   end
-end
-
-local function textHtml(text, url, plain)
-  if not text then return "" end
-  url = url or function(s) return s end
-  local res = ""
-  for _, v in ipairs(text) do
-    if plain or not v.mode then
-      res = res .. escape(v.text)
-    elseif v.mode == "_" then
-      res = res .. "<em>" .. escape(v.text) .. "</em>"
-    elseif v.mode == "`" then
-      res = res .. "<code>" .. escape(v.text) .. "</code>"
-    elseif v.mode == "^" then
-      local token = linkparser(v.text)
-      local linkstr = token and renderlink(token, url)
-      res = res .. linkstr or escape(v.text)
-    else
-      error("unreachable: " .. v.mode)
-    end
-  end
-  return res
-end
-
-local function strHtml(str, url, plain)
-  return textHtml(strText(str), url, plain)
 end
 
 local function prewriterf(class)
@@ -614,8 +607,6 @@ return {
   parsestring = parsestring,
   pubid = pubid,
   escapeHtml = escape,
-  strText = strText,
-  textHtml = textHtml,
   strHtml = strHtml,
   titlefrom = titlefrom,
   basepre = basepre,
