@@ -265,10 +265,9 @@ local function renderlink(str, url)
   return '<a ' .. rel .. 'href="' .. url(u) .. frag .. '">' .. desc .. '</a>'
 end
 
-local function tagged(open, close)
-  close = close or open
+local function tagged(tag)
   return function(s)
-    return "<" .. open .. ">" .. escape(s) .. "</" .. close .. ">"
+    return "<" .. tag .. ">" .. escape(s) .. "</" .. tag .. ">"
   end
 end
 
