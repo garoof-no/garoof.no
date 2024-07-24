@@ -40,14 +40,6 @@ local lineparsers = {
    end
 }
 
-local function linkparser(s)
-  local rel, url, rest = s:match("^%s*(me)%s*(%S+)%s*(.-)%s*$")
-  if not rel then
-    url, rest = s:match("^%s*(%S+)%s*(.-)%s*$")
-  end
-  return url and { rel = rel, url = url, rest = (rest ~= "") and rest or nil }
-end
-
 local function parseline(parsers, str)
   for _, parse in ipairs(parsers) do
     local res = parse(str)
@@ -181,10 +173,8 @@ local function parse(iter)
     local first = true
     return function(line)
       if line.type == "pre" then
-        if first then
-          first = false
-        else
-          pusht("prebr")
+        if first then first = false
+        else pusht("prebr")
         end
         push(line)
       elseif line.type == "pre>" then
@@ -255,12 +245,14 @@ local function escape(str)
 end
 
 local function renderlink(str, url)
-  local token = linkparser(str)
-  if not token then return escape(str) end
-  local fullurl = escape(token.url)
-  local rel = ''
-  if token.rel == "me" then rel = 'rel="me" ' end
-  local desc = (token.rest and escape(token.rest)) or fullurl
+  local rel, fullurl, desc = str:match("^%s*(me)%s*(%S+)%s*(.-)%s*$")
+  if not rel then
+    fullurl, desc = str:match("^%s*(%S+)%s*(.-)%s*$")
+  end
+  if not fullurl then return escape(str) end
+  local fullurl = escape(fullurl)
+  rel = rel and 'rel="me"' or ''
+  local desc = ((desc ~= "") and escape(desc)) or fullurl
   local u, frag = fullurl:match("(.-)(#.*)")
   if not u then
     u = fullurl
@@ -287,7 +279,7 @@ local formatting = {
   [""] = escape
 }
 
-local function strHtml(str, url, plain)
+local function strhtml(str, url, plain)
   if not str then return nil end
   url = url or function(s) return s end
   local res = {}
@@ -299,7 +291,6 @@ local function strHtml(str, url, plain)
   local function stop()
     local s = table.concat(current)
     local formatted = formatting[plain and "" or mode](s, url)
-    if mode ~= "" then print(mode, s, formatted) end
     table.insert(res, formatted)
     current = {}
     mode = ""
@@ -344,7 +335,7 @@ local function prewriterf(class)
         if line.rest then
           local caption = escape(line.rest)
           res = res .. "<figcaption>"
-            .. strHtml(caption, url) .. "</figcaption>"
+            .. strhtml(caption, url) .. "</figcaption>"
         end
         return res .. "</figure>"
       else
@@ -391,7 +382,7 @@ local function newdrawing(url)
       local svg = draw.render(map, out, 16)
       if line.rest then
         table.insert(res, "<figcaption>")
-        table.insert(res, strHtml(line.rest, url))
+        table.insert(res, strhtml(line.rest, url))
         table.insert(res, "</figcaption>")
       end
       table.insert(res, "</figure>")
@@ -411,7 +402,7 @@ local function segments(path, start)
   return segs
 end
 
-local function relativeUrl(frompath)
+local function relativeurl(frompath)
   local from = segments(frompath)
   return function(topath)
     if topath:sub(1, 1) ~= "/" then return topath end
@@ -465,7 +456,7 @@ local function basekvtable()
     pub = function(str, meta)
       local t = dt.fromb60(str)
       local b = meta.blurb
-        and (' title="' .. strHtml(meta.blurb, nil, true) .. '"')
+        and (' title="' .. strhtml(meta.blurb, nil, true) .. '"')
         or ""
       return '<time datetime="' .. t.iso() .. '"' .. b .. '>'
         .. str .. '</time>'
@@ -511,7 +502,7 @@ local function html(url, pretable, kvtable)
         pubstr = ' id="' .. pubid .. '"'
       end
     end
-    local inner = strHtml(line.rest, url)
+    local inner = strhtml(line.rest, url)
     local res = { "<", tag, pubstr, ">", inner, "</", tag, ">" }
     rendermeta(line.meta, res)
     return table.concat(res)
@@ -520,57 +511,41 @@ local function html(url, pretable, kvtable)
 
   local function renderLine(line)
     if line.type == "text" or line.type == "quote" then
-      return strHtml(line.rest, url)
+      return strhtml(line.rest, url)
     end
   end
   
   return function(token)
-    if token.type == "<p" then
-      return "<p>"
-    elseif token.type == "p>" then
-      return "</p>"
-    elseif token.type == "<quote" then
-      return "<blockquote>"
-    elseif token.type == "quote>" then
-      return "</blockquote>"
+    if token.type == "<p" then return "<p>"
+    elseif token.type == "p>" then return "</p>"
+    elseif token.type == "<quote" then return "<blockquote>"
+    elseif token.type == "quote>" then return "</blockquote>"
     elseif token.type == "<pre" then
       local f = pretable[token.rest]
       pre = f and f(url) or prewriter
       return pre(token)
-    elseif token.type == "pre" then
-      return pre(token)
-    elseif token.type == "prebr" then
-      return pre(token)
+    elseif token.type == "pre" then return pre(token)
+    elseif token.type == "prebr" then return pre(token)
     elseif token.type == "pre>" then
       local res = pre(token, url)
       pre = nil
       return res
-    elseif token.type == "<list" then
-      return "<ul>"
-    elseif token.type == "list" then
-      return tagged("li", token)
-    elseif token.type == "list>" then
-      return "</ul>"
+    elseif token.type == "<list" then return "<ul>"
+    elseif token.type == "list" then return tagged("li", token)
+    elseif token.type == "list>" then return "</ul>"
     elseif token.type == "text" or token.type == "quote" then
       return renderLine(token)
-    elseif token.type == "br" or token.type == "quotebr" then
-      return "<br>"
-    elseif token.type == "h1" then
-      return tagged("h1", token)
-    elseif token.type == "h2" then
-      return tagged("h2", token)
-    elseif token.type == "h3" then
-      return tagged("h3", token)
-    elseif token.type == "hr" then
-      return "<hr>"
+    elseif token.type == "br" or token.type == "quotebr" then return "<br>"
+    elseif token.type == "h1" then return tagged("h1", token)
+    elseif token.type == "h2" then return tagged("h2", token)
+    elseif token.type == "h3" then return tagged("h3", token)
+    elseif token.type == "hr" then return "<hr>"
     elseif token.type == "meta" then
       local res = {}
       rendermeta(token.meta, res)
       return table.concat(res)
-    elseif token.type == "nop" then
-      return ""
-    else
-      error("unknown type: " .. token.type)
+    elseif token.type == "nop" then return ""
+    else error("unknown type: " .. token.type)
     end
   end
 end
@@ -582,10 +557,8 @@ local function multiparse(parsers)
   return function()
     while i <= #parsers do
       local res = parsers[i]()
-      if res then
-        return res
-      else
-        i = i + 1
+      if res then return res
+      else i = i + 1 
       end
     end
     return nil
@@ -606,13 +579,12 @@ return {
   multiparse = multiparse,
   parsestring = parsestring,
   pubid = pubid,
-  escapeHtml = escape,
-  strHtml = strHtml,
+  strhtml = strhtml,
   titlefrom = titlefrom,
   basepre = basepre,
   basekvtable = basekvtable,
   prewriterf = prewriterf,
   html = html,
-  relativeUrl = relativeUrl,
+  relativeurl = relativeurl,
   down = down
 }

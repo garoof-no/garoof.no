@@ -38,7 +38,7 @@ local function writeHtml(parser, htmlfilename)
   todo(first.meta)
   local meta = first.meta or {}
   local url = meta.absoluteurls and (function(u) return u end)
-    or gd.relativeUrl(htmlfilename:match("^[.]/(.+)/.*$") or "/")
+    or gd.relativeurl(htmlfilename:match("^[.]/(.+)/.*$") or "/")
     
   local template = findtemplate(meta.template)(url)
   local title = gd.titlefrom(first)

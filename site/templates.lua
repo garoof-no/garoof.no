@@ -46,7 +46,7 @@ local function nav(url, token)
 end
 
 local function title(token)
-  return '<title>' .. gd.strHtml(gd.titlefrom(token), nil, true) .. '</title>'
+  return '<title>' .. gd.strhtml(gd.titlefrom(token), nil, true) .. '</title>'
 end
 
 return {
