@@ -91,7 +91,7 @@ Opening and closing things and switching between our states:
 ``` run
 function parse(lines)
   local state = states[2]
-  local function f(line)
+  local function f()
     for line in lines do
       local res = parseline(line)
       if res.state ~= state then
@@ -202,7 +202,7 @@ function finickystrhtml(str)
   local mode = ""
   local function switch(char)
     local s = table.concat(current)
-    local formatted = formatting[plain and "" or mode](s, url)
+    local formatted = formatting[mode](s, url)
     table.insert(res, formatted)
     current = {}
     mode = char

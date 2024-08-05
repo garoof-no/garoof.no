@@ -11,7 +11,7 @@ local function files()
   local win = package.config:sub(1, 1) == "\\"
   local ps = [[powershell.exe "gci -Recurse -Filter '*.txt' | rvpa -Relative"]]
   local lunix = [[find . -name \*.txt -print]]
-  local command = (win and ps) or lunix
+  local command = win and ps or lunix
   local pipe = io.popen(command)
   local str = pipe:read()
   local res = {}
@@ -20,7 +20,7 @@ local function files()
     table.insert(res, str)
     str = pipe:read()
   end
-  if not pipe:close() then error("oh no") end
+  assert(pipe:close())
   return res
 end
 
@@ -57,7 +57,7 @@ local function writeHtml(parser, htmlfilename)
     fout:write(html(token))
   end
   fout:write(template.after())
-  if not fout:close() then error("oh no") end
+  assert(fout:close())
   return res
 end
 
@@ -74,7 +74,7 @@ for _, path in ipairs(files()) do
     for _, ref in ipairs(res) do
       table.insert(ref.meta.pub and pubrefs or otherrefs, ref)
     end
-    if not fin:close() then error("oh no") end
+    assert(fin:close())
   end
 end
 
@@ -96,7 +96,7 @@ local closeindex = function() end
 if later["./index.txt"] then
   local fin = io.open("./index.txt")
   table.insert(index, gd.parse(fin:lines()))
-  closeindex = function() if not fin:close() then error("oh no") end end
+  closeindex = function() assert(fin:close()) end
 else
   table.insert(index, gd.parsestring("# index\n:nonav"))
 end
@@ -111,7 +111,7 @@ local closenotfound = function() end
 if later["./404.txt"] then
   local fin = io.open("./404.txt")
   notfound = gd.parse(fin:lines())
-  closenotfound = function() if not fin:close() then error("oh no") end end
+  closenotfound = function() assert(fin:close()) end
 else
   notfound = gd.parsestring("# 404 oh no\n:absoluteurls")
 end
