@@ -56,7 +56,7 @@ I've used GitHub Pages before. I've mostly just clicked some buttons on the webs
 
 So not sure about olden days, but _these days_ there are various GitHub Actions stuff you can use for different static site generators. GitHub Actions and its YAML are not the kind of things I really want to learn a lot about, but eh. It doesn't take that much figuring stuff out to run my Lua code and GitHub Pages the results.
 
-Anyway so ^https://github.com/actions/starter-workflows/blob/main/pages/static.yml workflow for deploying static content to GitHub Pages^ does most of the stuff. I suspect you can "instantiate" a workflow using a template like that or something, but I've just copied it to ^https://github.com/Glorp/smolmark-ssg/blob/main/.github/workflows/main.yml .github/workflows/main.yml^ in my repo. And:
+Anyway so ^https://github.com/actions/starter-workflows/blob/main/pages/static.yml this workflow for deploying static content to GitHub Pages^ does most of the stuff we need. I suspect you can "instantiate" a workflow using a template like that or something, but I've just copied it to ^https://github.com/Glorp/smolmark-ssg/blob/main/.github/workflows/main.yml .github/workflows/main.yml^ in my repo. And:
 
 * Substitued `main` for `$default-branch`.
 * Added my own build step between `Checkout` and `Setup Pages`.
