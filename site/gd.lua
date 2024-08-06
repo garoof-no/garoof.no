@@ -1,25 +1,23 @@
 local draw = require("gd-draw")
 local dt = require("gd-datetime")
 
+local function line(type, start, rest)
+  return { type = type,  start = start, rest = rest, empty = rest == "" }
+end
+
 local function stringparser(type, startp)
   local pattern = "^(" .. startp .. ")%s*(.-)%s*$"
 
   return function(str)
     local start, rest = str:match(pattern)
-    if start then return { type = type, start = start, rest = rest ~= "" and rest or nil } end
-    return nil
+    return start and line(type, start, rest)
   end
 end
 
 local function preparsers(start)
   return {
     stringparser("pre>", start),
-    function (str)
-      local res = { type = "pre" }
-      local rest = str:match("^(.-)%s*$")
-      if rest ~= "" then res.rest = rest end
-      return res
-     end
+    function (str) return line("pre", "", str:match("^(.-)%s*$")) end
   }
 end
 
@@ -33,10 +31,8 @@ local lineparsers = {
   stringparser("<pre", "``+"),
   stringparser("keyval", ":%S*"),
   function (str)
-    local res = { type = "text" }
-    local rest = str:match("^%s*(.-)%s*$")
-    if rest ~= "" then res.rest = rest end
-    return res
+    local start, rest = str:match("^(%s*)(.-)%s*$")
+    return line("text", start, rest)
    end
 }
 
@@ -84,7 +80,7 @@ local function parse(iter)
     return function(line)
       if line.type == "keyval" then
         local meta = token.meta or {}
-        meta[line.start:sub(2)] = (line.rest or "")
+        meta[line.start:sub(2)] = line.rest
         token.meta = meta
       else
         push(token)
@@ -94,7 +90,7 @@ local function parse(iter)
   end
 
   function empty(line)
-    if line.type == "text" and not line.rest then
+    if line.type == "text" and line.empty then
       pusht("br")
     else
       go(nothing, line)
@@ -103,10 +99,10 @@ local function parse(iter)
 
   function emptyquote(line)
     if line.type == "quote" then
-      if not line.rest then
+      if line.empty then
         pusht("quotebr")
       else
-        push({ type ="<p" })
+        pusht("<p")
         push(line)
         go(quote)
       end
@@ -118,12 +114,12 @@ local function parse(iter)
 
   function quote(line)
     if line.type == "quote" then
-      if line.rest then
-        pusht("br")
-        push(line)
-      else
+      if line.empty then
         pusht("p>")
         go(emptyquote)
+      else
+        pusht("br")
+        push(line)
       end
     else
       pusht("p>")
@@ -133,7 +129,7 @@ local function parse(iter)
   end
 
   function nothing(line)
-    if line.type == "text" and not line.rest then
+    if line.type == "text" and line.empty then
       go(empty)
     elseif line.type == "text" then
       pusht("<p")
@@ -191,12 +187,14 @@ local function parse(iter)
   end
 
   function text(line)
-    if line.type == "text" and not line.rest then
-      pusht("p>")
-      go(empty)
-    elseif line.type == "text" and line.rest then
-      pusht("br")
-      push(line)
+    if line.type == "text" then
+      if line.empty then
+        pusht("p>")
+        go(empty)
+      else
+        pusht("br")
+        push(line)
+      end
     else
       pusht("p>")
       go(nothing, line)
@@ -329,7 +327,7 @@ local function prewriterf(class)
         return "\n"
       elseif line.type == "pre>" then
         local res = "</code></pre>"
-        if line.rest then
+        if not line.empty then
           local caption = escape(line.rest)
           res = res .. "<figcaption>"
             .. strhtml(caption, url) .. "</figcaption>"
@@ -352,7 +350,7 @@ local function img(url)
       return ""
     elseif line.type == "pre>" then
       local res = "</figure>" 
-      if line.rest then
+      if not line.empty then
         local caption = escape(line.rest)
         res = "<figcaption>" .. caption .. "</figcaption>" .. res
       end
@@ -377,7 +375,7 @@ local function newdrawing(url)
       local res = {}
       local function out(str) table.insert(res, str) end
       local svg = draw.render(map, out, 16)
-      if line.rest then
+      if not line.empty then
         table.insert(res, "<figcaption>")
         table.insert(res, strhtml(line.rest, url))
         table.insert(res, "</figcaption>")
@@ -464,9 +462,11 @@ end
 
 local function titlefrom(token)
   local t = token.type
-  return (t == "h1" or t == "h2" or t == "h3") and token.rest or "untitled"
+  if (t ~= "h1" and t ~= "h2" and t ~= "h3") or token.empty then
+    return "untitled"
+  end
+  return token.rest
 end
-
 
 local function pubid(meta)
   return meta and meta.pub and "pub-" .. meta.pub:gsub("%W", "") or nil
@@ -504,7 +504,6 @@ local function html(url, pretable, kvtable)
     rendermeta(line.meta, res)
     return table.concat(res)
   end
-  
 
   local function renderLine(line)
     if line.type == "text" or line.type == "quote" then
