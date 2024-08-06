@@ -63,7 +63,7 @@ Anyway so ^https://github.com/actions/starter-workflows/blob/main/pages/static.y
 
 * Substitued `main` for `$default-branch`.
 * Added my own build step between `Checkout` and `Setup Pages`.
-* Made the Pages thing upload my `./site/` folder instead of the entire repo/`.`
+* Made the Pages thing upload my `./site/` folder instead of the entire repo.
 
 My build step installs Lua and runs `build.lua`:
 
