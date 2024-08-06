@@ -1,9 +1,12 @@
 # Sitebuilding
-:todo under construction
+:pub ZkA6Fk
+:blurb Smol static site generation.
 
-My static site generator is likely to be a few Lua files that I tinker with. I have them committed in whichever repo I want to be a website. (I like having them there instead of somewhere else. Like they're part of the site, and nearby if I want to change something, not off in some ""library"" or something.)
+(A fairly small example of a static site generation, ugh, _""pipeline.""_ Half "this is, in general, my overall approach." And hopefully half "if you wanna run your own code for this kind of thing, it doesn't _have_ to be an entire and massive thing.")
 
-As an example, we'll use ^./smolmark.txt the markdowny language from the previous post^, along with a `build.lua` file. `build.lua` asks the OS if there any `.txt` files lying around and makes a HTML file for each:
+My static site generator is likely to be a few Lua files that I tinker with. I have them committed in whichever repo I want to be a website. (I like having them there instead of somewhere else. Like they're part of the site, and nearby if I want to change something, not off in some "library" or something.)
+
+Will use ^./smolmark.txt the markdowny language from the previous post^ as an example, along with a `build.lua` file. `build.lua` asks the OS if there any `.txt` files lying around and makes an HTML file for each:
 
 ```
 local mark = require("smolmark")
@@ -48,15 +51,15 @@ end
 assert(pipe:close())
 ``` build.lua
 
-So, I have that, ^https://github.com/Glorp/smolmark-ssg/blob/main/site/smolmark.lua smolmark.lua^ (_mostly_ the code from ^./smolmark.txt that previous post^), and some text files in ^https://github.com/Glorp/smolmark-ssg my repo^, in a folder called "site." I run `lua5.4 build.lua` there and it builds the site.
+So, I have that, ^https://github.com/Glorp/smolmark-ssg/blob/main/site/smolmark.lua smolmark.lua^ (_mostly_ the code from ^./smolmark.txt that previous post^, with some adjustments), and some text files in ^https://github.com/Glorp/smolmark-ssg my repo^, in a folder called "site." I run `lua5.4 build.lua` there and it builds the site.
 
 ## GitHub Pages
 
-I've used GitHub Pages before. I've mostly just clicked some buttons on the website to activate it and then let it upload whichever files are in my repo/some folder. I think maybe that was the way it was done earlier? These days, when enabling Pages, I can choose between "Deploy from a branch" and "GitHub Actions." "Deploy from a branch" is the "Classic Pages Experience," so maybe I used to do things like that because that was the way things were done. Not sure.
+I've used GitHub Pages before. Previously I've mostly just clicked some buttons on the website to activate it and then let it upload whichever files are in my repo/some folder. I think maybe that was the way it was done earlier? These days, when enabling Pages, I can choose between "Deploy from a branch" and "GitHub Actions." "Deploy from a branch" is the "Classic Pages Experience," so maybe I used to do things like that because that was the way things were done. Not sure.
 
-So not sure about olden days, but _these days_ there are various GitHub Actions stuff you can use for different static site generators. GitHub Actions and its YAML are not the kind of things I really want to learn a lot about, but eh. It doesn't take that much figuring stuff out to run my Lua code and GitHub Pages the results.
+So not sure about olden days, but _these days_ there are various GitHub Actions stuff you can use for different static site generators. GitHub Actions and its YAML are not the kind of things I really want to learn a lot about, but blep. It doesn't take that much figuring stuff out to run my Lua code and GitHub Pages the results.
 
-Anyway so ^https://github.com/actions/starter-workflows/blob/main/pages/static.yml this workflow for deploying static content to GitHub Pages^ does most of the stuff we need. I suspect you can "instantiate" a workflow using a template like that or something, but I've just copied it to ^https://github.com/Glorp/smolmark-ssg/blob/main/.github/workflows/main.yml .github/workflows/main.yml^ in my repo. And:
+Anyway so ^https://github.com/actions/starter-workflows/blob/main/pages/static.yml this workflow for deploying static content to GitHub Pages^ does most of the stuff I need. I suspect you can "instantiate" a workflow using a template like that or something, but I've just copied it to ^https://github.com/Glorp/smolmark-ssg/blob/main/.github/workflows/main.yml .github/workflows/main.yml^ in my repo. And:
 
 * Substitued `main` for `$default-branch`.
 * Added my own build step between `Checkout` and `Setup Pages`.
@@ -72,8 +75,7 @@ My build step installs Lua and runs `build.lua`:
           lua5.4 build.lua
 ```
 
-So now it runs the code and uploads the Pages whenever I push something. Also I don't need to commit the generated HTML files. Seems nice.
+So now it runs the code and uploads the Pages whenever I push something. Also I don't need to commit the generated HTML files. And all the code is there: The only thing I need for building it locally is a Lua. Seems okay or nice or something.
 
 * ^https://github.com/Glorp/smolmark-ssg The repo^
 * ^https://glorp.github.io/smolmark-ssg/ The deployed site^
-
