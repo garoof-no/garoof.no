@@ -1,0 +1,124 @@
+# Refactoring with respect to the tests
+:pub ZkAGMB
+:blurb Frogs are green too.
+:template lua
+
+I read the Test Driven Development: By Example by Kent Beck this spring. I liked it. I think TDD is pretty fun and playful in there.
+
+I've been introduced to TDD a few times, and there's one thing that keeps happening in the book that's kind of different to what I've been exposed to previously. Or I just haven't picked up on it previously. I mean I'm sure this is mostly me not having looked _that much_ into TDD. Either way, it's been on my mind.
+
+## Example
+
+There's a fibonacci example in one of the appendices. There's a part of it that I think is good as a short example. Stealing that. It goes _somewhat_ like this:
+
+We're on green. We have some tests:
+
+``` run
+function test()
+  runtests(
+    function() assertEq(0, fib(0)) end,
+    function() assertEq(1, fib(1)) end,
+    function() assertEq(1, fib(2)) end,
+    function() assertEq(2, fib(3)) end
+  )
+end
+```
+
+And an implementation of `fib` that's currently something like this:
+
+``` repl
+function fib(n)
+  if n == 0 then return 0
+  elseif n <= 2 then return 1
+  else return 2
+  end
+end
+test()
+```
+
+And then it's duplication removal/refactoring time, and it goes like:
+
+* The `2` in `return 2` is really `1 + 1`
+* And the first of the ones in `1 + 1` is really `fib(n - 1)`. So `fib(n - 1) + 1`
+* And the second of those ones is really `fib(n - 2)`. So `fib(n - 1) + fib(n - 2)`
+* And `fib(n - 1) + fib(n - 2)` should work when `n` is `2` as well, so the `elseif` only needs to cover `n == 1`
+
+So:
+
+``` repl
+function fib(n)
+  if n == 0 then return 0
+  elseif n == 1 then return 1
+  else return fib(n - 1) + fib(n - 2)
+  end
+end
+test()
+```
+
+And then `fib` is pretty much done. It went from a function that mostly returned `2` to a pretty complete `fib` while on green, while refactoring/removing duplication.
+
+## The things
+
+So. Two very related things:
+
+One: Previously, I've sometimes gotten the impression that _that_ kind of changing of the code would happen on red. Like there's this new test case that force you to implement things more properly instead of just returning another hardcoded value.
+
+Two: Like, it's red, green, refactor, right? You can't "refactor" a function that mostly just returns the number 2 into a fibonacci function, can you? Like that's very clearly changing behaviour, isn't it?
+
+But like, yeah, I guess. You're always refactoring _with respect to something._ When you're refactoring some piece of "completed" and working code, you're trying to not change "the behaviour" as experienced by the user/some client code/something. You often consider changing some time and space stuff as not changing the behaviour, but only up to a point, and it depends. There's a context and it's context-dependent and also there's a context. Okay.
+
+So uh, that's a thing I learned then. When I'm making a new function or something and I am "refactoring on green" during TDD, I am refactoring with respect to the tests. The behaviour that I'm not supposed to change is the behaviour covered by the existing tests. So making `fib(10)` return `55` instead of `2` is kind of not considered changing that behaviour here.
+
+Also something like: Getting from red to green as fast as possible, with bad code and that, makes more sense when you can do that kind of stuff on green. "From red to green" can be a very small part of the total distance you're going.
+
+Also also I think it's a nice example of "duplicated knowledge" not being two exactly alike pieces of code.
+
+----
+
+Oh, and here's the testing framework I'm using:
+
+``` prelude
+escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+function runtests(...)
+  local str = { '<p>' }
+  local passes, failures = 0, 0
+  for i, f in ipairs({...}) do
+    local success, res = pcall(f)
+    if success then
+      passes = passes + 1
+    else
+      failures = failures + 1
+      table.insert(str, 'test ' .. i .. ' failed: ')
+      table.insert(str, escape(tostring(res)) .. '<br>')
+    end
+  end
+  local results =
+    '(' .. passes .. ' tests passed. ' .. failures .. ' tests failed)'
+  if failures == 0 then
+    table.insert(str, '<span style="background-color:green;">')
+    table.insert(str, 'this is a green bar ' .. results .. '</span></p>')
+  else
+    table.insert(str, '<span style="background-color:red;">')
+    table.insert(str, 'this is a red bar ' .. results .. '</span></p>')
+  end
+  web.html(table.concat(str))
+end
+
+function assertEq(e, a)
+  if e ~= a then
+    error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
+  end
+end
+```
