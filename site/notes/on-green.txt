@@ -5,7 +5,7 @@
 
 I read the Test Driven Development: By Example by Kent Beck this spring. I liked it. I think TDD is pretty fun and playful in there.
 
-I've been introduced to TDD a few times, and there's one thing that keeps happening in the book that's kind of different to what I've been exposed to previously. Or I just haven't picked up on it previously. I mean I'm sure this is mostly me not having looked _that much_ into TDD. Either way, it's been on my mind.
+I've been introduced to TDD a few times, and there's one thing that keeps happening in the book that's kind of different to what I've been exposed to previously. Or I just haven't picked up on it before. I mean I'm sure this is mostly just me not having looked _that much_ into TDD. Either way, it's been on my mind.
 
 ## Example
 
@@ -104,15 +104,14 @@ function runtests(...)
       table.insert(str, escape(tostring(res)) .. '<br>')
     end
   end
-  local results =
-    '(' .. passes .. ' tests passed. ' .. failures .. ' tests failed)'
+  table.insert(str, '<span style="background-color:')
   if failures == 0 then
-    table.insert(str, '<span style="background-color:green;">')
-    table.insert(str, 'this is a green bar ' .. results .. '</span></p>')
+    table.insert(str, 'green;">this is a green bar ')
   else
-    table.insert(str, '<span style="background-color:red;">')
-    table.insert(str, 'this is a red bar ' .. results .. '</span></p>')
+    table.insert(str, 'red;">this is a red bar ')
   end
+  table.insert(str,  '(' .. passes .. ' tests passed. ')
+  table.insert(str,  failures .. ' tests failed)</span></p>')
   web.html(table.concat(str))
 end
 
