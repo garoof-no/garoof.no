@@ -122,7 +122,6 @@ function assertEq(e, a)
 end
 ```
 
-Oh, and that's like pretty much canon TDD btw! I really like that the book is like yeah you might wanna make your own testing framework:
+That's like pretty much canon TDD btw! I really like that the book is like yeah you might wanna make your own testing framework:
 
 > Some of the implementations have gotten a little complicated for my taste. Rolling your own will give you a tool over which you have a feeling of mastery.
-
