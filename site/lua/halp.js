@@ -37,6 +37,10 @@
     };
 
     const html = (el) => {
+      const last = result.lastElementChild;
+      if (last.childNodes.length === 0) {
+        last.remove();
+      }
       result.append(el, elem("pre", { className: "output" }));
     };
 
