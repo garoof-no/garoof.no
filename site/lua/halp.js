@@ -99,29 +99,26 @@
     webSend = nil
     web = {
       require = function(name, path)
-            local loaded = package.loaded[name]
-            if loaded then return loaded end
-            web.co = coroutine.running()
-            send("require", path)
-            local res = coroutine.yield()
-            package.loaded[name] = res
-           return res
-        end,
+        local loaded = package.loaded[name]
+        if loaded then return loaded end
+        web.co = coroutine.running()
+        send("require", path)
+        local res = coroutine.yield()()
+        package.loaded[name] = res
+        return res
+      end,
       run = function(thunk)
-          local co = coroutine.create(thunk)
-          local status, res = coroutine.resume(co)
-          assert(status, res)
-          return res
+        local co = coroutine.create(thunk)
+        local status, res = coroutine.resume(co)
+        assert(status, res)
+        return res
       end,
       resume = function(thunk)
-          local prev = web.co
-          web.co = nil
-          local co = coroutine.create(thunk)
-          local status, res = coroutine.resume(co)
-          assert(status, res)
-          local prevStatus, prevRes = coroutine.resume(prev, res);
-          assert(status, res)
-          return prevRes
+        local prev = web.co
+        web.co = nil
+        local prevStatus, prevRes = coroutine.resume(prev, thunk);
+        assert(status, res)
+        return prevRes
       end
     }
     local Web = {}
