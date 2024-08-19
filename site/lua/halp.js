@@ -1,5 +1,12 @@
 (() => {
   window.onload = () => {
+    
+    const elem = (tagName, props, ...children) => {
+      const el = Object.assign(document.createElement(tagName), props);
+      el.replaceChildren(...children);
+      return el;
+    };
+  
     const editor = document.getElementById("editor");
     const result = document.getElementById("result");
     const autorun = document.getElementById("autorun");
@@ -16,25 +23,31 @@
     let modified = true;
 
     const runLua = () => {
-      result.replaceChildren();
+      result.replaceChildren(elem("pre", { className: "output" }));
       const str = editor.value;
       Module.ccall("run_lua", "number", ["string"], [luarun(str)]);
-      link = document.createElement("a");
-      link.href = `${url}?code=${LZString144.compressToEncodedURIComponent(str)}`;
-      link.innerText = "link";
+      link = elem("a", { href: `${url}?code=${LZString144.compressToEncodedURIComponent(str)}` }, "link");
       forlink.replaceChildren(link);
     };
+    
+    const printelem = () => elem("pre", { className: "output" });
+    
+    const print = (str) => {
+      result.lastElementChild.append(elem("samp", {}, str), "\n");
+    };
 
-    let ModuleConfig = {
+    const html = (el) => {
+      result.append(el, elem("pre", { className: "output" }));
+    };
+
+    const ModuleConfig = {
       print: (function () {
         return (text) => {
           if (arguments.length > 1) {
             text = arguments.join(" ");
           }
           if (text != "emsc") {
-            const p = document.createElement("p");
-            p.innerText = text;
-            result.append(p, document.createElement("br"));
+            print(text);
           }
         };
       })(),
@@ -42,24 +55,17 @@
         if (arguments.length > 1) {
           text = arguments.join(" ");
         }
-        const p = document.createElement("p");
-        p.className = "error";
-        p.innerText = text;
-        result.append(p, document.createElement("br"));
-        console.error(text);
+        print(text);
       },
       send: (code, payload) => {
         if (code === "return") {
-          if (payload === "") {
-            return;
+          if (payload !== "") {
+            print("return: " + payload);
           }
-          const el = document.createElement("p");
-          el.innerText = "return: " + payload;
-          result.appendChild(el);
         } else if (code === "html") {
-          const div = document.createElement("div");
+          const div = elem("div");
           div.innerHTML = payload;
-          result.append(div);
+          html(div)
         } else if (code === "title") {
           document.title = payload;
         } else if (code === "log") {
@@ -98,27 +104,29 @@
     local send = webSend
     webSend = nil
     web = {
+      send = send,
       require = function(name, path)
         local loaded = package.loaded[name]
         if loaded then return loaded end
         web.co = coroutine.running()
         send("require", path)
-        local res = coroutine.yield()()
+        local thunk = coroutine.yield()
+        local res = thunk()
         package.loaded[name] = res
         return res
       end,
       run = function(thunk)
-        local co = coroutine.create(thunk)
-        local status, res = coroutine.resume(co)
-        assert(status, res)
-        return res
+        coroutine.wrap(
+          function()
+            local _, res = pcall(thunk)
+            send("return", tostring(res))
+          end
+        )()
       end,
       resume = function(thunk)
         local prev = web.co
         web.co = nil
-        local prevStatus, prevRes = coroutine.resume(prev, thunk);
-        assert(status, res)
-        return prevRes
+        coroutine.resume(prev, thunk);
       end
     }
     local Web = {}
