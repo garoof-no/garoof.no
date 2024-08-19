@@ -1,0 +1,12 @@
+# Webby Lua
+:todo under construction
+
+Lua is fun. And while I like that it's not part of very complicated web browser tech or something, it _is_ kind of nice to be able to run it the browser. I like using it for example code in posts, and I like having runnable examples. Stuff like that.
+
+The Lua implementation is C code that compiles pretty easily and you can Emscipten-compile it to wasm. I don't _really_ know my way around that kind of stuff, but I found ^https://github.com/Dreagonmon/wasm_lua this wasm_lua on GitHub^, and that had dealt with the stuff I didn't know how to do.
+
+I've made my own version. I've modified some stuff and I've made the GitHub stuff build and deploy it to GitHub pages.
+
+* ^https://github.com/Glorp/webby-lua The webby-lua GitHub repo^
+* ^https://glorp.github.io/webby-lua/ The deployed example page^
+
