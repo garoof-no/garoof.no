@@ -14,26 +14,17 @@
     const url = window.location.href.split('?')[0];
     let link = null;
 
-    let Module;
     let timer;
 
     const luarun = str => `return web.run(function() ${str} end)`;
     const luaresume = str => `return web.resume(function() ${str} end)`;
     const luastr = str => `[[${str.replace("]]", "__")}]]`;
     let modified = true;
-
-    const runLua = () => {
-      result.replaceChildren(elem("pre", { className: "output" }));
-      const str = editor.value;
-      Module.ccall("run_lua", "number", ["string"], [luarun(str)]);
-      link = elem("a", { href: `${url}?code=${LZString144.compressToEncodedURIComponent(str)}` }, "link");
-      forlink.replaceChildren(link);
-    };
     
     const printelem = () => elem("pre", { className: "output" });
     
-    const print = (str) => {
-      result.lastElementChild.append(elem("samp", {}, str), "\n");
+    const print = (...args) => {
+      result.lastElementChild.append(elem("samp", {}, args.join(" ")), "\n");
     };
 
     const html = (el) => {
@@ -44,23 +35,11 @@
       result.append(el, elem("pre", { className: "output" }));
     };
 
-    const ModuleConfig = {
-      print: (function () {
-        return (text) => {
-          if (arguments.length > 1) {
-            text = arguments.join(" ");
-          }
-          if (text != "emsc") {
-            print(text);
-          }
-        };
-      })(),
-      printErr: function (text) {
-        if (arguments.length > 1) {
-          text = arguments.join(" ");
-        }
-        print(text);
-      },
+
+    let module;
+    const config = {
+      print: print,
+      printErr: print,
       send: (code, payload) => {
         if (code === "return") {
           if (payload !== "") {
@@ -85,7 +64,7 @@
                 const err = `${xmlHttp.status}: ${xmlHttp.statusText} (${payload})`;
                 code = `error(${luastr(err)})`;
               }
-              Module.ccall("run_lua", "number", ["string"], [luaresume(code)]);
+              module.ccall("run_lua", "number", ["string"], [luaresume(code)]);
             }
           };
           xmlHttp.open("GET", payload, true);
@@ -140,9 +119,18 @@
     end
     `;
 
-    initWasmModule(ModuleConfig).then((aModule) => {
-      Module = aModule;
-      Module.ccall("run_lua", "number", ["string"], [prelude]);
+    initWasmModule(config).then((m) => {
+      module = m;
+
+      const runLua = () => {
+        result.replaceChildren(elem("pre", { className: "output" }));
+        const str = editor.value;
+        module.ccall("run_lua", "number", ["string"], [luarun(str)]);
+        link = elem("a", { href: `${url}?code=${LZString144.compressToEncodedURIComponent(str)}` }, "link");
+        forlink.replaceChildren(link);
+      };
+    
+      module.ccall("run_lua", "number", ["string"], [prelude]);
       runLua();
       editor.oninput = () => {
         if (link !== null) {
