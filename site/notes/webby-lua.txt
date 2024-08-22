@@ -1,12 +1,15 @@
 # Webby Lua
 :todo under construction
+:blurb We like the moon.
 
-Lua is fun. And while I like that it's not part of very complicated web browser tech or something, it _is_ kind of nice to be able to run it the browser. I like using it for example code in posts, and I like having runnable examples. Stuff like that.
+Lua is fun. And while I like that it's not part of very complicated web browser tech or something, it can be kind of nice to be able to run it the browser. I like using it for example code in posts, and I like having runnable examples. Stuff like that.
 
-The Lua implementation is C code that compiles pretty easily and you can Emscipten-compile it to wasm. I don't _really_ know my way around that kind of stuff, but I found ^https://github.com/Dreagonmon/wasm_lua this wasm_lua on GitHub^, and that had dealt with the stuff I didn't know how to do.
-
-I've made my own version. I've modified some stuff and I've made the GitHub stuff build and deploy it to GitHub pages.
+Anyway here's a repo for building some Wasm stuff along with a couple of examples.
 
 * ^https://github.com/Glorp/webby-lua The webby-lua GitHub repo^
 * ^https://glorp.github.io/webby-lua/ The deployed example page^
+* ^https://glorp.github.io/webby-lua/simple.html A simpler example^ that depends on less stuff and only has code for the basics
+* ^https://glorp.github.io/webby-lua/webby-lua.zip A zip file with what's in the website.^ If unzipped, the examples should run okay if opened directly from the file system. Like it should be fine to modify the HTML and JS without and play around with it without setting up a bunch of stuff or anything (if you want to compile the C code, you want the repo instead).
+
+The Lua implementation is C code that compiles pretty easily and you can Emscipten-compile it to wasm. I don't _really_ know my way around that kind of stuff, but I found ^https://github.com/Dreagonmon/wasm_lua this wasm_lua on GitHub^, and that had dealt with the stuff I didn't know how to do. My repo is _mostly_ that repo, but I changed the C code a litte to make it behave more like I wanted and also made it deploy the example stuff to GitHub Pages.
 
