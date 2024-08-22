@@ -123,7 +123,7 @@
         coroutine.wrap(
           function()
             local _, res = pcall(thunk)
-            send("return", tostring(res))
+            if res ~= nil then send("return", tostring(res)) end
           end
         )()
       end,
