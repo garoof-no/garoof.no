@@ -1,10 +1,19 @@
 # Webby Lua
-:todo under construction
+:pub ZkAPMg
 :blurb We like the moon.
+:template lua
 
-Lua is fun. And while I like that it's not part of very complicated web browser tech or something, it can be kind of nice to be able to run it the browser. I like using it for example code in posts, and I like having runnable examples. Stuff like that.
+Lua is fun. And while I like that it's not part of very complicated web browser tech or something, being able to run it in the browser can be kind of nice. I like using it for example code in posts. And I like having examples that can be run and maybe modified on the page:
 
-Anyway here's a repo for building some Wasm stuff along with a couple of examples.
+``` repl
+local vowels = "aeiou"
+for i = 1, 15 do
+  local j = (i - 1) % #vowels + 1
+  print(vowels:sub(j, j):rep(i) .. "h")
+end
+```
+
+Anyway here's a repo for building some Wasm stuff along with a couple of examples:
 
 * ^https://github.com/Glorp/webby-lua The webby-lua GitHub repo^
 * ^https://glorp.github.io/webby-lua/ The deployed example page^
