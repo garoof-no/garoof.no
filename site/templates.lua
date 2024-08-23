@@ -30,7 +30,7 @@ ul { list-style-position: inside; }
 li { margin: 0;padding: 0; }
 hr { margin: 1.5rem 0 1.5rem 0; }
 img { max-width: 100%; }
-textarea { width: 100%;  font-size: 1.05rem; color: var(--text); background-color: var(--bg2); border-color: var(--accent); }
+textarea { width: 100%; font-size: 1.05rem; color: var(--text); background-color: var(--bg2); border-color: var(--accent); }
 button { background-color: var(--bg2); border-top: 1px solid var(--accent); border-right: 1px solid var(--accent3); border-bottom: 1px solid var(--accent3); border-left: 1px solid var(--accent); }
 button:active { border-top: 1px solid var(--accent3); border-left: 1px solid var(--accent3); }
 time { font-style: italic; }
