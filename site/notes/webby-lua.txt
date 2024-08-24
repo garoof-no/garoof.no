@@ -30,12 +30,14 @@ There's a C program that consist of Lua and a `main.c` with:
 * A `lua_web_send` function for sending a couple of strings to the JS side
 
 ``` drawing
-.--------.                               .--------.
-|    C   |      run_lua(sourcecode)      |        |
-|.------.|<------------------------------|   JS   |
-|| Lua  ||  lua_web_send(code, payload)) |        |
-|'------'|------------------------------>|        |
-'--------'                               '--------'
+.---------.                               .--------.
+|    C    |      run_lua(sourcecode)      |   JS   |
+|.-------.|<------------------------------|        |
+||  Lua  ||                               |        |
+||       ||  lua_web_send(code, payload)) |        |
+||       ||------------------------------>|        |
+|'-------'|                               |        |
+'---------'                               '--------'
 ```
 
 The idea is that the JS side is the most infrastructury side:
