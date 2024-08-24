@@ -1,5 +1,5 @@
 # Webby Lua
-:pub ZkAPMg
+:pub ZkAQFU
 :blurb We like the moon.
 :template lua
 
@@ -13,12 +13,40 @@ for i = 1, 15 do
 end
 ```
 
-Anyway here's a repo for building some Wasm stuff along with a couple of examples:
+I've done _some_ cleaning up of the code I use for this and put it in a repo. It's set up so that it deploys a couple of examples to GitHub pages.
 
 * ^https://github.com/Glorp/webby-lua The webby-lua GitHub repo^
 * ^https://glorp.github.io/webby-lua/ The deployed example page^
 * ^https://glorp.github.io/webby-lua/simple.html A simpler example^ that depends on less stuff and only has code for the basics
-* ^https://glorp.github.io/webby-lua/webby-lua.zip A zip file with what's in the website.^ If unzipped, the examples should run okay if opened directly from the file system. Like it should be fine to modify the HTML and JS without and play around with it without setting up a bunch of stuff or anything (if you want to compile the C code, you want the repo instead).
+* ^https://glorp.github.io/webby-lua/webby-lua.zip A zip file with what's in the website.^ After unzipping, the examples should run okay if opened directly from the file system. Like it should be fine to modify the HTML and JS without and play around with it without setting up a bunch of stuff or anything (if you want to compile the C code, you want the repo instead).
 
-The Lua implementation is C code that compiles pretty easily and you can Emscipten-compile it to wasm. I don't _really_ know my way around that kind of stuff, but I found ^https://github.com/Dreagonmon/wasm_lua this wasm_lua on GitHub^, and that had dealt with the stuff I didn't know how to do. My repo is _mostly_ that repo, but I changed the C code a litte to make it behave more like I wanted and also made it deploy the example stuff to GitHub Pages.
+The Lua implementation is C code that compiles pretty easily and you can Emscipten-compile it to wasm. I don't _really_ know my way around that kind of stuff, but I found ^https://github.com/Dreagonmon/wasm_lua a wasm_lua repo on GitHub^, and that had dealt with the stuff I didn't know how to do. I've made some small changes to the `main.c` file and made different example pages, but my repo is _mostly_ just that repo.
+
+## How does?
+
+There's a C program that consist of Lua and a `main.c` with:
+
+* A `run_lua` function that takes a string from the JS side and lets Lua compile and run it. `run_lua` sets up the Lua VM the first time it's called.
+* A `lua_web_send` function for sending a couple of strings to the JS side
+
+``` drawing
+.--------.                               .--------.
+|    C   |      run_lua(sourcecode)      |        |
+|.------.|<------------------------------|   JS   |
+|| Lua  ||  lua_web_send(code, payload)) |        |
+|'------'|------------------------------>|        |
+'--------'                               '--------'
+```
+
+The idea is that the JS side is the most infrastructury side:
+
+* It might send some initialization code to the C/Lua side when the page is loaded.
+* And there's probably some mechanism for sending more code over there. In my posts, some pieces of code found in the HTML are sent there during initialization. Others are more REPL-like and can be edited and run by the user.
+* It also decides how to handle stuff received from the C/Lua side through the `run_lua` function. It might do stuff like printing the payload with `console.log` if the code is `"log"`, or treat it as HTML and render it into the page somewhere if the code is `"html"`.
+
+The Lua code is usually more "core domain" code. The code that is written in a REPL or used as example code in a post. The `lua_web_send` C function is available in Lua as the `webSend` Lua function. In the initialization code I typically replace it with a `web` table that I do some metatable stuff to so I can e.g. do `web.html("<p>hello</p>")` in order code `"web"` and payload `"<p>hello</p>"` to the JS side.
+
+If something is more complicated than just sending a message to the JS side, I can add functions to `web` manually. I have a `web.require` that does some coroutine stuff so that it can send the code `"require"` along with a URL to the JS side and then suspend the coroutine before the C function returns control to the JS side. The JS can then make the HTTP request to get the source code for the required library and send it to the Lua side in a way that resumes the suspended coroutine and loads the library. There's a bit of juggling but like it's fun.
+
+Blep.
 
