@@ -4,21 +4,26 @@ local function point(x, y)
   return { x = x, y = y, key = x .. "," .. y }
 end
 
-local function points(lend)
-  local i = lend.idx
-  local off = 0 - lend.off
-  local other = lend.other.idx
-  local ended = false
-  local line = lend.line
-  return function()
-    if ended then return nil end
-    local currenti = i
-    i = i + off
-    local res = line[currenti]
-    if currenti == other then
-      ended = true
+local function points(half)
+  local other = half.other
+  local current
+  local i = #half
+  local function last()
+    local res = other[i]
+    i = i + 1
+    if i > #other then current = nil end
+    return res
+  end
+  local function first()
+    local res = half[i]
+    if i == 1 then current = last
+    else i = i - 1
     end
-    return currenti, res
+    return res
+  end
+  current = first
+  return function()
+    return current and current()
   end
 end
 
@@ -44,83 +49,69 @@ local function newlines()
   local extendible = {}
 
   local function line(from, to)
-    local line = { from, to }
-    local first = { line = line, idx = 1, off = -1, dir = dir(to, from) }
-    local last = { line = line, idx = 2, off = 1, dir = dir(from, to) }
-    first.other = last
-    last.other = first
-    line["first"] = first
-    line["last"] = last
-    table.insert(lines, line)
-    extendible[from.key] = first
-    extendible[to.key] = last
-    return line
+    local meta = { start = false }
+    local half = { from, other = false, dir = dir(to, from), meta = meta }
+    local other = { to, other = half, dir = dir(from, to), meta = meta }
+    half.other = other
+    meta.start = half
+    table.insert(lines, meta)
+    extendible[from.key] = half
+    extendible[to.key] = other
   end
 
-  local function extend(lend, point)
-    local line = lend.line
-    local i = lend.idx
-    local prev = line[i]
+  local function extend(half, point)
+    local i = #half
+    local prev = half[i]
     extendible[prev.key] = nil
-    extendible[point.key] = lend
+    extendible[point.key] = half
 
     local newdir = dir(prev, point)
-    if not samedir(newdir, lend.dir) then
-      i = i + lend.off
+    if not samedir(newdir, half.dir) then
+      i = i + 1
     end  
-    line[i] = point
-    lend.idx = i
-    lend.dir = newdir
-    return line
+    half[i] = point
+    half.dir = newdir
   end
 
-  local function unstend(lend)
-    local p = lend.line[lend.idx]
-    extendible[p.key] = nil
+  local function unstend(half)
+    extendible[half[#half].key] = nil
   end
 
   local function join(first, last)
-    local fline = first.line
-    local lline = last.line
     if first == last then
       error("oh no")
-    elseif fline == lline then
-      fline.closed = true
+    elseif first.other == last then
+      first.meta.closed = true
       unstend(first)
       unstend(last)
-      return fline
+      return
     else
-      local flen = math.abs(first.idx - first.other.idx)
-      local llen = math.abs(last.idx - last.other.idx)
+      local flen = #first + #first.other
+      local llen = #last + #last.other
       local keep, remove
       if flen >= llen then keep, remove = first, last
       else keep, remove = last, first end
-      local rline = remove.line
-      unstend(rline.first)
-      unstend(rline.last)
-      for i, p in (points(remove)) do
+      unstend(remove)
+      unstend(remove.other)
+      remove.meta.start = nil
+      for p in points(remove) do
         extend(keep, p)
-        rline[i] = nil
       end
-      rline.first = nil
-      rline.last = nil
-      rline.nothing = true
-      return keep.line
     end
   end
 
-  lines.add = function(fromx, fromy, tox, toy)
+  function lines.add(fromx, fromy, tox, toy)
     local from, to = point(fromx, fromy), point(tox, toy)
     local first = extendible[from.key]
     local last = extendible[to.key]
     if first and last then
-      return join(first, last)
+      join(first, last)
     elseif first then
-      return extend(first, to)
+      extend(first, to)
     elseif last then
-      return extend(last, from)
+      extend(last, from)
     else
-      return line(from, to)
+      line(from, to)
     end
   end
   return lines
@@ -314,19 +305,18 @@ local function render(map, out, size)
   style = style .. [[font-size: ]] .. size .. [[px; ]]
   style = style .. [[dominant-baseline: hanging; text-anchor: start; }</style>]]
 
-  local function lineSvg(line)
-    if line.nothing then
+  local function lineSvg(meta)
+    if not meta.start then
       return ""
     end
     local strs = {}
-    for i, p in points(line.first) do
+    for p in points(meta.start) do
       table.insert(strs, p.x * xscale .. "," .. p.y * yscale)
     end
-    local type = line.closed and '<polygon points="' or '<polyline points="'
+    local type = meta.closed and '<polygon points="' or '<polyline points="'
     return type .. table.concat(strs, " ") .. '" />'
   end
 
-  
   local w, h = ((map.w + 2) * cellw), ((map.h + 2) * cellh)
   out('<svg width="' .. w .. '" height="' .. h .. '" viewBox="0 0 ' .. w .. ' ' .. h .. '" xmlns="http://www.w3.org/2000/svg">')
   out(style)
