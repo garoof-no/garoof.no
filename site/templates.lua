@@ -19,8 +19,7 @@ local function css(width)
   return [[
 :root { color-scheme: dark; --bg: #131F07; --bg2: #173806; --text: #dcdcdc; --accent: #FFBF00; --accent2: #D8A100; ;--accent3: #4D3700; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, "Noto Sans", "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif; color: var(--text); background-color: var(--bg); padding-left: 0.5rem; padding-right: 0.5rem; max-width: ]] .. width ..[[; margin: 1rem auto 0 auto; }
-p, pre, ul, hr { margin: 1rem 0 1rem 0; padding: 0; }
-figure { margin: 0 0 1rem 0.5rem; padding: 0; }
+p, pre, ul, hr, figure { margin: 1rem 0 1rem 0; padding: 0; }
 h1, h2, h3 { margin: 2rem 0 0rem 0; padding: 0; }
 h1 { font-size: 2.2rem; } h2 { font-size: 1.4rem; }  h3 { font-size: 1.1rem; }
 blockquote { padding: 0 0 0 0.8rem; margin: 0 0 0 0rem; border-left: 0.1rem solid var(--text); }

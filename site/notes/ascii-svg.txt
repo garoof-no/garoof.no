@@ -1,0 +1,292 @@
+# Attempting to SVG some ASCII art diagrams
+:todo under construction
+:template lua
+
+I made thing for this website a little while ago. Thing that lets me render a diagram made with ASCII art as SVG on a webpage. So I can do:
+
+````
+``` drawing
+.-------.   .-------.
+| hello +-->| world |
+'-------'   '-------'
+```
+````
+
+And get:
+
+``` drawing
+.-------.   .-------.
+| hello +-->| world |
+'-------'   '-------'
+```
+
+I looked a bit around before I made it. I tend to look for something like, some ways of thinking about the problem and maybe dividing it into subproblems, different approaches, tradeoffs, maybe some "patterns." I don't usually find what I'm looking for though. Found some existing solutions, but couldn't be bothered digging into them and figuring out what the important ideas were etc. So I just I ended up _doing something:_
+
+## Line segments and shapes
+
+One thought I had was something like: If you draw a rectangle with ASCII art, maybe the thing should figure out that it's a rectangle and make an SVG `<rect>`, and so on. The alternative seemed to be to process one character at a time: If the character's a hyphen, we make a little horizontal SVG `<line>`, and so forth. I think it sounds nice to have an SVG with reasonably few, uh, "appropriate" SVG shapes in it. And less nice to have one with a ton of tiny lines that happen to form shapes.
+
+So I had some thoughts like, if I find a hyphen, should I like try to follow that line to see what shape it makes? And then, how do I deal with this-or-that? Should I "consume" a character once I've processed it as part of a shape? What if it's part of another shape as well? How do I know e.g. which way to follow it at the plus sign on the hello box there? Bunch of stuff that sounded too complicated for _my_ head.
+
+So eh. Decided to do the one character at a time thing. If I did that and also had some "line joining" machinery, then I could probably keep things fairly simple in my head and also keep the SVG from getting too bad.
+
+``` drawing
+.-----------.                 .--------------.
+|   line    |                 | one char at  |
+|  joining  |                 |   a time     |
+| machinery |                 |  processor   |
+'-----------'                 '--------------'
+     |                               |
+     |      add((1, 1), (2, 2))      |
+     |<------------------------------|
+     |      add((2, 2), (2, 1))      |
+     |<------------------------------|
+     |      add((3, 3), (4, 4))      |
+     |<------------------------------|
+     |                               |
+     |         lines plox            |
+     |<------------------------------|
+     | { (1, 1), (2, 2), (2, 1) }    |
+     | { ((3, 3), (4, 4)) }          |
+     |------------------------------>|
+     |                               |
+     |                               |
+```
+
+Like if you added a line from (1, 1) to (2, 2) and then a line from (2, 2) to (2, 1), the machinery would join those together. If you then added a line from (3, 3) to (4, 4), that would not connect to any existing (poly)line, so you'd end up with two "shapes:" One polyline from (1, 1) to (2, 2) to (2, 1), and one line from (3, 3) to (4, 4).
+
+## Drawing some stuff
+
+We wanna draw some SVG stuff. We need points:
+
+``` run
+Point = {}
+allpoints = setmetatable({}, { __mode = "kv" })
+function point(x, y)
+  local key = x .. "," .. y
+  local res = allpoints[key]
+  if res then return res end
+  res = setmetatable({ x = x, y = y }, Point)
+  allpoints[key] = res
+  return res
+end
+
+function Point:__add(other)
+  return point(self.x + other.x, self.y + other.y)
+end
+
+function Point:__tostring()
+  return "(" .. self.x ", " .. self.y .. ")"
+end
+
+U, R, D, L = point(0, -1), point(1, 0), point(0, 1), point(-1, 0)
+```
+
+And something for making lines between points:
+
+``` run
+xscale, yscale = 1, 1
+function lineSvg(tag, color, points)
+  local res = { '<', tag, ' stroke="', color, '" points="' }
+  for p in points do
+    table.insert(res, " " .. p.x * xscale .. "," .. p.y * yscale)
+  end
+  table.insert(res, '" />')
+  return table.concat(res)
+end
+```
+
+Because reasons, `lineSvg` takes an iterator function as its `points` argument, instead of e.g. a table. We'll make a helper function for testing:
+
+``` run
+function it(list)
+  local i = 0
+  return function()
+    i = i + 1
+    return list[i]
+  end
+end
+```
+
+Can make a drawing now:
+
+``` repl
+local list1 = { point(10, 10), point(110, 10), point(110, 110) }
+local list2 = { point(10, 10), point(10, 110), point(110, 110) }
+local list3 = { point(30, 30), point(100, 60), point(20, 90) }
+web.html(
+  '<svg width="120" height="120">' ..
+  lineSvg("polyline", "white", it(list1)) ..
+  lineSvg("polyline", "black", it(list2)) ..
+  lineSvg("polygon", "yellow", it(list3)) ..
+  '<svg>'
+)
+```
+
+Great.
+
+## Map of chars
+
+We wanna turn a string into a data structure that lets us treat things as kind of a 2D map. The details aren't terribly important, but here's some thing:
+
+``` run
+function mapfrom(str)
+  local chars = {}
+  local res = { w = 0, h = 0, chars = chars }
+  local x, y = 0, 0
+  for c in str:gmatch(".") do
+    if c == "\n" then
+      y = y + 1
+      x = 0
+    else
+      if c ~= " " then
+        chars[point(x, y)] = c
+        res.w = math.max(res.w, x)
+      end
+      x = x + 1
+    end
+  end
+  res.h = y
+  function res.at(p)
+    return chars[p]
+  end
+  return res
+end
+```
+
+We'll test it somewhat:
+
+``` run
+teststring = [[
++--------+
+| +--+   |
+| |  |   |
+| +--+   |
++--------+
+]]
+```
+
+``` repl
+map = mapfrom(teststring)
+print(map.at(point(0, 0)))
+print(map.at(point(1, 0)))
+print(map.at(point(0, 1)))
+print(map.at(point(1, 1)))
+print(map.at(point(0, 3)))
+print(map.at(point(4, 1)))
+print(map.at(point(5, 1)))
+```
+
+Seems fine.
+
+## Processing chars
+
+We'll deal with the line joining machinery later. In order to have something to program against, we'll make something that doesn't actually join any lines:
+
+``` run
+function nojoining()
+  local res = {}
+  function res.add(from, to)
+    table.insert( res, { points = function() return it({ from, to }) end })
+  end
+  return res
+end
+
+lines = nojoining
+```
+
+Okay. I dunno. I like to think of each character as occupying some space within the larger map, but kind of having its own local coordinates. Characters are often roughly twice as tall as they are wide, particularly in monospacey ASCII art stuff, so e.g. 2 by 4:
+
+``` drawing
++-+-+
++-+-+
++-+-+
++-+-+
++-+-+
+```
+
+So then we can think of the top left of the character as (0, 0), the middle as (1, 2), the bottom right as (2, 4), and so on. When we're processing a character, we can have a helper function that translates coordinates like those into global coordinates. We'll make a helper function function:
+
+``` run
+function halphalp(lines, p)
+  local off = point(p.x * 2, p.y * 4)
+  return function(from, to)
+    lines.add(off + from, off + to)
+  end
+end
+```
+
+Let's turn some characters into lines. We turn hyphens and pipes into horizontal and vertical lines. We can imagine expanding this in various ways, but the fundamentals are there: Adding lines, possibly depending on neighbouring characters.
+
+``` run
+function makelines(map)
+  local res = lines()
+  for p, c in pairs(map.chars) do
+    local add = halphalp(res, p)
+    if c == "|" then
+      add(point(1, 0), point(1, 4))
+    elseif c == "-" then
+      add(point(0, 2), point(2, 2))
+    elseif c == "+" then
+      if map.at(p + L) == "-" then
+        add(point(0, 2), point(1, 2))
+      end
+      if map.at(p + R) == "-" then
+        add(point(1, 2), point(2, 2))
+      end
+      if map.at(p + U) == "|" then
+        add(point(1, 0), point(1, 2))
+      end
+      if map.at(p + D) == "|" then
+        add(point(1, 2), point(1, 4))
+      end
+    end
+  end
+  return res
+end
+```
+
+``` run
+function makeSvg(map)
+  local lines = makelines(map)
+  local w = (map.w + 1) * 2
+  local h = (map.h + 1) * 4
+  local res = { '<svg width="' .. w * xscale .. '" height="' .. h * yscale .. '">' }
+  for _, l in ipairs(lines) do
+     if l.points then
+       local tag = l.closed and "polygon" or "polyline"
+       table.insert(res, lineSvg(tag, color(), l.points()))
+     end
+  end
+  table.insert(res, '</svg>')
+  return table.concat(res)
+end
+```
+
+``` repl
+function color() return "white" end
+xscale, yscale = 12, 12
+web.html(makeSvg(mapfrom(teststring)))
+```
+
+# Lots of tiny lines
+
+Okay so just to _illustrate_ that we're drawing very many tiny lines this way, we'll mess with the colours:
+
+``` repl
+coloridx = 0
+colors = { "white", "black", "yellow" }
+function color()
+  coloridx = coloridx + 1
+  local res = colors[coloridx]
+  if coloridx == #colors then coloridx = 0 end
+  return res
+end
+xscale, yscale = 12, 12
+web.html(makeSvg(mapfrom(teststring)))
+```
+
+## Line joining machinery
+
+
+

@@ -154,7 +154,7 @@ function newmap()
         table.insert(map, value)
       end
     end
-    map.w = math.max(map.w, x )
+    map.w = math.max(map.w, x)
   end
   map.at = function(x, y)
     local res = map[x .. "," .. y]
