@@ -158,11 +158,12 @@ We'll test it somewhat:
 
 ``` run
 teststring = [[
-+--------+
-| +--+   |
-| |  |   |
-| +--+   |
-+--------+
++----------+
+| +--+ +-+ |
+| |  | +-+ |
+| |  +-----+
++-+--+     | 
++----------+
 ]]
 ```
 
@@ -191,8 +192,6 @@ function nojoining()
   end
   return res
 end
-
-lines = nojoining
 ```
 
 Okay. I dunno. I like to think of each character as occupying some space within the larger map, but kind of having its own local coordinates. Characters are often roughly twice as tall as they are wide, particularly in monospacey ASCII art stuff, so e.g. 2 by 4:
@@ -228,16 +227,21 @@ function makelines(map)
     elseif c == "-" then
       add(point(0, 2), point(2, 2))
     elseif c == "+" then
-      if map.at(p + L) == "-" then
+      local l = map.at(p + L)
+      local r = map.at(p + R)
+      local u = map.at(p + U)
+      local d = map.at(p + D)
+
+      if l == "-" or l == "+" then
         add(point(0, 2), point(1, 2))
       end
-      if map.at(p + R) == "-" then
+      if r == "-" or r == "+" then
         add(point(1, 2), point(2, 2))
       end
-      if map.at(p + U) == "|" then
+      if u == "|" or u == "+" then
         add(point(1, 0), point(1, 2))
       end
-      if map.at(p + D) == "|" then
+      if d == "|" or d == "+" then
         add(point(1, 2), point(1, 4))
       end
     end
@@ -264,29 +268,210 @@ end
 ```
 
 ``` repl
+lines = nojoining
 function color() return "white" end
 xscale, yscale = 12, 12
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
-# Lots of tiny lines
+## Lots of tiny lines
 
 Okay so just to _illustrate_ that we're drawing very many tiny lines this way, we'll mess with the colours:
 
-``` repl
+``` run
 coloridx = 0
 colors = { "white", "black", "yellow" }
-function color()
+function colorcycler()
   coloridx = coloridx + 1
   local res = colors[coloridx]
   if coloridx == #colors then coloridx = 0 end
   return res
 end
+```
+
+``` repl
+lines = nojoining
+color = colorcycler
 xscale, yscale = 12, 12
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
 ## Line joining machinery
 
+A few things:
 
+* Want lines that we can extend in either direction
+* When we add a line, we must be able to figure out what to do: Add a new line, extend an existing, join two lines, or join a line to itself (close it and make a polygon instead of a polyline)
+* Also also like, when we figure out what to do we wanna like, do that thing
+
+For the extending in either direction part: One way to do it is to just have two array-like tables. Like a polyline with six points could look like this:
+
+``` drawing
+ first       last
+  2 1       1 2 3 4
+ +-+-+     +-+-+-+-+
+ +-+-+     +-+-+-+-+
+```
+
+Like, if a polyline consists of one 2-element array (`first`) and one 4-element array (`last`), the full polyline would go like:
+
+* `first[2]`, `first[1]`, `last[1]`, `last[2]`, `last[3]`, `last[4]`
+* Or, in the other direction: `last[4]`, `last[3]`, `last[2]`, `last[1]`, `first[1]`, `first[2]`
+
+So you kind of count down in one array and then up in the other one in order to get all the points in a reasonable order. Makes it so you can always add new points to the end of one of the arrays in order to extend the polyline.
+
+Some supporty helpy stuff. If a "half" of a polyline is an array connected to the other half, we can make an iterator function that counts down through the half we start with and then up through the one that's connected to:
+
+``` run
+function halfandhalf(half)
+  local other = half.other
+  local current
+  local i = #half
+  local function last()
+    local res = other[i]
+    i = i + 1
+    if i > #other then current = nil end
+    return res
+  end
+  local function first()
+    local res = half[i]
+    if i == 1 then current = last
+    else i = i - 1
+    end
+    return res
+  end
+  current = first
+  return function()
+    return current and current()
+  end
+end
+```
+
+An test:
+
+``` repl
+local other = { "c", "d", "e", "f" }
+local half = { "b", "a", other = other }
+other.other = half
+print("from one side:")
+for c in halfandhalf(half) do print(c) end
+print("\nfrom the other:")
+for c in halfandhalf(other) do print(c) end
+```
+
+Later on, if we're extending a "half" and we're not changing direction, we can move the end of the line instead of adding a new point to it. Some direction helper stuff:
+
+``` run
+function samedir(a, b)
+  if a.x == b.x and a.y == b.y then
+    return true
+  elseif a.x == 0 and b.x == 0 then
+    return (a.y > 0 and b.y > 0) or (a.y < 0 and b.y < 0)
+  elseif a.y == 0 and b.y == 0 then
+    return (a.x > 0 and b.x > 0) or (a.x < 0 and b.x < 0)
+  else
+    return false
+  end
+end
+
+function dir(from, to)
+  return point(to.x - from.x, to.y - from.y)
+end
+```
+
+So uh, the joining machinery then. Same interface as `nojoining`. We want to create something that has an `add` function that takes two points. And after adding a bunch of stuff, we want the thing to be an array with a bunch of stuff. If an element in the array has a `points` function, then we can call that to get an iterator function for the points in a polyline/-gon.
+
+Internally, it will also keep track of where things are `extendible`. Whenever something is added, the two points are looked up in `extendible`. The lookup returns the "half" that can be extended, if any.
+
+* If neither points is extendible, a new polyline is added with `line`
+* If one point is extendible, then the half we found is extended wiht `extend`
+* If both points are extendible, the two things we found are joined
+
+A polyline is joined to itself (if the two havles we found are each others `other`s) by closing it (turning it into a polygon). A polyline is is joined to another by removing the one with the fewest points and axtending the one we're keeping with all the points from the one we're removing.
+
+``` run
+function joining()
+
+  local lines = {}
+  local extendible = {}
+
+  local function line(from, to)
+    local meta = { }
+    local half = { from, dir = dir(to, from), meta = meta }
+    local other = { to, other = half, dir = dir(from, to), meta = meta }
+    half.other = other
+    function meta.points() return halfandhalf(half) end
+    table.insert(lines, meta)
+    extendible[from] = half
+    extendible[to] = other
+  end
+
+  local function extend(half, point)
+    local i = #half
+    local prev = half[i]
+    extendible[prev] = nil
+    extendible[point] = half
+
+    local newdir = dir(prev, point)
+    if not samedir(newdir, half.dir) then
+      i = i + 1
+    end  
+    half[i] = point
+    half.dir = newdir
+  end
+
+  local function unstend(half)
+    extendible[half[#half]] = nil
+  end
+
+  local function join(first, last)
+    if first == last then
+      error("oh no")
+    elseif first.other == last then
+      first.meta.closed = true
+      unstend(first)
+      unstend(last)
+      return
+    else
+      local flen = #first + #first.other
+      local llen = #last + #last.other
+      local keep, remove
+      if flen >= llen then keep, remove = first, last
+      else keep, remove = last, first end
+      unstend(remove)
+      unstend(remove.other)
+      remove.meta.points = nil
+      for p in halfandhalf(remove) do
+        extend(keep, p)
+      end
+    end
+  end
+
+  function lines.add(from, to)
+    local first = extendible[from]
+    local last = extendible[to]
+    if first and last then
+      join(first, last)
+    elseif first then
+      extend(first, to)
+    elseif last then
+      extend(last, from)
+    else
+      line(from, to)
+    end
+  end
+  return lines
+end
+```
+
+Let's test:
+
+``` repl
+lines = joining
+color = colorcycler
+xscale, yscale = 12, 12
+web.html(makeSvg(mapfrom(teststring)))
+```
+
+Fewer line elements :)
 
