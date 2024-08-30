@@ -1,5 +1,6 @@
 # Attempting to SVG some ASCII art diagrams
-:todo under construction
+:pub ZkAWHR
+:blurb Certified UML Professional
 :template lua
 
 I made thing for this website/^./gd.txt Glorpdown^ a little while ago. Thing that lets me render a diagram made with ASCII art as SVG on a webpage. So I can do:
@@ -22,13 +23,13 @@ And get:
 
 (I kind of like that the diagrams are there when viewing the plaintexty Glorpdown and not just when viewing the rendered HTML.)
 
-I looked a bit around before I made it. I tend to look for something like, some ways of thinking about the problem and maybe dividing it into subproblems, different approaches, tradeoffs, maybe some "patterns." I don't usually find what I'm looking for though. Found some existing solutions, but couldn't be bothered digging into them and figuring out what the important ideas were etc. So I just I ended up _doing something:_
+I looked a bit around before I made it. I tend to look for something like, some ways of thinking about the problem and maybe dividing it into subproblems, different approaches, tradeoffs, maybe some "patterns." I don't usually find what I'm looking for though. Found some existing solutions, but couldn't be bothered digging into them and figuring out what the important ideas were etc. So I just ended up _doing something:_
 
 ## Line segments and shapes
 
 One thought I had was something like: If you draw a rectangle with ASCII art, maybe the thing should figure out that it's a rectangle and make an SVG `<rect>`, and so on. The alternative seemed to be to process one character at a time: If the character's a hyphen, we make a little horizontal SVG `<line>`, and so forth. I think it sounds nice to have an SVG with reasonably few, uh, "appropriate" SVG shapes in it. And less nice to have one with a ton of tiny lines that happen to form shapes.
 
-So I had some thoughts like, if I find a hyphen, should I like try to follow that line to see what shape it makes? And then, how do I deal with this-or-that? Should I "consume" a character once I've processed it as part of a shape? What if it's part of another shape as well? How do I know e.g. which way to follow it at the plus sign on the hello box there? Bunch of stuff that sounded like stuff that I didn't want to deal with.
+So I had some thoughts like, if I find a hyphen, should I like try to follow along that line to see what shape it makes? And then, how do I deal with this-or-that? Should I "consume" a character once I've processed it as part of a shape? What if it's part of another shape as well? How do I know e.g. which way to follow it at the plus sign on the hello box there? Bunch of stuff that sounded like stuff that I didn't want to deal with.
 
 So eh. Decided to do the one character at a time thing. If I did that and also had some "line joining" machinery, then I could probably keep things fairly simple in my head and also keep the SVG from getting too bad.
 
@@ -57,9 +58,9 @@ So eh. Decided to do the one character at a time thing. If I did that and also h
 
 Like if you added a line from (1, 1) to (2, 2) and then a line from (2, 2) to (2, 1), the machinery would join those together. If you then added a line from (3, 3) to (4, 4), that would not connect to any existing (poly)line, so you'd end up with two "shapes:" One polyline from (1, 1) to (2, 2) to (2, 1), and one line from (3, 3) to (4, 4).
 
-Anyway. The following is a _somewhat_ minimal example. The version I'm using for the website has more stuff. It makes lines out of more characters, it does some SVG `<text>` for regular text, handles Unicode stuff a litte. But like the important ideas or the fundamentals or something should be in the example:
+Anyway. The following is a _somewhat_ minimal example. ^./../gd-draw.lua The version I'm using for the website^ has more stuff. It makes lines out of more characters, it does some SVG `<text>` for regular text, handles Unicode stuff a little. But like the important ideas or the fundamentals or something should be in the example.
 
-We'll stick with vertical and horizontal lines (hyphens and pipes) and plusses that can connect in all 4 direction. And we'll try to turn something like this:
+We'll only do vertical and horizontal lines (hyphens and pipes) and plus signs that can connect in all 4 direction. And we'll try to turn something like this:
 
 ````
 +----------+
@@ -129,7 +130,7 @@ print(D + R + R == R + R + D)
 print(D + R + R == R + R + R)
 ```
 
-We make sure that for any x/y-combination, there only exists one instance of a point. That's nice if we want to compare points with `==` or use them as keys in tables. Is like generally convenient.
+We make sure that for any x/y-combination, there only exists one instance of a point. That's nice if we want to compare points with `==` or use them as keys in tables. It's like generally pretty convenient.
 
 And something for making SVG lines between points:
 
@@ -137,9 +138,10 @@ And something for making SVG lines between points:
 function lineSvg(tag, color, points)
   local res = { '<', tag, ' stroke="', color, '" points="' }
   for p in points do
-    table.insert(res, " " .. p.x * xscale .. "," .. p.y * yscale)
+    table.insert(res, p.x * xscale .. "," .. p.y * yscale)
+    table.insert(res, " ")
   end
-  table.insert(res, '" />')
+  res[#res] = '" />'
   return table.concat(res)
 end
 ```
@@ -166,7 +168,7 @@ local list3 = { point(30, 30), point(100, 60), point(20, 90) }
 web.html(
   '<svg width="120" height="120">' ..
   lineSvg("polyline", "white", it(list1)) ..
-  lineSvg("polyline", "black", it(list2)) ..
+  lineSvg("polyline", "pink", it(list2)) ..
   lineSvg("polygon", "yellow", it(list3)) ..
   '<svg>'
 )
@@ -345,11 +347,14 @@ end
 Test:
 
 ``` repl
+print(teststring)
 lines = nojoining
 function color() return "white" end
 xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom(teststring)))
 ```
+
+Looks okay.
 
 ## Lots of tiny lines
 
@@ -357,7 +362,7 @@ Okay so just to _illustrate_ that we're drawing very many tiny lines this way, w
 
 ``` run
 coloridx = 0
-colors = { "white", "black", "yellow" }
+colors = { "white", "pink", "yellow" }
 function colorcycler()
   coloridx = coloridx + 1
   local res = colors[coloridx]
@@ -373,11 +378,13 @@ xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
-## Line joining machinery
+Those are several.
+
+## Lines that can be extended
 
 A few things:
 
-* Want lines that we can extend in either direction
+* Want lines that we can be extended in either direction
 * When we add a line, we must be able to figure out what to do: Add a new line, extend an existing, join two lines, or join a line to itself (close it and make a polygon instead of a polyline)
 * Also also like, when we figure out what to do we wanna like, do that thing
 
@@ -397,27 +404,27 @@ Like, if a polyline consists of one 2-element array (`first`) and one 4-element 
 
 So you kind of count down in one array and then up in the other one in order to get all the points in a reasonable order. Makes it so you can always add new points to the end of one of the arrays in order to extend the polyline.
 
-Some supporty helpy stuff. If a "half" of a polyline is an array connected to the other half, we can make an iterator function that counts down through the half we start with and then up through the one that's connected to:
+Some supporty helpy stuff. If a "half" of a polyline is an array connected to the other half, we can make an iterator function that counts down through the half we start with and then up through the one that it's connected to:
 
 ``` run
-function halfandhalf(half)
-  local other = half.other
+function halfandhalf(first)
+  local last = first.other
   local current
-  local i = #half
-  local function last()
-    local res = other[i]
+  local i = #first
+  local function lastpoints()
+    local res = last[i]
     i = i + 1
-    if i > #other then current = nil end
+    if i > #last then current = nil end
     return res
   end
-  local function first()
-    local res = half[i]
-    if i == 1 then current = last
+  local function firstpoints()
+    local res = first[i]
+    if i == 1 then current = lastpoints
     else i = i - 1
     end
     return res
   end
-  current = first
+  current = firstpoints
   return function()
     return current and current()
   end
@@ -427,18 +434,22 @@ end
 An test:
 
 ``` repl
-local other = { "c", "d", "e", "f" }
-local half = { "b", "a", other = other }
-other.other = half
+local last = { "c", "d", "e", "f" }
+local first = { "b", "a", other = last }
+last.other = first
 print("from one side:")
-for c in halfandhalf(half) do print(c) end
+for c in halfandhalf(first) do print(c) end
 print("\nfrom the other:")
-for c in halfandhalf(other) do print(c) end
+for c in halfandhalf(last) do print(c) end
 ```
 
-Later on, if we're extending a "half" and we're not changing direction, we can move the end of the line instead of adding a new point to it. Some direction helper stuff:
+Later on, if we're extending a line and we're not changing direction, we can move the end of the line instead of adding a new point to it. Some direction helper stuff:
 
 ``` run
+function dir(from, to)
+  return point(to.x - from.x, to.y - from.y)
+end
+
 function samedir(a, b)
   if a.x == b.x and a.y == b.y then
     return true
@@ -450,23 +461,25 @@ function samedir(a, b)
     return false
   end
 end
-
-function dir(from, to)
-  return point(to.x - from.x, to.y - from.y)
-end
 ```
 
-So uh, the joining machinery then. Same interface as `nojoining`. We want to create something that has an `add` function that takes two points. And after adding a bunch of stuff, we want the thing to be an array with a bunch of stuff. If an element in the array has a `points` function, then we can call that to get an iterator function for the points in a polyline/polygon.
+Those functions are not very smart. People with smart could make better versions of those. But they're fine for our use.
 
-Internally, it will also keep track of where things are `extendible`. Whenever something is added (`lines.add` below), the two points are looked up in `extendible`. The lookup returns the "half" that can be extended, if any.
+## Line joining machinery
+
+So uh, the actual joining machinery then. Same interface as `nojoining`. We want to create something that has an `add` function that takes two points. And after adding a bunch of stuff, we want the thing to be an array with a bunch of stuff. If an element in the array has a `points` function, then we can call that to get an iterator function for the points in a polyline/polygon.
+
+Internally, it will also keep track of where lines end and can be extended. Whenever something is added (`lines.add` below), the two points are looked up in `extendible`. The lookup returns the "half" that can be extended, if any.
 
 * If neither points is extendible, a new polyline is added with `line`
 * If one point is extendible, then the half we found is extended wiht `extend`
 * If both points are extendible, the two things we found are joined
 
-A polyline is joined to itself (if the two halves we found are each others `other`s) by closing it (turning it into a polygon). A polyline is is joined to another one by removing the one with the fewest points and axtending the one we're keeping with all the points from the one we're removing.
+A polyline is joined to itself (if the two halves we found are each others `other`s) by closing it (turning it into a polygon). A polyline is is joined to another one by removing the one with the fewest points and axtending the one we're keeping with all the points from the one we're removing. (With a different data structure for the polylines, we could have made polylines consist of more than two arrays when joining instead I guess. Not something I've bothered with but I dunno, might be fun.)
 
 And we modify `extendible` as we go: When we add new lines we add two extension points, one for each half. When we extend a half, we move (remove and add) its extension point. And when we join things we remove two extension points.
+
+A function with a bunch of functions in it. The lines are very managed by the joining machinery, so I just put all of the stuff inside it. I dunno, I'm sure some stuff could be extracted, like maybe the `extendible` stuff could exist as more its own thing, but I haven't really felt like it...
 
 ``` run
 function joining()
@@ -475,12 +488,12 @@ function joining()
   local extendible = {}
 
   local function line(from, to)
-    local meta = { }
-    local half = { from, dir = dir(to, from), meta = meta }
-    local other = { to, other = half, dir = dir(from, to), meta = meta }
+    local lineinfo = {}
+    local half = { from, dir = dir(to, from), info = lineinfo }
+    local other = { to, other = half, dir = dir(from, to), info = lineinfo }
     half.other = other
-    function meta.points() return halfandhalf(half) end
-    table.insert(lines, meta)
+    function lineinfo.points() return halfandhalf(half) end
+    table.insert(lines, lineinfo)
     extendible[from] = half
     extendible[to] = other
   end
@@ -490,7 +503,6 @@ function joining()
     local prev = half[i]
     extendible[prev] = nil
     extendible[point] = half
-
     local newdir = dir(prev, point)
     if not samedir(newdir, half.dir) then
       i = i + 1
@@ -507,7 +519,7 @@ function joining()
     if first == last then
       error("oh no")
     elseif first.other == last then
-      first.meta.closed = true
+      first.info.closed = true
       unstend(first)
       unstend(last)
       return
@@ -519,7 +531,7 @@ function joining()
       else keep, remove = last, first end
       unstend(remove)
       unstend(remove.other)
-      remove.meta.points = nil
+      remove.info.points = nil
       for p in halfandhalf(remove) do
         extend(keep, p)
       end
@@ -563,5 +575,23 @@ xscale, yscale = 8, 8
 print(makeSvg(mapfrom(teststring)))
 ```
 
- Okay _I guess!_
+Let's draw something else just because why not:
+
+``` repl
+lines = joining
+color = function() return "white" end
+xscale, yscale = 8, 8
+web.html(makeSvg(mapfrom([[
++---+
+| + |
+| | |
+| +-+-------+
+|   | +++++ |
++---+ +++++ |
+    | ++ ++ |
+    +-------+
+]])))
+```
+
+Okay.
 

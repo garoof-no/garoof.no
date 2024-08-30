@@ -1,5 +1,3 @@
-local math = require("math")
-
 local function point(x, y)
   return { x = x, y = y, key = x .. "," .. y }
 end
