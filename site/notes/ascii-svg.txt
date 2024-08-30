@@ -579,7 +579,7 @@ Let's draw something else just because why not:
 
 ``` repl
 lines = joining
-color = function() return "white" end
+function color() return "white" end
 xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom([[
 +---+
