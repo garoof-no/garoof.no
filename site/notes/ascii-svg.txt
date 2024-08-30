@@ -85,7 +85,6 @@ U, R, D, L = point(0, -1), point(1, 0), point(0, 1), point(-1, 0)
 And something for making lines between points:
 
 ``` run
-xscale, yscale = 1, 1
 function lineSvg(tag, color, points)
   local res = { '<', tag, ' stroke="', color, '" points="' }
   for p in points do
@@ -111,6 +110,7 @@ end
 Can make a drawing now:
 
 ``` repl
+xscale, yscale = 1, 1
 local list1 = { point(10, 10), point(110, 10), point(110, 110) }
 local list2 = { point(10, 10), point(10, 110), point(110, 110) }
 local list3 = { point(30, 30), point(100, 60), point(20, 90) }
