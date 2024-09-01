@@ -132,10 +132,16 @@ print(D + R + R == R + R + R)
 
 We make sure that for any x/y-combination, there only exists one instance of a point. That's nice if we want to compare points with `==` or use them as keys in tables. It's like generally pretty convenient.
 
-And something for making SVG lines between points:
+We'll make SVG. Here's SVG functions:
 
 ``` run
-function lineSvg(tag, color, points)
+xscale, yscale = 8, 8
+
+function svgopen(w, h)
+  return '<svg width="' .. w * xscale .. '" height="' .. h * yscale ..' ">'
+end
+
+function svgline(tag, color, points)
   local res = { '<', tag, ' stroke="', color, '" points="' }
   for p in points do
     table.insert(res, p.x * xscale .. "," .. p.y * yscale)
@@ -146,7 +152,7 @@ function lineSvg(tag, color, points)
 end
 ```
 
-Because reasons, `lineSvg` takes an iterator function as its `points` argument, instead of e.g. a table/array. We'll make a helper function for testing:
+Because reasons, `svgline` takes an iterator function as its `points` argument, instead of e.g. a table/array. We'll make a helper function for testing:
 
 ``` run
 function it(list)
@@ -161,16 +167,15 @@ end
 Can make a drawing now:
 
 ``` repl
-xscale, yscale = 1, 1
-local list1 = { point(10, 10), point(110, 10), point(110, 110) }
-local list2 = { point(10, 10), point(10, 110), point(110, 110) }
-local list3 = { point(30, 30), point(100, 60), point(20, 90) }
+local list1 = { point(1, 1), point(11, 1), point(11, 11) }
+local list2 = { point(1, 1), point(1, 11), point(11, 11) }
+local list3 = { point(3, 3), point(10, 6), point(2, 9) }
 web.html(
-  '<svg width="120" height="120">' ..
-  lineSvg("polyline", "white", it(list1)) ..
-  lineSvg("polyline", "pink", it(list2)) ..
-  lineSvg("polygon", "yellow", it(list3)) ..
-  '<svg>'
+  svgopen(12, 12) ..
+  svgline("polyline", "white", it(list1)) ..
+  svgline("polyline", "pink", it(list2)) ..
+  svgline("polygon", "yellow", it(list3)) ..
+  '</svg>'
 )
 ```
 
@@ -190,11 +195,9 @@ function mapfrom(str)
       y = y + 1
       x = 0
     else
-      if c ~= " " then
-        chars[point(x, y)] = c
-        res.w = math.max(res.w, x)
-      end
+      chars[point(x, y)] = c
       x = x + 1
+      res.w = math.max(res.w, x)
     end
   end
   res.h = y
@@ -209,14 +212,20 @@ We'll test it a little:
 
 ``` repl
 print(teststring)
-map = mapfrom(teststring)
-print(map.at(point(0, 0)))
-print(map.at(point(1, 0)))
-print(map.at(point(0, 1)))
-print(map.at(point(1, 1)))
-print(map.at(point(0, 3)))
-print(map.at(point(4, 1)))
-print(map.at(point(5, 1)))
+local map = mapfrom(teststring)
+
+local function str(x, y)
+  return '"' .. map.at(point(x, y)) .. '"'
+end
+print(str(0, 0), str(1, 0), str(0, 1), str(1, 1), "\n")
+
+for y = 0, map.h do
+  local str = {}
+  for x = 0, map.w do
+    table.insert(str, map.at(point(x, y)))
+  end
+  print(table.concat(str))
+end
 ```
 
 Seems fine.
@@ -324,19 +333,28 @@ function makelines(map)
 end
 ```
 
-When we got lines, we can make SVG:
+We're only adding line to the space occupied by the current characters. In my head I kind of organize the different characters as:
+
+* Line characters: Just add a line without caring about any context or circumstances.
+* Connector characters: Add connections to neighbours.
+
+It seems maybe disciplined or something to me, but I'm sure we could have made the line characters look for neighbouring connectors instead.
+
+Also: When looking at neighbours we kind of know about the different characters and what they mean. We could almost imagine looking at the points in the "linespace" or something instead. Like "if there's something at my (4, 4), draw a line connecting to it." But it sounds like it'd get messy trying to deal with "there's nothing at my (4, 4), but maybe there's going to be" stuff...
+
+Eh. When we got lines, we can make SVG:
 
 ``` run
 function makeSvg(map)
   local lines = makelines(map)
   local w = (map.w + 1) * 4
   local h = (map.h + 1) * 8
-  local res = { '<svg width="' .. w * xscale .. '" height="' .. h * yscale .. '">' }
+  local res = { svgopen(w, h) }
   for _, l in ipairs(lines) do
      if l.points then
        local tag = l.closed and "polygon" or "polyline"
        table.insert(res, "\n  ")
-       table.insert(res, lineSvg(tag, color(), l.points()))
+       table.insert(res, svgline(tag, color(), l.points()))
      end
   end
   table.insert(res, '\n</svg>')
@@ -350,7 +368,6 @@ Test:
 print(teststring)
 lines = nojoining
 function color() return "white" end
-xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
@@ -362,7 +379,7 @@ Okay so just to _illustrate_ that we're drawing very many tiny lines this way, w
 
 ``` run
 coloridx = 0
-colors = { "white", "pink", "yellow" }
+colors = { "white", "red", "yellow" }
 function colorcycler()
   coloridx = coloridx + 1
   local res = colors[coloridx]
@@ -374,7 +391,6 @@ end
 ``` repl
 lines = nojoining
 color = colorcycler
-xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
@@ -560,7 +576,6 @@ Let's test:
 ``` repl
 lines = joining
 color = colorcycler
-xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom(teststring)))
 ```
 
@@ -571,7 +586,6 @@ We can also see what the SVG looks like as text, and like confirm that there's a
 ``` repl
 lines = joining
 color = colorcycler
-xscale, yscale = 8, 8
 print(makeSvg(mapfrom(teststring)))
 ```
 
@@ -580,7 +594,6 @@ Let's draw something else just because why not:
 ``` repl
 lines = joining
 function color() return "white" end
-xscale, yscale = 8, 8
 web.html(makeSvg(mapfrom([[
 +---+
 | + |
