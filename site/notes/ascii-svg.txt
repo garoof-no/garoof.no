@@ -400,7 +400,7 @@ Those are several.
 
 A few things:
 
-* Want lines that we can be extended in either direction
+* Want lines that can be extended in either direction
 * When we add a line, we must be able to figure out what to do: Add a new line, extend an existing, join two lines, or join a line to itself (close it and make a polygon instead of a polyline)
 * Also also like, when we figure out what to do we wanna like, do that thing
 
