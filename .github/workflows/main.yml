@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt-get install -y lua5.4
           cd site
-          lua5.4 build.lua
+          lua5.4 build.lua https://garoof.no
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
