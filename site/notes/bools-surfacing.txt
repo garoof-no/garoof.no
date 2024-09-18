@@ -1,0 +1,12 @@
+# Bools surfacing
+:pub ZkBKMy
+:blurb You don't know the chances.
+
+So there's the Best Practice Software Engineering Design Pattern ^https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/ Boolean Blindness^: Instead of returning useful things that can be used we often just go like yes-or-no.
+
+I think of ^https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/ Parse, don’t validate^ as something along the same lines. There's some stuff in chapter 6 of ^https://pragprog.com/titles/swdddf/domain-modeling-made-functional/ Domain Modeling Made Functional^ as well.
+
+Anyway I think one fun thing is: When you're using a piece of software, and there's a bit of bad user experience like a vague and uninformative message box, and you _know:_ A boolean value was computed in the depths, it has floated up through some layers, and here it is in the form of an error message listing _a number of things_ that could have caused this value to be false. "Such and such did not succeed for _one or more of_ the following reasons: This thing, _or_ that thing, _or_ this other thing, _or_ something else, ..."
+
+(I think the list of possible reasons shown to the user is probably a little more likely to be up to date than a comment typically is, but not like a lot more likely.)
+
