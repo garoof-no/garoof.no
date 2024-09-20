@@ -13,7 +13,7 @@
      id="defs2" />
   <g
      id="layer1"
-     style="transform-origin: center">
+     style="transform-origin: center;">
      <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0" to="360" dur="60s" repeatCount="indefinite"/>
     <path
        id="path1570"
