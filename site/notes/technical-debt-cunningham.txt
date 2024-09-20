@@ -1,0 +1,36 @@
+# Ward Cunningham's debt metaphor
+:pub ZkBMMB
+:blurb Did the financial software in question deal with debt? Does "tech debt" come from debt tech?
+
+So ^./technical-debt.txt I have written at length about technical debt^ before. But then I stumbled upon an actual meaning, so here's _yet another post._
+
+I haven't usually cared or thought much about "technical debt." When other people have used the term, I've taken it to mean that some part of the software in question sucks, but they don't want to say it like that. Never felt like it was a term I needed for anything I've wanted to say. Easier to just say that it sucks.
+
+Anyway ^https://www.youtube.com/watch?v=pqeJFYwnkjE here's Ward Cunningham explaining what he actually meant with his debt metaphor.^
+
+Something like this then, I think:
+
+* At best, your software will reflect your current understanding of the application domain.
+* Sometime in the future you will have a better understanding.
+* At times, the understanding expressed by the software will necessarily lag behind your new current understanding. This is the debt mostly.
+* Refactoring the software to put your new and improved understanding back into it is paying off the debt.
+* Paying it off is likely to be worth it even though it is not work that is directly adding new features or something like that. The new features that your new and improved understanding enable are going to be easier to add if the software is there with you. Etc.
+
+So uh.
+
+You can incur less debt by spending more time learning about the stuff before releasing anything, and some variation of this probably kind of happens by default early on when you know little. You're also likely to learn a bunch of stuff _from_ releasing the thing and seeing how it interacts with the world. Some context-dependant decision-making about when to do what can and will be done.
+
+But it's not really about something like "choosing whether or not to go into debt" and you can't really choose not to. Only way to not go into debt is to never learn anything new. (Oh okay, so you _can_ choose then, and programmers choose not to all the time!) Also not about doing bad work now and "incur a little debt" in order to release early.
+
+It's about the work where you put your new and improved understanding of the application domain back into the software. It's about that being worthile in the same way paying off a debt is worthwile.
+
+Something like that. And it's like okay, that's more of a thing than "part of this software sucks." I maybe get it more. I guess it's less useless to have a big words term for that than for "this sucks."
+
+ANYWAY what I mostly wanted to say was that I think this is kind of funny:
+
+> The explanation I gave to my boss, this was financial software, was a financial analogy I called the debt metaphor.
+
+Like not that in itself. That just makes sense: It's a debt metaphor because he was explaning it to his boss, who presumably knew more about finances and less about programming.
+
+I dunno, it just seems funny sometimes when there's like programmer-to-programmer talk using that metaphor. Like hi, I've been programming professionally for fifteen years and I'm incredibly stupid with money. You're going to explain to me that this piece of code should be refactored, and you'll explain it _in terms of a financial metaphor?_ Yeah THANKS, nice!
+
