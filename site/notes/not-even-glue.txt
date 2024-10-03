@@ -1,0 +1,16 @@
+# Not even glue
+:blurb The Boot theory of sociotechnical unfairness.
+:pub ZkC3O7
+
+I remember hearing stuff like: When you grow up and become a real programmer with a real job you'll mostly write glue code. All the stuff is written and you'll just put together the pieces you need.
+
+I remember thinking it sounded sad but I'm not sure if the people who made the claims thought that. Maybe it was a joyful thing or a source of relief.
+
+I haven't found it to be true.
+
+These days I get the impressions that the glue people also don't wanna deal that much with the glue. And so there are frameworks that glue frameworks together for you.
+
+Oh well.
+
+The framework people and the library makers. I'm not convinced they're all souls whose intentions are good.
+
