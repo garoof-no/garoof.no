@@ -1,0 +1,24 @@
+# How to program good
+:pub ZkCPLx
+:blurb Blog post explaining how to program good. Intended audience is people who want to learn how to program good.
+
+For to program good, in _my_ experience, it is useful to learn two things:
+
+## Programming
+
+I think this is a thing. Like spending some amount of time programming and doing it in ways where you learn stuff from it, that seems to be useful. I don't think it's a "you should spend your spare time programming" thing or a "you should have been programming since you were this young" thing. But, something about being able to spend some time with it and enjoy it, being curious about it and maybe interested in exploring different ways of doing things.
+
+I think it's often necessary to be able to play around with things and try different approaches to things and stuff like that, and I think that's probably both a mindset thing and kind of a literacy and fluency thing.
+
+### Not not programming
+
+One trend that I think works against the "programming" part of programming good is the thing where you're kind supposed to avoid doing the programming. The thing where it's like maybe you're about to do some programming but wait, what if someone else did some similar programming at some point in history and could you use their programming instead? That thing is meh in more ways than one, but at the very least: I think you should probably allow yourself to do programming.
+
+## Not programming
+
+On the other hand there's this "I am in blood stepped in so far" thing where things aren't really working out, the design isn't really right or something, but you're probably able to power through and reach some kind of finish line. And then I think that it's often better to stop programming.
+
+Some times it can be really useful to like throw away the code I've written and start over. And some times it can be really useful to throw away the code I've written and not start over. Deciding that I'm not coding any more on this thing today can be pretty powerful. I think there's often some idea of "today I am going to make progress on this thing in the form of code written" that I'm not fully aware of being there and that can sabotage attempts at taking a full step back and reconsidering the situation. And explicitly throwing away that idea seems to work for me.
+
+Maybe I'll write down what I've learned or something, what problems I've become aware of and what solutions I think are worth exploring, and then maybe call it a day.
+
