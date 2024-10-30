@@ -6,7 +6,6 @@
 I sometimes need this.
 
 ``` run
-
 const input = document.querySelector("#file");
 
 const printData = () => {
