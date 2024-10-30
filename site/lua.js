@@ -78,7 +78,6 @@
     const run = (e) => {
       currentOut = out;
       Module.ccall("run_lua", "number", ["string"], [ta.value]);
-      currentOut = null;
     };
     element.after(ta, toolbar, out);
     element.remove();

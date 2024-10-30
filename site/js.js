@@ -40,7 +40,6 @@ const outElement = (() => {
       const script = elem("script", {}, ta.value);
       document.head.appendChild(script);
       script.remove();
-      currentOut = null;
     };
     element.after(ta, toolbar, out);
     element.remove();

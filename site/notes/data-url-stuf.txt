@@ -1,0 +1,31 @@
+# Data URLs from PNGs and stuf
+:blurb Hi, hello and welcome to the core common util helper blog.
+:pub ZkCWMg
+:template js
+
+I sometimes need this.
+
+``` run
+
+const input = document.querySelector("#file");
+
+const printData = () => {
+  for(const file of input.files) {
+    const fr = new FileReader();
+    fr.onload = () => console.log(fr.result + "\n");
+    fr.readAsDataURL(file);
+  }
+};
+```
+
+Choose a file. Dragging and dropping onto the file input thing appears to work:
+
+:html <input type="file" id="file">
+
+Then press play:
+
+``` repl
+printData();
+```
+
+
