@@ -9,20 +9,7 @@ Pasting an image onto page should work?
 
 Or choose a file. Dragging and dropping onto the file input thing appears to work:
 
-``` html
-<input type="file" id="file">
-<ul><li id="lastli">...</li></ul>
-```
-
-Then press play:
-
-``` repl
-for (const file of input.files) {
-  const fr = new FileReader();
-  fr.onload = () => addLink(file.name, fr.result);
-  fr.readAsDataURL(file);
-}
-```
+:html <input type="file" id="file"><ul><li id="lastli">...</li></ul>
 
 ----
 
@@ -47,5 +34,13 @@ document.onpaste = e => {
         fr.readAsDataURL(blob);
       }
     }
+};
+
+input.onchange = (e) => {
+  for (const file of input.files) {
+    const fr = new FileReader();
+    fr.onload = () => addLink(file.name, fr.result);
+    fr.readAsDataURL(file);
+  }
 };
 ```
