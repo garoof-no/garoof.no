@@ -15,9 +15,25 @@ const printData = () => {
     fr.readAsDataURL(file);
   }
 };
+
+document.onpaste = e => {
+  console.log(e.clipboardData.items);
+  for (const item of e.clipboardData.items) {
+    if (item.kind === 'file') {
+      const blob = item.getAsFile();
+      const fr= new FileReader();
+        fr.onload = (ev) => {
+          console.log(ev.target.result + "\n");
+        };
+        fr.readAsDataURL(blob);
+      }
+    }
+};
 ```
 
-Choose a file. Dragging and dropping onto the file input thing appears to work:
+Pasting an image onto page should work?
+
+Or choose a file. Dragging and dropping onto the file input thing appears to work:
 
 :html <input type="file" id="file">
 
