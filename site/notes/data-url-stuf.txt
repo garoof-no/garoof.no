@@ -17,7 +17,7 @@ Or choose a file. Dragging and dropping onto the file input thing appears to wor
 Then press play:
 
 ``` repl
-for(const file of input.files) {
+for (const file of input.files) {
   const fr = new FileReader();
   console.log(file);
   fr.onload = () => addLink(file.name, fr.result);
