@@ -29,14 +29,14 @@ document.onpaste = e => {
   for (const item of e.clipboardData.items) {
     if (item.kind === 'file') {
       const blob = item.getAsFile();
-      const fr= new FileReader();
-        fr.onload = (ev) => addLink(item.type, ev.target.result);
-        fr.readAsDataURL(blob);
-      }
+      const fr = new FileReader();
+      fr.onload = ev => addLink(item.type, ev.target.result);
+      fr.readAsDataURL(blob);
     }
+  }
 };
 
-input.onchange = (e) => {
+input.onchange = e => {
   for (const file of input.files) {
     const fr = new FileReader();
     fr.onload = () => addLink(file.name, fr.result);
