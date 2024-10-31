@@ -17,7 +17,6 @@ const printData = () => {
 };
 
 document.onpaste = e => {
-  console.log(e.clipboardData.items);
   for (const item of e.clipboardData.items) {
     if (item.kind === 'file') {
       const blob = item.getAsFile();
