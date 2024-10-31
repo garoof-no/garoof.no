@@ -19,7 +19,6 @@ Then press play:
 ``` repl
 for (const file of input.files) {
   const fr = new FileReader();
-  console.log(file);
   fr.onload = () => addLink(file.name, fr.result);
   fr.readAsDataURL(file);
 }
