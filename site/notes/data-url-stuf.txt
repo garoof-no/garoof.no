@@ -36,7 +36,7 @@ document.onpaste = e => {
   }
 };
 
-input.onchange = e => {
+input.onchange = () => {
   for (const file of input.files) {
     const fr = new FileReader();
     fr.onload = () => addLink(file.name, fr.result);
