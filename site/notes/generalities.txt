@@ -1,0 +1,61 @@
+# Generalities
+
+There's sometimes stuff that's like hey I got this function:
+
+```
+function foo(x)
+  <bunch of stuf with x in it>
+  local y = <more stuff with x in it>
+  return a(y)
+end
+```
+
+But wait! Hold on! Wait! There's also another function and it is _similar:_
+
+```
+function bar(x)
+  <the same bunch of stuf with x in it>
+  local y = <the same more stuff with x in it>
+  return b(y)
+end
+```
+
+And things get a little hey that's not very ~~~DRY~~~ is it? And one of two things tend to happen.
+
+Either a `stuf`-function is extracted:
+
+```
+function stuf(x)
+  <bunch of stuf with x in it>
+  return <more stuff with x in it>
+end
+
+function foo(x)
+  return a(stuf(x))
+end
+
+function bar(x)
+  return b(stuf(x))
+end
+```
+
+(Potentially then leading to inlining `foo` and `bar` instead.)
+
+So either that, _or_ some "let's make one function do both things" kind of deal:
+
+```
+function eitherfooorbar(isitfoothough, x)
+  <bunch of stuf with x in it>
+  local y = <more stuff with x in it>
+  if isitfoothough then
+    return a(y)
+  else
+    return b(y)
+  end
+end
+```
+
+And. Uh. My IMPRESSION just kind of is that variations of the second alternative are being done far more often than is sensible. And that a lot of discussion surrounding DRY and reuse and is DRY really that good or is there too much reuse and are we writing code that is too general... I dunno. Those topics would be worth exploring and all. But. Like. A lot of it seems pretty coloured by this belief that "the more stuff my function does the more general it is."
+
+Like if a thing is "general" because it can be used for many different things: Is it general because it makes few assumptions about what it's being used for or because it makes all the assumptions and special case-handles all those possible things? However we might feel about one or the other: Those are pretty different things.
+
