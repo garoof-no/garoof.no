@@ -1,33 +1,33 @@
 # Generalities
+:blurb Extracting a function can be nice.
+:pub ZkD6IB
 
 There's sometimes stuff that's like hey I got this function:
 
 ```
 function foo(x)
   <bunch of stuf with x in it>
-  local y = <more stuff with x in it>
+  local y = <more stuf with x in it>
   return a(y)
 end
 ```
 
-But wait! Hold on! Wait! There's also another function and it is _similar:_
+But wait! Hold on! Wait! There's also another function and it is similar:
 
 ```
 function bar(x)
   <the same bunch of stuf with x in it>
-  local y = <the same more stuff with x in it>
+  local y = <the same more stuf with x in it>
   return b(y)
 end
 ```
 
-And things get a little hey that's not very ~~~DRY~~~ is it? And one of two things tend to happen.
-
-Either a `stuf`-function is extracted:
+And things get a little hey that's not very ~~~DRY~~~ is it? And one of two things might happen. A `stuf`-function could be extracted:
 
 ```
 function stuf(x)
   <bunch of stuf with x in it>
-  return <more stuff with x in it>
+  return <more stuf with x in it>
 end
 
 function foo(x)
@@ -39,14 +39,12 @@ function bar(x)
 end
 ```
 
-(Potentially then leading to inlining `foo` and `bar` instead.)
-
-So either that, _or_ some "let's make one function do both things" kind of deal:
+Either that, _or_ some "let's make one function do both things" kind of deal:
 
 ```
 function eitherfooorbar(isitfoothough, x)
   <bunch of stuf with x in it>
-  local y = <more stuff with x in it>
+  local y = <more stuf with x in it>
   if isitfoothough then
     return a(y)
   else
@@ -55,7 +53,21 @@ function eitherfooorbar(isitfoothough, x)
 end
 ```
 
-And. Uh. My IMPRESSION just kind of is that variations of the second alternative are being done far more often than is sensible. And that a lot of discussion surrounding DRY and reuse and is DRY really that good or is there too much reuse and are we writing code that is too general... I dunno. Those topics would be worth exploring and all. But. Like. A lot of it seems pretty coloured by this belief that "the more stuff my function does the more general it is."
+And. Uh. My IMPRESSION kind of is that variations of the second alternative are being done far more often than is sensible. And that a lot of discussion surrounding DRY and reuse and is DRY really that good or is there too much reuse and are we writing code that is too general... I dunno. Those topics would be worth exploring and all. But like. A lot of it seems pretty coloured by this belief that "the more stuff my function does the more general it is" mostly covers it.
 
-Like if a thing is "general" because it can be used for many different things: Is it general because it makes few assumptions about what it's being used for or because it makes all the assumptions and special case-handles all those possible things? However we might feel about one or the other: Those are pretty different things.
+Like if a thing is "general" because it can be used for many different things: Is it general because it makes few assumptions about what it's being used for or because it makes all the assumptions and special-case-handles all those possible things? However we might feel about one or the other: Those are pretty different things.
+
+----
+
+Related:
+
+I don't think that e.g. list functions like `map` get picked on that much when people complain about too genereal code, and I think that probably has something to do with the "few assumptions" thing. (I _do_ suspect it would be more interesting to pick on and consider the tradeoffs of that kind of general though.)
+
+I guess "let's make one function do both things" is often chosen because "extract a function" might not be an immediately available step. You often need to make clear in your head what that computational step actually is, and in more practical terms maybe introduce a new data structure for the intermediate result. In my experience that can be a pretty valuable thing to do, but it can be less available as mechanical application of DRY or something.
+
+And/or because extracting something that's more procedure-like and less function-like tends to get messier and make state mutation less local. That might be worthwhile as part of playing around with things and seeing if something emerges. But again it doesn't fit that well into a rote "see duplication, apply DRY" kind of thing.
+
+----
+
+(And like yeah in the example things are more clear-cut than real things are. In addition to the duplicated code being clearly function-extractable, the not duplicated code is also very cleanly separated into `a` and `b`. At least it emphasizes the duplication, but yeah, I know. I know.)
 
