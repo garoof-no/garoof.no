@@ -1,0 +1,878 @@
+# Some tweets
+:blurb Oh well.
+:pub ZkDDKh
+
+I'm not sure. I deleted the tweets but I saved them before deleting them and I think I'll keep some of them here. For like _various_ reasons.
+
+It goes like: Horizontal rule, date, then one or more tweets from that date (one blockquote per tweet). The tweets are _mostly_ unedited.
+
+----
+:time ZZ67__
+
+> Maybe choose a language because it seems like a fun language, and not because other people use it or because it happens to already exist...
+
+----
+:time ZZ7X__
+
+> #lang racket
+> (define list (λ λ λ))
+> (define null ((λ λ λ)))
+
+----
+:time ZZAQ__
+
+> Arithmetic is ivory tower bullshit as of now.
+
+----
+:time ZZBD__
+
+> statefoul
+
+----
+:time ZZDG__
+
+> Can't decide what to get, but I know I want an infinite tower of it.
+
+----
+:time ZZDL__
+
+> There Is Only No Way To Do It.
+
+----
+:time ZZDQ__
+
+> 45k lines of output for the number 2 is a natural intermediate step of implementing some pretty-printing.
+
+----
+:time Za2S__
+
+> If you learn category theory you get to be like "you quadrable cospan!" when you're angry with someone.
+
+----
+:time Za37__
+
+> (because that was the purpose)
+
+----
+:time Za5A__
+
+> SML just told me to
+> #### calc\_strictness ####
+> #### calc\_strictness ####
+> #### calc\_strictness ####
+> #### calc\_strictness ####
+> 
+> On it.
+
+----
+:time Za5O__
+
+> If you have some items on the right, with value in them, and some items on the left that you value more, then I'm pretty interested in that.
+
+----
+:time Za5S__
+
+> Dreamt that I had gotten some kind of certification. Not nightmare, but confusing. Me/people I asked had not heard of thing cert was for.
+
+----
+:time Za5U__
+
+> ...
+> The Japanese smokes Parliaments.
+> The Norwegian lives next to the blue house.
+> What, if anything, is a zebra?
+
+----
+:time Za61__
+
+> I want unlearn.
+
+----
+:time Za6K__
+
+> @einarwh In which you're an academic until you're like seven and school ruins you :)
+
+----
+:time Za6M__
+
+> @bjartnes Continuously delivering this one version of this software...
+
+----
+:time Za6T__
+
+> "The construction itself is an art, its application to the world an evil parasite."
+> I'll spend some days liking this quote.
+
+----
+:time Za75__
+
+> @einarwh "EWD1573 - We done fucked up but here's a mocking framework I guess" is pretty seminal.
+
+----
+:time Za7W__
+
+> "the ultimate sports watch experience"
+
+----
+:time ZaAM__
+
+> IoT stands for Inversion of Things and is like the most common design pattern.
+
+----
+:time ZaAR__
+
+> @einarwh @bjartnes On every meta-level a towerLevelContext.xml, setting up the level below...
+
+----
+:time ZaB1__
+
+> Here's a haiku about work today:
+> 
+> try to computers
+> dont works because computers
+> computers dont works
+
+----
+:time ZaBB__
+
+> "plus additional features to remove complexity"
+
+----
+:time ZaBL__
+
+> Zeno's stack trace.
+
+----
+:time ZaBS__
+
+> The thing where computer nerds laugh at humans because humans don't get the details of latest computer nerd fuck up exactly right...
+
+----
+:time ZaDM__
+
+> Sometimes I want programming to be less like text editing and more like programming.
+
+----
+:time ZaE6__
+
+> Type systems and how they relate to more fundamental CS concepts like "shipping."
+
+----
+:time ZaEL__
+
+> Sometimes you're like today I'll drink coffee and know the difference between AM and PM but then you don't.
+
+> You're supposed to remember that A stands for after and P stands for pre and that you're wrong...
+
+----
+:time ZaEO__
+
+> I think maybe Langton's ant and Conway's life are not very good friends :\
+
+----
+:time ZaEU__
+
+> THINK OF YOURSELF AS A PENGUIN AND YOU'LL BE ALL RIGHT.
+
+----
+:time Zb1G__
+
+> today animals and pokémon are simultaneously inductively defined. people had really ill-defined animals before 1996
+
+----
+:time Zb2J__
+
+> okay I've accidentally saved some Standard ML code with a .xml filename extension I'm not exactly panicking but I'm not sure what to do
+
+----
+:time Zb3R__
+
+> @bjartnes Carry On Regardless (Gamma et al., 1995)
+
+----
+:time Zb56__
+
+> piece of software didn't work. took me by surprise
+
+----
+:time Zb5M__
+
+> made a list of facts about rabbits:
+> 
+> • ears
+
+----
+:time Zb5Q__
+
+> whenever my phone shows a cached time from earlier instead of current time it makes me glad that this is disrupting the watchmaking industry
+
+----
+:time Zb66__
+
+> Pudus are so cool.
+
+----
+:time Zb6V__
+
+> @bjartnes LANGTON'S MARCH OF THE FIRE ANTS
+
+----
+:time Zb73__
+
+> aqapi is not at all okapi :(
+
+----
+:time ZbAU__
+
+> boolean blindness :(
+
+----
+:time ZbCW__
+
+> I've written a pretty edgy joke about programming language X, it's pretty edgy: how to something in X? don't use X.
+
+----
+:time ZbD1__
+
+> who invented soup
+
+----
+:time ZbDQ__
+
+> is there like a paper where church complains about curry and his "bolted-on" types?
+
+----
+:time ZbE4__
+
+> clearly more decoupled if we leak the implementation details through a layer of this tech instead of that tech
+
+----
+:time Zc1N__
+
+> Software Engineering trick: when talking about your design, use the word "top" instead of "upside"
+
+> 'it's a "top" down design' etc
+
+----
+:time Zc1X__
+
+> We laugh at Wile E. Coyote, but you have to remember that this is from the time of the very first computers.
+
+> Like sure we don't do things as simple today, but Software Engineering would be quite unimaginable without him there, at the beginning.
+
+> Today it is a very profitable profession. We have a lot to be thankful for.
+
+----
+:time Zc21__
+
+> Haha, someone craftsmanned one of the services. It used to work. Now it has test coverage instead.
+
+----
+:time Zc24__
+
+> I mean say what you will about inheritance but I like coming across passive aggressive code like "super ok"
+
+----
+:time Zc25__
+
+> multiplicity of doors
+
+----
+:time Zc2K__
+
+> doing X without thinking is not working out MAYBE Y IS BETTER THAN X?
+
+----
+:time Zc47__
+
+> making code "general" by doing something like the complete opposite of generalization
+
+----
+:time Zc4K__
+
+> Hello, welcome. Today we are discussing the Levenshtein distance between Toronto and Totoro. #JoinTheConvo
+
+----
+:time Zc4L__
+
+> irony has a lot of fixpoints
+
+----
+:time Zc7U__
+
+> as young programmer you screw up like in one particular way and then as thought leader you tell people to screw up in opposite way instead
+
+> if you need to brush up on what kind of programming is more like screwdriver and what kind is more like hammer then uncle just wrote a thing
+
+----
+:time Zc7V__
+
+> "professionalism" is not good
+
+----
+:time ZcA3__
+
+> every day starts with like you're tired and not thinking straight and here are some topological spaces and try to get dressed lol
+
+----
+:time ZcBV__
+
+> Abstract Fallback.
+
+----
+:time ZcC4__
+
+> animals are nice.
+
+----
+:time ZcDK__
+
+> @einarwh How large is a natural number?
+
+> @einarwh Wrong. It's 12.
+
+----
+:time ZcE6__
+
+> blah blah code is data blah blah functional data structures are sometimes sensible if you wanna "reuse" data blah blah
+
+----
+:time Zd17__
+
+> I just noticed that I was no longer following the Joe Clark that did Throw Me in the Susquehanna on Spotify
+
+> but I was instead following some other Joe Clark that I've never listened to
+
+> because haha strings I guess.
+
+----
+:time Zd2G__
+
+> I like tuples
+
+----
+:time Zd31__
+
+> passion for excellence
+
+----
+:time Zd3D__
+
+> syntax is the bit that makes nested things seem like they're not?
+
+----
+:time Zd3H__
+
+> Status:
+> "No one sits down to write megabytes of code. It's probably impossible. You get megabytes by agglomerating kilobytes."
+> ―Chuck Moore
+
+----
+:time Zd3L__
+
+> Moby-Dick;
+> or,
+> A Whale of a Time.
+
+----
+:time Zd3Q__
+
+> waking up can be very surprising
+
+----
+:time Zd3S__
+
+> an otterwise wise otter
+
+----
+:time Zd3V__
+
+> did not read every word but I'm pretty sure that email said "we see you haven't signed up for our webinar, so you've got that going for you"
+
+----
+:time Zd3W__
+
+> any philosopher or something called Ian? I hope they make an exception for him and add the ian-suffix to his _first_ name if there is.
+
+----
+:time Zd43__
+
+> hi I'm Software Engineer
+> 
+> public interface StuffDoer {
+>     void doStuff();
+> }
+
+> ACTUALLY I'm Software Engineer *~*Functional Programmer*~* so I will implement StuffDoer with a lambda expression
+
+----
+:time Zd4N__
+
+> hi
+> 
+> working with more better data structures makes things more better
+
+----
+:time Zd54__
+
+> develaper: what term would you use to describe [Baap]?
+> domain expert: boops.
+
+----
+:time Zd5B__
+
+> error messages are maybe more helpful if they refer to code you wrote instead of what it has been desugared into
+
+----
+:time Zd5C__
+
+> public boolean isBlah() {
+>     return somethingBlah() && false;
+> }
+
+----
+:time Zd5O__
+
+> @_teodoran @einarwh so like, should de bruijn indices like
+> 1, 2, 3
+> be written like
+> boop bap, boop boop bap, boop boop boop bap
+> or like
+> boop, booop, boooop
+> ?
+
+----
+:time Zd63__
+
+> the jokes that go "here's dumb thing. just like dynamic typing amirite" are not my favourite things
+
+----
+:time Zd6K__
+
+> joke with the words hippothetical and irrelephant in it.
+
+----
+:time Zd7Q__
+
+> a programmer/pragmatic thing to do is: find a thing that's a little worse than nothing. look at it and say "well, it's better than nothing"
+
+----
+:time ZdAL__
+
+> srsly anyone can make these "optical illusions." like just draw a bunch of curved lines and write that all the lines are straight under them
+
+----
+:time ZdBN__
+
+> mostly:
+> - should we consider using a data structure?
+> - no.
+
+----
+:time ZdBT__
+
+> droney doom with whispers on top
+
+----
+:time ZdBU__
+
+> a thing I learned today is that saying HMM is not actually the same as thinking about a thing
+
+----
+:time ZdCI__
+
+> zen of enterprise-oop: mi casa es su casa
+
+----
+:time ZdCJ__
+
+> I mean to be fair that boolean hasFoo-method would be pretty redundant if its results were in sync with those of the getFoo-method
+
+----
+:time ZdCQ__
+
+> don't step into a river you'll drown. -heraclitus
+
+----
+:time ZdEO__
+
+> "cloud mining investment strategy" is not a good words.
+
+----
+:time Ze16__
+
+> programmers think that there doesn't exist like a hammer that is straight up better than another hammer
+
+----
+:time Ze1P__
+
+> "In a human sacrifice to deity there might be at least a mistaken and terrible beauty; in the rites of the moneychangers, where greed, laziness, and envy were assumed to move all men's acts, even the terrible became banal."
+> ^https://www.goodreads.com/quotes/480441-he-tried-to-read-an-elementary-economics-text-it-bored^
+
+----
+:time Ze2P__
+
+> takeaway from Sheeran's @LambdaDays keynote: if I'm going to like do any programming, I should maybe read the paper "Programming"
+
+----
+:time Ze3L__
+
+> often, a validation error message shows how much information some programmer thinks can be appropriately squashed into a bool
+
+> "this one thing returned false, so one of the following things must be the case: ..."
+
+----
+:time Ze5I__
+
+> I like that IT Architect way of doing things where you put all the eggs in one basket then carry it around along with a failover basket
+
+----
+:time Ze5N__
+
+> Anyway naming things is easy: They're called things.
+
+> I have a list of list of list of things now. That is called thingseses.
+
+----
+:time Ze5R__
+
+> these are the types of jokes:
+> • vacuous truths
+> • size of a thing being confused with how far away it is
+> • other/otter-puns
+
+----
+:time Ze66__
+
+> a pretty substantial part of programming for me:
+> 1. feel like I don't need data structure for X
+> 2. make a mess of things
+> 3. fix mess by making data structure for X
+
+----
+:time Ze6G__
+
+> opened a document with some notes. I can tell that I have rewritten them at some point. like there's a page with stuff, then there's a page with the same stuff phrased a little differently.
+> 
+> I have no idea which page is the rewrite.
+
+----
+:time Ze7G__
+
+> okay if I write an "anti-OOP" post, do I have to pick an arbitrary and irrelevant Java feature to criticize or can I choose one from any language?
+
+----
+:time Ze7I__
+
+> I sometimes wish that in programming a "library" was more like, a place where you could read some stuff.
+> maybe pick up an idea you could use for a thing.
+
+----
+:time Ze7R__
+
+> you have to be pretty particular about what take on "flexibility" you add to your obsession with hierarchy if you want to make a Software engineering
+
+----
+:time Ze7S__
+
+> One of the fascinating-but-I-have-no-experience-with-it things with Forth is the "screen" as a unit of code. I think it goes like: One screen is 16 lines times 64 characters, so 1024 characters of code.
+
+> (Traditionally bytes, so you'd load and save 1K blocks and stuff? And then there's a bunch of also fun stuff re implementation and underlying stuff. But anyway I think it's interesting just as a way to organize code.)
+
+> I'd like to see some discussion/research/whatevs on like, how this compares with stuff like "here's a file with a potentially pretty endless number of lines in it."
+
+> Like does the Forth-screen-coder in practice (try to) make every screen of code be a reasonably meaningful thing, somewhat on its own and independently?
+> Or is it frequently like, this "unit" code is really these n screens of code and so it's more like just, n*16 lines of code?
+
+----
+:time ZeA3__
+
+> "It's totally bewildering to me why people are willing to do this."
+> ^https://www.ultratechnology.com/moore4th.htm^
+
+----
+:time ZeA7__
+
+> like, I don't particularly want to "defend" object orientation or whatever. and like I know that it's me that is out of touch and that "OOP" currently means "Java."
+> 
+> but like, I still get annoyed when people talk about like, "OOP inheritance" and so on. meh.
+
+> more annoying when it's FP people attacking "OOP" than when it's Java people defending "OOP," for some reason.
+> 
+> I guess it's like, the FP people _must have_ discovered that programming exists outside of Java. that it is possible to learn about a thing.
+> 
+> and yet.
+
+----
+:time ZeAE__
+
+> compilers that come with style guide shenanigans and also have no sense of style.
+
+----
+:time ZeAK__
+
+> it bothers me that programmers are content with "punched cards but faster" feedback loops
+
+----
+:time ZeAM__
+
+> I've been vaguely meaning to something Lakatos and someone mentioned Proofs and Refutations so that is the something for now.
+
+> anyway I like stuff like:
+> "None of the ‘creative’ periods and hardly any of the ‘critical’ periods of mathematical theories would be admitted into the formalist heaven, where mathematical theories dwell like the seraphim, purged of all the impurities of earthly uncertainty."
+
+----
+:time ZeAN__
+
+> we shouldnta put asphalt everywhere. that was bad.
+
+----
+:time ZeB6__
+
+> "very large monorepo vs very many small repos with dependencies between them" is too Software Engineering for me.
+> 
+> I don't know what I'm talking about or anything. but it seems very "this approach makes it easier to cope with [situation we should never have put ourselves in]"
+
+> - small is good.
+> - but does it scale?
+
+----
+:time ZeBH__
+
+> Big O))) notation.
+
+----
+:time ZeBK__
+
+> stray thought: "reuse" leads to unimplementability.
+
+> or: specifications would possibly specify simpler things if the assumption was that "many people are going to implement this" instead of "few people are going to implement this and many people are going to use those implementations."
+
+> (and maybe ideas like bug compatibility would be less tempting if it wasn't like, these are the 3 major implementations...)
+
+----
+:time ZeC4__
+
+> anyway here are two reasonably useful techniques:
+> 1: instead of data, use a function
+> 2: instead of a function, use data
+
+----
+:time ZeCD__
+
+> hey, programmers: tag your unions
+
+> not in a use a "typed language" or use a language with such and such type system features kind of way. like, do stringly typed shenanigans if you want, just please stringly tag your stringly typed unions.
+
+> anything that makes it so if you have a value and it can be "either and X or a Y" you don't have to figure out which one by like first trying to treat it as an X and if that fails then trying to treat it like a Y.
+
+----
+:time ZeD3__
+
+> finding a name for a thing is difficult and also if you find a good one everyone will start using it for every thing.
+
+----
+:time ZeDH__
+
+> a thing I legit like about working on legacy stuff: we tend to acknowledge that we are in pain.
+> 
+> with greenfield stuff we seem sometimes more unwilling to realize that we are setting ourselves up for pain.
+
+----
+:time ZeDJ__
+
+> This is really nice.
+> 
+> I have some years of experience with a Smalltalk. It's not incredibly easy to get across like, the way Smalltalky "interacting with the system" is really different from "writing code." This talk does good job at it. Thanks @deech :)
+> 
+> ^https://www.youtube.com/watch?v=baxtyeFVn3w^
+
+> Like, I've talked with non-Smalltalkers (inside and outside of FP) at times. It's easy to end up with something sounding like just, a cool but isolated feature, rather than part of a thing that is in the foundations and runs through everything, system and culture...
+
+> (E.g. stuff like liveness and how things feel _really unlike_ submitting punched cards jobs. And like how things like the hot swapping stuff engineered on top of Java seem unlikely to get particularly close to that.)
+
+----
+:time ZeDK__
+
+> @ctford Yeah. It appears to be much easier to e.g. point to an error and be like "a type checker could have caught this" than to get across how types can be a useful tool for thinking.
+> 
+> (Which is like not really surprising I guess. Just maybe unfortunate.)
+
+----
+:time ZeDR__
+
+> I woke up with a vague feeling that I should be upset about developers missing points and obsessing about technicalities, so I twitter-searched for @einarwh-tweets about REST
+
+----
+:time ZeE1__
+
+> ML's Friends-and-Relations are not the entirety of type theory.
+
+----
+:time ZeEA__
+
+> I'm trying to get across some programming language theory here by comparing a language that is _more good_ to a car that is _more good_, and a language that is _more bad_ to a car that is _more bad_.
+
+----
+:time ZeEL__
+
+> programmers and unmodelling
+
+----
+:time Zf12__
+
+> it is amusing that at the end of every Tim Hecker song he says "Tim Hecker -- It's Heckin' Good!"
+
+----
+:time Zf13__
+
+> so um, I sometimes wonder about how to do a thing, and I'm kind of looking for something like "these are the important ideas and patterns and techniques and stuff for doing a thing"
+> 
+> and like, it is _so much easier_ to find like, "here's a thing, you can add a dependency on it"
+
+> I think about the line "the element of reuse is _ideas,_ rather than _implementations" somewhat frequently.
+> ^https://wiki.c2.com/?ForthSimplicity^
+
+----
+:time Zf1J__
+
+> I'm wondering if I should get a PRINCE2 Agile® Practitioner certification. Because then I could be like surprised that that was a thing I had.
+
+----
+:time Zf1O__
+
+> hey come see my talk "software engineering thing. where did it go wrong?"
+> I'm a thought leader
+
+> I will talk about the original idea and contrast it with how many people used it in practice.
+
+> in a sense the thing was not about what it was about. it was supposed to encourage a certain kind of design, but the more obvious part got most of the attention.
+
+> and/or people obsessed too much about technicalities, and kind of missed the point.
+
+----
+:time Zf1V__
+
+> the part of software engineering discourse that is mostly just a series of backlashes is kind of I dunno
+
+----
+:time Zf1X__
+
+> I don't really think that inferring types is something humans have to spend that much time on just because the computer won't. The types can be more about what you intend a piece of computation to be and less about "figuring out" what it "happens" to be.
+
+> (Or: "Figuring out what the developer meant" should not need to be exactly the same activity for the developer in question as for the computer.)
+
+----
+:time Zf22__
+
+> DDDer:
+> Ubiqutous language
+> Ubiqioutus language
+> Ubiqoutous language
+> 
+> Philip K. Dick:
+> Ubik.
+
+----
+:time Zf26__
+
+> Code is data. It currently tends to be pretty mutable data. We have to be careful about sharing.
+
+> "Functional updates" of code makes sense and is, I think, often considered good practice. E.g. make a new version of a thing without changing the old one. Switch over to using the new one when ready. Delete old one when no longer used.
+
+> Support and tooling for that tends to be mostly not there. Usually involves some reasonably manual and primitive way of copying code before making changes and garbage collecting unused code after.
+
+----
+:time Zf31__
+
+> argal
+
+----
+:time Zf3E__
+
+> Jira is fascinating.
+
+----
+:time Zf3M__
+
+> A thing I've learned: _Usually,_ when you meet resistance for being like, too ivory tower or something, it is not the case that the people resisting actually prefer a more "pragmatic" way to deal with the issue at hand or anything.
+
+> It's usually just, they'd prefer to not deal with it at all. It's not designed solution vs hacking together something that works. It's designed solution vs hacking together something that doesn't work like at all.
+
+> (Like you can argue something like these objects could be immutable in order to such and such, and meet resistance because immutability is unfamiliar and kind of a hassle. But chances are it's really about how "dealing with the such and such at all" is unfamiliar and a hassle.
+
+> Like it's easier to just leave a bunch of objects in various states lying about, sometimes randomly persisting some inconsistencies to a database, sometimes randomly not. It's a hassle to e.g. make sure you don't write changes that the user canceled to the database.)
+
+> Like, "this design should lead to more easy and less hassle in getting X right" is not a great argument if no one cares about X...
+
+----
+:time Zf45__
+
+> I sometimes wish that current functional programmers wanted more than "somewhat improved punched card programming"
+
+----
+:time Zf52__
+
+> ah I accidentally did not make the mistake and so correcting it made things worse
+
+----
+:time Zf5O__
+
+> I am tired of programming hot takes.
+
+----
+:time Zf5R__
+
+> in this jigsaw puzzle tutorial I'm going to go on about the _most important_ piece of the puzzle, the final one that really completed the picture for me
+
+----
+:time Zf6P__
+
+> , but before the code can be merged into master there is code review. Another developer on the team will read the code and go through the following checklist:
+> 1. Why is there something rather than nothing?
+
+----
+:time ZfB2__
+
+> living vicariously through otters
+
+----
+:time Zi6B__
+
+> I like it when people use the .dat file extension. so that I know that there's data in there.
+
+----
+:time Zi7K__
+
+> me and @einarwh being like let's come up with a new and interesting idea together and then settling for "it's lambda calculus but the lambdas are fish" really is the dumbest and most predictable thing
+
+----
+:time ZiBV__
+
+> *trips over a boolean again*
+
+----
+:time Zj1O__
+
+> @einarwh one bool with ux on top
+
+----
+:time Zj33__
+
+> @bjartnes in Java it is considered best practice to wrap every method body in
+> for (int i = 0; i < 1; i++) {
+>     ...
+> }
+> that way you're prepared if in the future you need to do the thing more than once
+
+----
+:time Zj4R__
+
+> software engineering is mostly just pretending that some unbuildable things are buildable
+
+----
+:time Zj67__
+
+> I like implementability as portability.
+> a good target: so simple that I can throw away the implementation and be confident that I can rebuild it in almost any language/environment without much difficulty.
+

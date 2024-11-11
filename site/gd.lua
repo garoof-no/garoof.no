@@ -450,11 +450,24 @@ local function basekvtable()
   return {
     pub = function(str, meta)
       local t = dt.fromb60(str)
+      str = escape(str)
       local b = meta.blurb
         and (' title="' .. strhtml(meta.blurb, nil, true) .. '"')
         or ""
       return '<time datetime="' .. t.iso() .. '"' .. b .. '>'
-        .. str .. '</time>'
+        .. escape(str) .. '</time>'
+    end,
+    time = function(str, meta, usedids)
+      local t = dt.fromb60(str)
+      str = escape(str)
+      local id = 'time-' .. str
+      if usedids[id] then
+        id = ""
+      else
+        id = ' id="' .. id .. '"'
+        usedids[id] = true
+      end
+      return '<time' .. id ..  ' datetime="' .. t.iso() .. '">' .. escape(str) .. '</time>'
     end,
     html = function(str) return str end
   }
@@ -484,7 +497,7 @@ local function html(url, pretable, kvtable)
     for k, v in pairs(meta) do
       local f = kvtable[k]
       if f then
-        table.insert(res, f(v, meta))
+        table.insert(res, f(v, meta, usedids))
       end
     end
   end
