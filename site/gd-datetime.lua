@@ -13,6 +13,7 @@ local function char(i)
 end
 
 local function fromint(i)
+  if not i then return "_" end
   local res = "";
   while i >= #alphabet do
     res = char(i % #alphabet) .. res
@@ -45,27 +46,48 @@ local function fromdate(t)
         .. fromint(t.min)
     end,
     iso = function()
-      return string.format(
-        "%04d-%02d-%02dT%02d:%02dZ",
-        t.year, t.month, t.day, t.hour, t.min
-      )
+      if t.hour then
+        return string.format(
+          "%04d-%02d-%02dT%02d:%02dZ",
+          t.year, t.month, t.day, t.hour, t.min
+        )
+      else
+        return string.format(
+          "%04d-%02d-%02d",
+          t.year, t.month, t.day
+        )
+      end
     end,
     rss = function()
-      return string.format(
-        "%02d %s %04d %02d:%02d GMT",
-        t.day, month[t.month], t.year, t.hour, t.min
-      )
+      if t.hour then
+        return string.format(
+          "%02d %s %04d %02d:%02d GMT",
+          t.day, month[t.month], t.year, t.hour, t.min
+        )
+      else
+        return
+          string.format(
+            "%02d %s %04d",
+            t.day, month[t.month], t.year
+          )
+      end
   end
   }
 end
 
 local function fromb60(s)
+  local hour, min
+  if s:sub(-2, -1) == "__" then hour, min = nil, nil
+  else
+    hour = toint(s:sub(-2, -2))
+    min = toint(s:sub(-1, -1))
+  end
   return fromdate({
     year = toint(s:sub(1, -5)),
     month = toint(s:sub(-4, -4)),
     day = toint(s:sub(-3, -3)),
-    hour = toint(s:sub(-2, -2)),
-    min = toint(s:sub(-1, -1))
+    hour = hour,
+    min = hour
   })
 end
 
