@@ -1,0 +1,28 @@
+# RESTful Sokoban SPA to go
+:blurb Push comes to shove.
+:pub ZkDFPD
+
+So here's a ^https://sokoboko.garoof.no/ Sokoban that I can play in my browser^.
+
+You probably have two questions:
+
+## What's an SPA?
+
+SPA stands for Single Page App: The entire app is a single (HTML) file. You can easily grab a copy of the app, run it locally and make modifications to it, just by downloading that single file. The most well-known SPA is ^https://tiddlywiki.com/ TiddlyWiki^.
+
+## What do you mean by RESTful?
+
+Like, REST? But where is the JSON, you ask? You clod! REST is not about JSON! JSON is an _Object Notation,_ and a good fit for an Object Access Protocol, but for REST you want to use hypermedia. An application is RESTful if it uses hypermedia as the engine of application state (HATEOAS). HATEOAS sounds fancy, but in practical terms it just means that when you save your game, the state is stored _in the HTML._ The most well-known REST app is ^https://tiddlywiki.com/ TiddlyWiki^.
+
+The Sokoban thing has a save button that saves the game as an HTML file that contains the state of your game, like the progress you've made so far, which levels you have completed and how you solved them, and which moves you've made in levels whichever levels you have started playing. You know, savegame stuff, state.
+
+## Okay
+
+I've implemented Sokoban a few times. I think it's pretty nice as a """kata""" or something. It doesn't have a ton of rules, it has some fun properties, you end up with an actually good game at the end.
+
+Anyway I was playing around with this implementation, and I was like making a _very bad_ level editor for it and things like that. And then I read ^https://irenes.space/leaves/2024-09-29-sokoban the Sokoban post by Irenes^ again, and I decided that I wanted to play through the original 50 levels myself. So now it's mostly for that. It should be _mostly_ able to load random level packs found online as well.
+
+(One of the fun properties is the thing where there's a solution format that has enough information in it to not only like, replay a solution given a level and a solution. But also to undo a move of a solution/snapshot, given a current state of a level and one move from a solution/snapshot like that. It makes it tempting to make things more stateful: You're not losing information by mutating the level directly, as long as you're also recording the move made.)
+
+Blep.
+
