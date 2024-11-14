@@ -14,7 +14,7 @@ SPA stands for Single Page App: The entire app is a single (HTML) file. You can 
 
 Like, REST? But where is the JSON, you ask? You clod! REST is not about JSON! JSON is an _Object Notation,_ and a good fit for an Object Access Protocol, but for REST you want to use hypermedia. An application is RESTful if it uses hypermedia as the engine of application state (HATEOAS). HATEOAS sounds fancy, but in practical terms it just means that when you save your game, the state is stored _in the HTML._ The most well-known REST app is ^https://tiddlywiki.com/ TiddlyWiki^.
 
-The Sokoban thing has a save button that saves the game as an HTML file that contains the state of your game, like the progress you've made so far, which levels you have completed and how you solved them, and which moves you've made in levels whichever levels you have started playing. You know, savegame stuff, state.
+The Sokoban thing has a save button that saves the game as an HTML file that contains the state of your game, like the progress you've made so far, which levels you have completed and how you solved them, and which moves you've made in whichever levels you have started playing. You know, savegame stuff, state.
 
 ## Okay
 
