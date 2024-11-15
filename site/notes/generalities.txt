@@ -71,3 +71,36 @@ And/or because extracting something that's more procedure-like and less function
 
 (And like yeah in the example things are more clear-cut than real things are. In addition to the duplicated code being clearly function-extractable, the not duplicated code is also very cleanly separated into `a` and `b`. At least it emphasizes the duplication, but yeah, I know. I know.)
 
+----
+
+# One more generalities-example
+:blurb Extracting a procedure can be nice.
+:pub ZkDHFH
+
+Oh and I came across something like this a few days ago:
+
+```
+function foo(a, b, c, d, alsobar, e)
+  <bunch of stuff using a, b, c and d>
+  if alsobar then
+    bar(c, e)
+  end
+end
+```
+
+And it was like called from 5 different places and given `false` for `alsobar` in 4 of them.
+
+And. Uh. I think it was a very clear improvement to just don't:
+
+```
+fuction foo(a, b, c, d)
+  <bunch of stuff using a, b, c and d>
+end
+```
+
+And then call `bar` after `foo` in that one place where `true` was previously passed in.
+
+Anyway I just thought it was kind of amusing. It was more procedure-like and less function-like, all side effects and no return value of interest, but it _wasn't_ all tangled up or anything. In retrospect it's very "it didn't have to be like this" and it was not difficult to change it. And I don't think the programmer who wrote the first version, whether that was me or someone else, would like really prefer the first to the second or anything. Just, somehow it happens, somehow that's the thing that is reached for first, at least somewhat frequently.
+
+Okay.
+
