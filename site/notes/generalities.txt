@@ -73,7 +73,7 @@ And/or because extracting something that's more procedure-like and less function
 
 ----
 
-# One more generalities-example
+# One more generalities example
 :blurb Extracting a procedure can be nice.
 :pub ZkDHFH
 
