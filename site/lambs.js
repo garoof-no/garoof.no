@@ -292,8 +292,8 @@
 
     const uniqueId = (s, used) => {
       const idNum = /^([a-zA-Z0-9]*?)([0-9]+)$/.exec(s);
-      var id;
-      var num;
+      let id;
+      let num;
       if (idNum) {
         id = idNum[1];
         num = parseInt(idNum[2]);
@@ -423,39 +423,34 @@
       }
     }
 
-    const isLambda = (code) => code === 92 || code === 955;
-    const isWhite = (code) =>
-      code === 32 || code === 9 || code === 10 || code === 13;
-    const isDot = (code) => code === 46;
+    const isLambda = c => c === "\\" || c === "λ";
+    const isWhite = c => c === " " || c === "\r" || c === "\n" || c === "\t";
+    const isDot = c => c === ".";
+    const isDef = c => c === "≜";
+    const isColon = c => c === ":";
+    const isEquals = c => c === "=";
+    const isOpen = c => c === "(";
+    const isClose = c => c === ")";
+    const isBar = c => c === "|";
 
-    const isDef = (code) => code === 8796;
-    const isColon = (code) => code === 58;
-    const isEquals = (code) => code === 61;
-
-    const isId = (code) =>
+    const isId = c =>
       !(
-        isLambda(code) ||
-        isWhite(code) ||
-        isDot(code) ||
-        isOpen(code) ||
-        isClose(code) ||
-        isDef(code) ||
-        isColon(code) ||
-        isEquals(code)
+        isLambda(c) ||
+        isWhite(c) ||
+        isDot(c) ||
+        isOpen(c) ||
+        isClose(c) ||
+        isDef(c) ||
+        isColon(c) ||
+        isEquals(c)
       );
 
-    const isOpen = (code) => code === 40;
-    const isClose = (code) => code === 41;
-
-    const isBar = (code) => code === 124;
-
-    const strCode = (s, i) => s.charCodeAt(i);
-    const strAtEnd = (s, i) => i >= s.length || isBar(strCode(s, i));
+    const strAtEnd = (s, i) => i >= s.length || isBar(s[i]);
 
     const skipChars = (pred) => (s, i) => {
-      var idx;
+      let idx;
       for (idx = i; idx < s.length; idx++) {
-        if (!pred(s.charCodeAt(idx))) {
+        if (!pred(s[idx])) {
           break;
         }
       }
@@ -472,7 +467,7 @@
     };
 
     const parseLambda = (s, lamI) => {
-      if (!isLambda(strCode(s, lamI))) {
+      if (!isLambda(s[lamI])) {
         return new ParseError("expected lambda", lamI);
       }
 
@@ -480,7 +475,7 @@
       return parseIdentifier(s, paramStartI).flatMap((param, paramStopI) => {
         const dotI = skipWhites(s, paramStopI);
 
-        if (!isDot(strCode(s, dotI))) {
+        if (!isDot(s[dotI])) {
           return new ParseError("expected dot", dotI);
         }
 
@@ -491,7 +486,7 @@
     };
 
     const parseOne = (s, startI) => {
-      const code = strCode(s, startI);
+      const code = s[startI];
       if (isId(code)) {
         return parseIdentifier(s, startI).flatMap(
           (v, i) => new ParseResult(new Var(v), i)
@@ -502,7 +497,7 @@
       }
       if (isOpen(code)) {
         return parseApps(s, startI + 1).flatMap((exp, closeI) => {
-          if (!isClose(strCode(s, closeI))) {
+          if (!isClose(s[closeI])) {
             return new ParseError("expected close paren", closeI);
           }
           return new ParseResult(exp, closeI + 1);
@@ -512,14 +507,14 @@
 
     const parseApps = (s, beforeI) => {
       const exps = [];
-      var currentI = beforeI;
+      let currentI = beforeI;
       while (true) {
         currentI = skipWhites(s, currentI);
         if (strAtEnd(s, currentI)) {
           break;
         }
-        const code = strCode(s, currentI);
-        if (!(isId(code) || isLambda(code) || isOpen(code))) {
+        const c = s[currentI];
+        if (!(isId(c) || isLambda(c) || isOpen(c))) {
           break;
         }
         const res = parseOne(s, currentI);
@@ -537,8 +532,8 @@
     };
 
     const makeApps = (exps) => {
-      var res = exps[0];
-      for (var i = 1; i < exps.length; i++) {
+      let res = exps[0];
+      for (let i = 1; i < exps.length; i++) {
         res = new App(res, exps[i]);
       }
       return res;
@@ -556,9 +551,9 @@
     };
 
     const parseDef = (name, s, i) =>
-      isDef(strCode(s, i))
+      isDef(s[i])
         ? new ParseResult(name, i + 1)
-        : isColon(strCode(s, i)) && isEquals(strCode(s, i + 1))
+        : isColon(s[i]) && isEquals(s[i + 1])
           ? new ParseResult(name, i + 2)
           : new ParseError("expected ≜ or :=", i);
 
