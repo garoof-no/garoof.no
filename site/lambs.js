@@ -634,7 +634,7 @@
           return `\n${name} is undefined :|`;
         },
         ParseError: (msg, i) =>
-          `\n${new Array(i + 1).join(" ")}^\noh no: ${msg}`,
+          `\n${(" ").repeat(i)}^\noh no: ${msg}`,
         Empty: () => "",
       });
     }
