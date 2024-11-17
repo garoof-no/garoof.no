@@ -634,7 +634,7 @@
           return `\n${name} is undefined :|`;
         },
         ParseError: (msg, i) =>
-          `\n${(" ").repeat(i)}^\noh no: ${msg}`,
+          `\n${" ".repeat(i)}^\noh no: ${msg}`,
         Empty: () => "",
       });
     }
@@ -660,6 +660,7 @@
     }
 
     replaceDefs(str) {
+      console.log("rplc");
       return parse(str).match({
         Expression: (x) => {
           let res = x;
@@ -670,7 +671,7 @@
           return `\n${unparse(res)}`;
         },
         ParseError: (msg, i) =>
-          `\n ${new Array(i).join(" ")}^\noh no: ${msg}`,
+          `\n${" ".repeat(i)}^\noh no: ${msg}`,
         Empty: () => "",
         default: (u) => "\nplox replacestuff on normal expressions only?",
       });
