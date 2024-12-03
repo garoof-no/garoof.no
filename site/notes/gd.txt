@@ -6,7 +6,7 @@
 Glorpdown is plaintexty and mildly line-oriented, not totally unlike ^https://geminiprotocol.net/docs/gemtext.gmi Gemtext^. (Although at this point also _a little_ less similar to Gemtext than it used to be.) I use it for this website.
 
 * ^../gd.lua The implementation of the current version tends to be here.^.
-* ^../lua/glorp.html?code=DYewxghsAEAmBOEDu0C80kFMBGA6emAjgK4CWBAFAEQDmsAtAslQDTRW4D0uXdjiSXMGIQqASgBQWPARLlM1PrAgAXTCtIBbTK3ZcenJavVbMQkeImhIMGqHgAHNBhz4iZSrVi6O3XrHNRSWlcAAsVTWAKOxBHXFgQJAA7CgBtVIkAYmgYxwTkiSzsiHgVQoADSrgBUiSaCQBqemaWltxoDqbWhokAH2hsYEwnDugugD5+gDMQEGhextbW3AByUa6Wnsry6Ahq5Fr6ougAZxViKanCvZIQNQAuQvGB4D3BiEKAKmgQJMwJb4qJAgQoAPXCKgc904nAcrzAmAA1qQVGokrgwCBNJwAEwABjxnAAzAToMjUZgkqDCicsZhoJjYJhHhJthJSFNoCpQqQTlzQpSJKN+aoJJTYKzKoUQIiIABPXCFAC6SrEYiAA And you can test and play with it here.^
+* ^https://lua.garoof.no/?code=DYewxghsAEAmBOEDu0C80kFMBGA6emAjgK4CWBAFAEQDmsAtAslQDTRUAWALlwA4DOALgD0wmhHggQAM1wA7EGIZMkuYMQhUAlACgseAiXKZqdRhC6YupALaZW7bnyGjxkmfMVnYFq7cxqGto6oJAwNKDwvGgYOPhEZJS0sA6cPAIiYhJSsgpKgZq6+rjcNsAUESBRuLAgSHIUANqNOgDE0JVRtfU6be0SXL0ABiNwiEikcjQ6ANT08wsLuNArc4szOgA+0NjAmNEr0GsAfNvSUtCbs4uLuADkh2sLGyND0BBjyJPTfdD8XMRpNJeh8SCBLIJescdsAPrsIL0AFTQEByTA6ZFcJAgXoAPScvEyvFhYEwAGtSDxMHJcGAQDZhAAmAAMzOEAGZWdAKVS5Ljevx6ZhoHTYJhITpXjpSNJoFwOKR+HKONSdIdlRYdNTYJKRr0QGSIABPXC9AC6Zq0WiAA And you can test and play with it here.^
 
 This is kind of documentation, maybe mostly test page.
 

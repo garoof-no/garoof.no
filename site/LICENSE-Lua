@@ -1,4 +1,4 @@
-main.wasm contains Lua 5.4. See https://git.sr.ht/~garoof/webby-lua for details.
+lua-wasm.js contains Lua 5.4. See https://github.com/Glorp/webby-lua for details.
 
 Copyright © 1994–2023 Lua.org, PUC-Rio.
 
