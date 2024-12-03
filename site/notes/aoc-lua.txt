@@ -1,10 +1,12 @@
 # Some Advent of Code Lua
+:pub ZkE3Ob
+:blurb Lua uf advent.
 
 A few notes to self, in case I'm looking for previous stuff to copypaste in some future december or something...
 
 * ^https://lua.garoof.no/?code=DYewxghsAEBmB2EC2BTAUAS1tA7igRtAC4AWK8a0uBAdERkcCgBQBEAgiAMLT4ooAHXiBADWASkpxEqaAF5orDPAEBXIqyl58NWBibMEyFJJTAAzuipHZCiACcA5tAjwAJi6cBtAIwBdNHI3NDRQSBhsAB4wUEsAPnlpYxd3aAwQGlFyQxkTELCoOFV4MHoQeGhzIlVYZmBlPKoCmHsUc0SfKVgQexcAGl40ivr4FAAuRyQIIjASNgBSZmZ5twBqcWhlt3F58QloNxApKlb2hVPoACpNonLVJD57ZggN1eI7h5Qn-HFJKiCpK1qvYKqdAu58uBCrBiqV0hVzCBgAA3FgjNp-aDNaAXBQABi6PSxDSGxNG7UOxxxbUSpzeVRqdQamIBJxQwNBbXBwVCUJgKAAHsgBEwqr0FF4vGhmD4AEzQWUbZgAZmgyskzAALNAAKyapUANgNuqVAHZoKaNeaABySPwBNACezKIhsHAMEjQQXCphjCSO53wV2IlEsb1IEVtIj2CZTGZzVheAB6AB14H5VhJfphsNhSOQpE6XWw0+7SHB9CghmoiH7MUWg8wQ6jDGN0eZmL9TBCgA Some example code.^ Does the file stuff that usually needs to be done and the "works in the browser as well" thing.
 * If not line by line: Possibly `f:read("*all")` instead of `f:lines()`.
 * ^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
-* Matching on and grabbing what I want is often preferable to splitting on what I don't want.
+* Cataphatically matching on and grabbing what I want is often preferable to apophatically splitting on what I don't want.
 * `string.find` returns start index and stop index if it finds. Sometimes I wanna pass those on to `string.sub`. Sometimes I wanna keep finding from the stop index + 1.
 
