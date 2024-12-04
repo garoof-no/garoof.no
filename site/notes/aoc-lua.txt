@@ -1,6 +1,7 @@
 # Some Advent of Code Lua
 :pub ZkE3Ob
 :blurb Lua uf advent.
+:template lua
 
 A few notes to self, in case I'm looking for previous stuff to copypaste in some future december or something...
 
@@ -9,4 +10,63 @@ A few notes to self, in case I'm looking for previous stuff to copypaste in some
 * ^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
 * Cataphatically matching on and grabbing what I want is often preferable to apophatically splitting on what I don't want.
 * `string.find` returns start index and stop index if it finds. Sometimes I wanna pass those on to `string.sub`. Sometimes I wanna keep finding from the stop index + 1.
+
+### 2D maps and vectors
+
+If I want to e.g. use x,y-positions as keys in a table, for each unique unique x,y-value there is only one table. "Constructing" the same position twice gives me two references to the same table, and not two tables with equal x and y values:
+
+``` run
+vecs = setmetatable({}, { __mode = "v" })
+Vec = {}
+
+function vec(x, y)
+  local key = x .. "," .. y
+  local found = vecs[key]
+  if found then return found end
+  local v = setmetatable({ x = x, y = y}, Vec)
+  vecs[key] = v
+  return v
+end
+
+function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
+function Vec.__tostring(a) return a.x .. "," .. a.y end
+
+N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
+NW, NE, SE, SW = N + W, N + E, S + E, S + W
+dirs = { NW, N, NE, E, SE, S, SW, W }
+```
+
+See also: ^https://www.lua.org/pil/17.1.html Programming in Lua: 17.1 – Memoize Functions^.
+
+The "weak" stuff (`__mode = "v"`) is not usually important particularly important for AoC stuff. I typically use vectors for positions and also for directions.
+
+Stuff like this can happen:
+
+``` run
+function mappy(lines)
+  local map = {}
+  local y = 0
+  for line in lines do
+    local x = 0
+    for c in line:gmatch(".") do
+      map[vec(x, y)] = c
+      x = x + 1
+    end
+    y = y + 1
+  end
+  return map
+end
+```
+
+``` repl
+example = [[
+qweqweqwe
+asdasdasd
+dsfsdfdsf
+]]
+
+map = mappy(example:gmatch("[^\n]+"))
+
+for k, v in pairs(map) do print(k, v) end
+```
 
