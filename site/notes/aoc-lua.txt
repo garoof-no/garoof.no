@@ -29,7 +29,11 @@ function vec(x, y)
 end
 ```
 
-Som stuf:
+See also: ^https://www.lua.org/pil/17.1.html Programming in Lua: 17.1 – Memoize Functions^.
+
+The "weak" stuff (`__mode = "v"`) is not usually important particularly important for AoC stuff.
+
+I typically use vectors for positions and also for directions. Som stuf:
 
 ``` run
 function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
@@ -46,11 +50,7 @@ NW, NE, SE, SW = N + W, N + E, S + E, S + W
 dirs = { NW, N, NE, E, SE, S, SW, W }
 ```
 
-See also: ^https://www.lua.org/pil/17.1.html Programming in Lua: 17.1 – Memoize Functions^.
-
-The "weak" stuff (`__mode = "v"`) is not usually important particularly important for AoC stuff. I typically use vectors for positions and also for directions.
-
-Stuff like this can happen:
+And then things like these might happen:
 
 ``` run
 function mappy(lines)
