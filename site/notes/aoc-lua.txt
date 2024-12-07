@@ -5,22 +5,22 @@
 
 A few notes to self, in case I'm looking for previous stuff to copypaste in some future december or something...
 
-I like Lua, it's smol. When I AoC with Lua I usually make pretty self-contained programs that only depend on the plain and regular Lua implementation and its standard library.
+Maybe this _mostly_ just "Lua stuff I think is fun" and not necessarily always _that_ AoC related? Anyway I like Lua, it's smol. When I AoC with Lua I usually make pretty self-contained programs that only depend on the plain and regular Lua implementation and its standard library.
 
 ^https://lua.garoof.no/?code=DYewxghsAEBmB2EC2BTAUAS1tA7igRtAC4AWK8a0uBAdERkcCgBQBEAgiAMLT4ooAHXiBADWASkpxEqaAF5orDPAEBXIqyl58NWBibMEyFJJTAAzuipHZCiACcA5tAjwAJi6cBtAIwBdNHI3NDRQSBhsAB4wUEsAPnlpYxd3aAwQGlFyQxkTELCoOFV4MHoQeGhzIlVYZmBlPKoCmHsUc0SfKVgQexcAGl40ivr4FAAuRyQIIjASNgBSZmZ5twBqcWhlt3F58QloNxApKlb2hVPoACpNonLVJD57ZggN1eI7h5Qn-HFJKiCpK1qvYKqdAu58uBCrBiqV0hVzCBgAA3FgjNp-aDNaAXBQABi6PSxDSGxNG7UOxxxbUSpzeVRqdQamIBJxQwNBbXBwVCUJgKAAHsgBEwqr0FF4vGhmD4AEzQWUbZgAZmgyskzAALNAAKyapUANgNuqVAHZoKaNeaABySPwBNACezKIhsHAMEjQQXCphjCSO53wV2IlEsb1IEVtIj2CZTGZzVheAB6AB14H5VhJfphsNhSOQpE6XWw0+7SHB9CghmoiH7MUWg8wQ6jDGN0eZmL9TBCgA Here's some example code.^ It does the file stuff that usually needs to be done and the "works in the browser as well" thing.
 
 If not line by line: Possibly `f:read("*all")` instead of `f:lines()`.
 
-## Strings, matching, ...
+Here's `foldl` because because:
 
 ``` run
 function foldl(f, acc, list)
-  for _, v in ipairs(list) do
-    acc = f(acc, v)
-  end
+  for _, v in ipairs(list) do acc = f(acc, v) end
   return acc
 end
 ```
+
+## Strings, matching, ...
 
 Cataphatically matching on and grabbing what I want is often preferable to apophatically splitting on what I don't want.
 
@@ -43,12 +43,25 @@ If there had been a varying number of numbers _before_ the `:` I'd probably matc
 ``` repl
 local line = "123 456: 25 34 12"
 local before, after = line:match("(.*):(.*)")
-print('do things, maybe some gmatch stuff, with "' .. before .. '" and "' .. after .. '"')
+print("before:", '"' .. before .. '"')
+print("after:", '"' .. after .. '"')
+```
+
+(The `match` function and the iterator function you get from `gmatch` return multiple values when patterns with multiple captures match something. It's nice.)
+
+`string.find`, it returns start position and stop index if it finds. Sometimes I wanna keep finding from the stop index + 1. The values returned for empty capture groups are also positions, so I guess I don't really need `find`? Certainly not if I'm mostly interested in the stop + 1 thing:
+
+``` repl
+local text = "beep boop pling bap"
+
+local _, stop, found = text:find("(p%a*g)")
+print(found, stop + 1)
+
+local found, stop = text:match("(p%a*g)()")
+print(found, stop)
 ```
 
 ^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
-
-When I _do_ need to deal with `string.find`, it returns start index and stop index if it finds. Sometimes I wanna pass those on to `string.sub`. Sometimes I wanna keep finding from the stop index + 1.
 
 ## 2D maps and vectors
 
