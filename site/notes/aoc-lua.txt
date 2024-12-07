@@ -154,7 +154,7 @@ Related: Greater than (or equal to) expressions are rewritten to less than (or e
 
 ### "Methods"
 
-Also the metatable is generally only reached _through_ the metamethods and nor more directly. If I want something kind of like "methods defined by a class" then I probably wanna go through `__index`. This works:
+Also the metatable is generally only reached _through_ the metamethods and not more directly. If I want something kind of like "methods defined by a class" then I probably wanna go through `__index`. This works:
 
 ``` repl
 Dog.__index = Dog
