@@ -94,29 +94,43 @@ And then things like these might happen:
 ``` run
 function mappy(lines)
   local map = {}
+  local w = 1
   local y = 0
   for line in lines do
+    y = y + 1
     local x = 0
     for c in line:gmatch(".") do
-      map[vec(x, y)] = c
       x = x + 1
+      map[vec(x, y)] = c
     end
-    y = y + 1
+    w = math.max(w, x)
   end
+  map.size = vec(w, y)
   return map
 end
+
+function printmap(map)
+  print(map.size)
+  for y = 1, map.size.y do
+    for x = 1, map.size.x do
+      io.write(map[vec(x, y)] or " ")
+    end
+    io.write("\n")
+  end
+end
+
 ```
 
 ``` repl
-example = [[
+local example = [[
 qweqweqwe
 asdasdasd
 dsfsdfdsf
 ]]
 
-map = mappy(example:gmatch("[^\n]+"))
-
-for k, v in pairs(map) do print(k, v) end
+local map = mappy(example:gmatch("[^\n]+"))
+print(map[vec(2,3)])
+printmap(map)
 ```
 
 ## Metastuff
@@ -210,5 +224,51 @@ print(foo.beep.boop)
 
 (`__newindex(t, k, v)` is also a thing. Haven't used it much. I'm a bit uncertain about it and the "`key` must not already be present in table" condition.)
 
-Um.
+### Writing over, not overwriting
+
+I usually use fairly pure and functional data structures for smol things like vectors and positions, but not for larger things like 2D maps. This leads to sometimes needing to "undo" some mutations. `__index` is sometimes useful. I can keep the original table unchanged while "inheriting" its values through `__index`.
+
+When I'm using the `over` table below, writes modify `over` and reads read from `original` if the key is not present in `over`:
+
+``` repl
+local example = [[
++--------+
+|        |
++--------+
+]]
+
+local original = mappy(example:gmatch("[^\n]+"))
+print("original, before:")
+printmap(original)
+
+local over = setmetatable({}, { __index = original })
+print("over, before:")
+printmap(over)
+
+over[vec(2, 2)] = "#"
+print("\nover, after:")
+printmap(over)
+print("original, after:")
+printmap(original)
+```
+
+## if/else, and/or
+
+if-then-else is statement stuff. For expression stuff, `and` and `or` is nice.
+
+* `nil` and `false` is false, all else is truth
+* `true and 4` evaluates to `4`, `false or 2` evaluates to `2`
+* etc
+
+``` repl
+for n = 1, 100 do
+print(
+  (n % 3 == 0 and n % 5 == 0 and "fizzbuzz")
+  or (n % 3 == 0 and "fizz")
+  or (n % 5 == 0 and "buzz")
+  or n)
+end
+```
+
+Oh kay.
 
