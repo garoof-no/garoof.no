@@ -66,20 +66,30 @@ function vec(x, y)
   vecs[key] = v
   return v
 end
-
-function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
-function Vec.__tostring(a) return a.x .. "," .. a.y end
-
-N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
-NW, NE, SE, SW = N + W, N + E, S + E, S + W
-dirs = { NW, N, NE, E, SE, S, SW, W }
 ```
 
 See also: ^https://www.lua.org/pil/17.1.html Programming in Lua: 17.1 – Memoize Functions^.
 
-The "weak" stuff (`__mode = "v"`) is not usually important particularly important for AoC stuff. I typically use vectors for positions and also for directions.
+The "weak" stuff (`__mode = "v"`) is not usually important particularly important for AoC stuff.
 
-Stuff like this can happen:
+I typically use vectors for positions and also for directions. Som stuf:
+
+``` run
+function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
+function Vec.__tostring(a) return a.x .. "," .. a.y end
+
+N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
+dirs = { N, E, S, W }
+
+N.right = E ; E.right = S ; S.right = W ; W.right = N
+N.left = W ; W.left = S ; S.left = E ; E.left = N
+
+
+NW, NE, SE, SW = N + W, N + E, S + E, S + W
+dirs = { NW, N, NE, E, SE, S, SW, W }
+```
+
+And then things like these might happen:
 
 ``` run
 function mappy(lines)
