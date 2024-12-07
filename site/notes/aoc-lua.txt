@@ -5,13 +5,52 @@
 
 A few notes to self, in case I'm looking for previous stuff to copypaste in some future december or something...
 
-* ^https://lua.garoof.no/?code=DYewxghsAEBmB2EC2BTAUAS1tA7igRtAC4AWK8a0uBAdERkcCgBQBEAgiAMLT4ooAHXiBADWASkpxEqaAF5orDPAEBXIqyl58NWBibMEyFJJTAAzuipHZCiACcA5tAjwAJi6cBtAIwBdNHI3NDRQSBhsAB4wUEsAPnlpYxd3aAwQGlFyQxkTELCoOFV4MHoQeGhzIlVYZmBlPKoCmHsUc0SfKVgQexcAGl40ivr4FAAuRyQIIjASNgBSZmZ5twBqcWhlt3F58QloNxApKlb2hVPoACpNonLVJD57ZggN1eI7h5Qn-HFJKiCpK1qvYKqdAu58uBCrBiqV0hVzCBgAA3FgjNp-aDNaAXBQABi6PSxDSGxNG7UOxxxbUSpzeVRqdQamIBJxQwNBbXBwVCUJgKAAHsgBEwqr0FF4vGhmD4AEzQWUbZgAZmgyskzAALNAAKyapUANgNuqVAHZoKaNeaABySPwBNACezKIhsHAMEjQQXCphjCSO53wV2IlEsb1IEVtIj2CZTGZzVheAB6AB14H5VhJfphsNhSOQpE6XWw0+7SHB9CghmoiH7MUWg8wQ6jDGN0eZmL9TBCgA Some example code.^ Does the file stuff that usually needs to be done and the "works in the browser as well" thing.
-* If not line by line: Possibly `f:read("*all")` instead of `f:lines()`.
-* ^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
-* Cataphatically matching on and grabbing what I want is often preferable to apophatically splitting on what I don't want.
-* `string.find` returns start index and stop index if it finds. Sometimes I wanna pass those on to `string.sub`. Sometimes I wanna keep finding from the stop index + 1.
+I like Lua, it's smol. When I AoC with Lua I usually make pretty self-contained programs that only depend on the plain and regular Lua implementation and its standard library.
 
-### 2D maps and vectors
+^https://lua.garoof.no/?code=DYewxghsAEBmB2EC2BTAUAS1tA7igRtAC4AWK8a0uBAdERkcCgBQBEAgiAMLT4ooAHXiBADWASkpxEqaAF5orDPAEBXIqyl58NWBibMEyFJJTAAzuipHZCiACcA5tAjwAJi6cBtAIwBdNHI3NDRQSBhsAB4wUEsAPnlpYxd3aAwQGlFyQxkTELCoOFV4MHoQeGhzIlVYZmBlPKoCmHsUc0SfKVgQexcAGl40ivr4FAAuRyQIIjASNgBSZmZ5twBqcWhlt3F58QloNxApKlb2hVPoACpNonLVJD57ZggN1eI7h5Qn-HFJKiCpK1qvYKqdAu58uBCrBiqV0hVzCBgAA3FgjNp-aDNaAXBQABi6PSxDSGxNG7UOxxxbUSpzeVRqdQamIBJxQwNBbXBwVCUJgKAAHsgBEwqr0FF4vGhmD4AEzQWUbZgAZmgyskzAALNAAKyapUANgNuqVAHZoKaNeaABySPwBNACezKIhsHAMEjQQXCphjCSO53wV2IlEsb1IEVtIj2CZTGZzVheAB6AB14H5VhJfphsNhSOQpE6XWw0+7SHB9CghmoiH7MUWg8wQ6jDGN0eZmL9TBCgA Here's some example code.^ It does the file stuff that usually needs to be done and the "works in the browser as well" thing.
+
+If not line by line: Possibly `f:read("*all")` instead of `f:lines()`.
+
+## Strings, matching, ...
+
+``` run
+function foldl(f, acc, list)
+  for _, v in ipairs(list) do
+    acc = f(acc, v)
+  end
+  return acc
+end
+```
+
+Cataphatically matching on and grabbing what I want is often preferable to apophatically splitting on what I don't want.
+
+If I e.g. have a line of input like `"123: 54 34 12"` and I need to do one thing with the number before the `:` and one thing with the rest of the numbers. I typically ignore the `:` and just `gmatch` to get the numbers:
+
+``` repl
+local line = "123: 25 34 12"
+
+local nums = line:gmatch("%d+")
+local first = tonumber(nums())
+local rest = {}
+for n in nums do table.insert(rest, tonumber(n)) end
+
+print(foldl(function(a, b) return a + b end, first, rest))
+print(foldl(function(a, b) return a - b end, first, rest))
+```
+
+If there had been a varying number of numbers _before_ the `:` I'd probably match and grab the before and after pieces before doing work on those:
+
+``` repl
+local line = "123 456: 25 34 12"
+local before, after = line:match("(.*):(.*)")
+print('do things, maybe some gmatch stuff, with "' .. before .. '" and "' .. after .. '"')
+```
+
+^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
+
+When I _do_ need to deal with `string.find`, it returns start index and stop index if it finds. Sometimes I wanna pass those on to `string.sub`. Sometimes I wanna keep finding from the stop index + 1.
+
+## 2D maps and vectors
 
 If I want to e.g. use x,y-positions as keys in a table, for each unique unique x,y-value there is only one table. "Constructing" the same position twice gives me two references to the same table, and not two tables with equal x and y values:
 
@@ -69,4 +108,97 @@ map = mappy(example:gmatch("[^\n]+"))
 
 for k, v in pairs(map) do print(k, v) end
 ```
+
+## Metastuff
+
+^https://www.lua.org/manual/5.4/manual.html#2.4 Metatables and Metamethods in the manual`.
+
+Most of the metamethods enables syntax like the `+`/`__add` above:
+``` repl
+print(vec(5, 5) + vec(2, 4))
+```
+
+``` run
+Dog = {}
+function dog(name)
+  return setmetatable({ name = name }, Dog)
+end
+function Dog.__tostring(d) return "a dog called " .. d.name  end
+function Dog.__add(a, b) return tostring(a) .. " PLUS " .. tostring(b) end
+function Dog.bark(d) print(d.name .. ": Woof") end
+deg = dog("Tähti")
+```
+
+``` repl
+print(deg)
+```
+
+Note that the first argument of a binary operation like `__add` might not be the one with the metatable with that `__add` function. First operand of the `+` expression takes precedence, the `_add` of the second operand _might_ get called:
+
+``` repl
+print(deg + "a string")
+print("a string" + deg)
+```
+
+Related: Greater than (or equal to) expressions are rewritten to less than (or equal to) expressions before things get to `__lt` (or `__le`).
+
+### "Methods"
+
+Also the metatable is generally only reached _through_ the metamethods and nor more directly. If I want something kind of like "methods defined by a class" then I probably wanna go through `__index`. This works:
+
+``` repl
+Dog.__index = Dog
+deg:bark()
+```
+
+This doesn't:
+
+``` repl
+Dog.__index = nil
+deg:bark()
+```
+
+For functionmethodstuff, some things are pretty equivalent:
+
+``` repl
+Dog.__index = Dog
+
+function Dog.bark(d) print(d.name .. ": Woof") end
+deg:bark()
+deg.bark(deg)
+
+function Dog:bark() print(self.name .. ": Woof") end
+deg:bark()
+deg.bark(deg)
+
+Dog.bark = function(d) print(d.name .. ": Woof") end
+deg:bark()
+deg.bark(deg)
+```
+
+### Default values
+
+`__index` is also sometimes nice for stuff like initializing default values in a table when needed:
+
+``` run
+Foo = {}
+function foo() return setmetatable({}, Foo) end
+function Foo.__index(t, k)
+  local res = foo()
+  t[k] = res
+  return res
+end
+```
+
+``` repl
+local foo = foo()
+foo.bar = "blep"
+foo.beep.boop = "bap"
+print(foo.bar)
+print(foo.beep.boop)
+```
+
+(`__newindex(t, k, v)` is also a thing. Haven't used it much. I'm a bit uncertain about it and the "`key` must not already be present in table" condition.)
+
+Um.
 

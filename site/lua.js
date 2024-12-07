@@ -61,14 +61,6 @@
     }
   };
 
-  const resizeta = ta => {
-    ta.setAttribute("style", "height: 0;");
-    const height = ta.scrollHeight;
-    ta.setAttribute("style", `height: ${height}px;`);
-    const extra = ta.offsetHeight - ta.clientHeight;
-    ta.setAttribute("style", `height: ${height + extra}px;`);
-  };
-
   const create = (element) => {
     const ta = elem("textarea", {
       value: element.innerText,
@@ -81,13 +73,17 @@
     };
     element.after(ta, toolbar, out);
     element.remove();
-    resizeta(ta);
+    
+    ta.setAttribute("style", "height: 0;");
+    const height = ta.scrollHeight;
+    ta.setAttribute("style", `height: ${height}px;`);
+    const extra = ta.offsetHeight - ta.clientHeight;
+    ta.setAttribute("style", `height: ${height + extra}px;`);
 
     if (element.classList.contains("run")) {
       run();
     }
     if (element.classList.contains("repl")) {
-      ta.oninput = () => resizeta(ta);
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
         elem(

@@ -19,15 +19,7 @@ const outElement = (() => {
   });
 
   const outElement = elem("div");
-
-  const resizeta = ta => {
-    ta.setAttribute("style", "height: 0;");
-    const height = ta.scrollHeight;
-    ta.setAttribute("style", `height: ${height}px;`);
-    const extra = ta.offsetHeight - ta.clientHeight;
-    ta.setAttribute("style", `height: ${height + extra}px;`);
-  };
-
+  
   const create = (element) => {
     const ta = elem("textarea", {
       value: element.innerText,
@@ -43,13 +35,17 @@ const outElement = (() => {
     };
     element.after(ta, toolbar, out);
     element.remove();
-    resizeta(ta);
+    
+    ta.setAttribute("style", "height: 0;");
+    const height = ta.scrollHeight;
+    ta.setAttribute("style", `height: ${height}px;`);
+    const extra = ta.offsetHeight - ta.clientHeight;
+    ta.setAttribute("style", `height: ${height + extra}px;`);
 
     if (element.classList.contains("run")) {
       run();
     }
     if (element.classList.contains("repl")) {
-      ta.oninput = () => resizeta(ta);
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
         elem("button", { className: "toolbar-button", title: "Clear output", onclick: (e) => { out.replaceChildren(); } }, "⎚"));

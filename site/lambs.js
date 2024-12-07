@@ -691,19 +691,10 @@
       return line;
     };
 
-    const resizeta = ta => {
-      ta.setAttribute("style", "height: 0;");
-      const height = ta.scrollHeight;
-      ta.setAttribute("style", `height: ${height}px;`);
-      const extra = ta.offsetHeight - ta.clientHeight;
-      ta.setAttribute("style", `height: ${height + extra}px;`);
-    };
-
     const print = (editor, str) => {
       const start = editor.selectionStart;
       const end = editor.selectionEnd;
       editor.setRangeText(str, start, end, "end");
-      resizeta(editor);
     }
 
     const onkey = e => {
@@ -735,8 +726,9 @@
     const create = elem => {
       const ta = document.createElement("textarea");
       ta.className = elem.className;
+      let str;
       if (elem.classList.contains("prelude")) {
-        let str = "";
+        str = "";
         for (const line of elem.innerText.split(/\r?\n/)) {
           if (str !== "") {
             str = str + "\n";
@@ -744,16 +736,23 @@
           if (line.trim().length > 0) {
             str += line + repl.execute(line);
           }
-          ta.value = str;
           ta.readOnly = true;
         }
       } else {
-        ta.value = elem.innerText;
+        str = elem.innerText;
         ta.onkeydown = onkey;
-        ta.oninput = () => resizeta(ta);
       }
       elem.parentElement.replaceChild(ta, elem);
-      resizeta(ta);
+      
+      ta.value = "1\n2\n3";
+      ta.setAttribute("style", "height: 0;");
+      const unit = ta.scrollHeight;
+      ta.value = str;
+      const suggestion = ta.scrollHeight + unit;
+      const height =  suggestion < unit ? unit : suggestion;
+      ta.setAttribute("style", `height: ${height}px;`);
+      const extra = ta.offsetHeight - ta.clientHeight;
+      ta.setAttribute("style", `height: ${height + extra}px;`);
     }
 
     for (const element of document.querySelectorAll(".lambs")) {
