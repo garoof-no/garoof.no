@@ -226,7 +226,9 @@ print(foo.beep.boop)
 
 ### Writing over, not overwriting
 
-I usually use fairly pure and functional data structures for smol things like vectors and positions, but not for larger things like 2D maps. This leads to sometimes needing to "undo" some mutations. `__index` is sometimes useful. I can keep the original table unchanged while "inheriting" its values through `__index`.
+I usually use fairly pure and functional data structures for smol things like vectors, but not for larger things like 2D maps. The immutable stuff is easiest to deal with when trying different alternatives and backtracking and stuff like that: I have a value. I try one thing. I try another thing. The value didn't change in-between. (Also, if I'm doing the cachy memoization stuff where I'm always using the same table for the same x,y-value, things will very break if I start changing the x,y-values of vectors after constructing them.)
+
+With mutable stuff things are more awkward and I might need to "undo" changes instead. For small changes I can probably just do that kind of ad hoc. But if I wanna do a bunch of changes and then be able to throw those changes away, `__index` might be useful: I can keep an original table unchanged while "inheriting" its values through `__index`.
 
 When I'm using the `over` table below, writes modify `over` and reads read from `original` if the key is not present in `over`:
 
