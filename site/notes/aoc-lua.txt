@@ -143,7 +143,7 @@ deg = dog("Tähti")
 print(deg)
 ```
 
-Note that the first argument of a binary operation like `__add` might not be the one with the metatable with that `__add` function. First operand of the `+` expression takes precedence, the `_add` of the second operand _might_ get called:
+Note that the first argument of a binary operation like `__add` might not be the one with the metatable with that `__add` function. While the first operand of the `+` expression takes precedence, the `_add` of the second operand _can_ get called:
 
 ``` repl
 print(deg + "a string")
