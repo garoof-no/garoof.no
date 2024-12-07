@@ -146,6 +146,14 @@ print(map[vec(1,1)], map[vec(1,2)], map[vec(2,1)])
 printmap(map)
 ```
 
+# Data structures
+
+`{}`. That's it, that's the data structures.
+
+Sets are tables where we only care about the keys (and just set the values to true or something).
+
+You can use the same table as a list and a dictionary and a set if you'd like. Unless you can't because the keys are clashing or something. Or maybe don't want. But like. Some times.
+
 ## Metastuff
 
 ^https://www.lua.org/manual/5.4/manual.html#2.4 Metatables and Metamethods in the manual`.
