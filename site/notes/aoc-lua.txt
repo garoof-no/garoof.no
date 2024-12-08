@@ -65,7 +65,7 @@ print(found, stop)
 
 ## 2D maps and vectors
 
-If I want to e.g. use x,y-positions as keys in a table, for each unique unique x,y-value there is only one table. "Constructing" the same position twice gives me two references to the same table, and not two tables with equal x and y values:
+If I want to e.g. use x,y-positions as keys in a table, for each unique x,y-value there should be only one table. "Constructing" the same position twice gives me two references to the same table, and not two tables with equal x and y values:
 
 ``` run
 vecs = setmetatable({}, { __mode = "v" })
@@ -92,6 +92,7 @@ function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
 function Vec.__tostring(a) return a.x .. "," .. a.y end
 
 N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
+N.name = "N" ; E.name = "E" ; S.name = "S" ; W.name = "W"
 dirs = { N, E, S, W }
 
 N.right = E ; E.right = S ; S.right = W ; W.right = N
@@ -99,6 +100,7 @@ N.left = W ; W.left = S ; S.left = E ; E.left = N
 
 
 NW, NE, SE, SW = N + W, N + E, S + E, S + W
+NW.name = "NW" ; NE.name = "NE" ; SE.name = "SE" ; SW.name = "SW"
 dirs = { NW, N, NE, E, SE, S, SW, W }
 ```
 
@@ -152,6 +154,46 @@ printmap(map)
 Sets are tables where we only care about the keys (and just set the values to true or something).
 
 You can use the same table as a list and a dictionary and a set if you'd like. Unless you can't because the keys are clashing or something. Or maybe don't want. But like. Some times.
+
+## Memo
+
+Helper function if I need to do the cachy memoization thing with more than one type of data structure. I typically want to pass in a "key" function and a constructor function:
+
+``` run
+function memo(key, new)
+  local all = setmetatable({}, { __mode = "v" })
+  return function(...)
+    local k = key(...)
+    local found = all[k]
+    if found then return found end
+    local v = new(...)
+    all[k] = v
+    return v
+  end
+end
+
+Person = {}
+person = memo(
+  function(pos, dir) return tostring(pos) .. " " .. dir.name end,
+  function(pos, dir) return setmetatable({ pos = pos, dir = dir }, Person) end)
+
+Person.__index = Person
+function Person.__tostring(p) return tostring(p.pos) .. " " .. p.dir.name end
+function Person.step(p) return person(p.pos + p.dir, p.dir) end
+```
+
+``` repl
+local a, b = person(vec(3, 4), N), person(vec(3, 5), N)
+print(a, b, b:step())
+print("", a == b, a == b:step())
+
+print()
+
+local c = person(vec(3, 3), S)
+print(a, c, c:step())
+print("", a == c, a == c:step())
+print(a.pos == c:step().pos)
+```
 
 ## Metastuff
 
