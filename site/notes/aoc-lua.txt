@@ -131,7 +131,6 @@ function printmap(map)
     io.write("\n")
   end
 end
-
 ```
 
 ``` repl
