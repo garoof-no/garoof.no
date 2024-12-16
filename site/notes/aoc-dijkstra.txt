@@ -45,7 +45,7 @@ thing = memo(
 function Thing.__tostring(th) return tostring(th.pos) .. " " .. th.dir.name end
 ```
 
-HERE'S A LAZY THING:
+HERE'S SOME LAZINESS:
 
 ``` run
 Lazy = {}
