@@ -5,7 +5,7 @@
 
 Sometimes in Advent of Code there's a pathfinding thing. So I'll keep some pathfinding code here.
 
-It's a bit much, so I'm putting it here instead of where the other ^./aoc-lua.txt AoC code for copypasting^ is. I think it's probably Dijkstra's algorithm, or at least something those lines.
+It's a bit much, so I'm putting it here instead of where the other ^./aoc-lua.txt AoC code for copypasting^ is. I think it's probably Dijkstra's algorithm, or at least something along those lines.
 
 Typically we're dealing with 2D positions and directions. Vectors:
 
