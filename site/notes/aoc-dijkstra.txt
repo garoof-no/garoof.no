@@ -189,7 +189,7 @@ end
 
 And then a function that does the stuff. Reads a map, does the steps until we get to the end positions, reconstructs a path and prints stuff.
 
-(This should _find_ all paths from start to end. But we're just reconstructing one of them. Just, needed all paths for this year's puzzle, so it's there.)
+(This should _find_ all paths from start to end. But we're reconstructing only one of them. Just, needed all paths for this year's puzzle, so it's there.)
 
 ``` run
 function solve(lines)
@@ -212,6 +212,8 @@ function solve(lines)
   printmap(map, start, stop, w, h)
 end
 ```
+
+Testing it with a _particularly bad_ maze:
 
 ``` repl
 local example = [[
