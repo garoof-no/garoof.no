@@ -56,9 +56,9 @@ function Lazy.__index(t, k)
 end
 ```
 
-We'll discover neighbouring nodes through a `neighbours` function and add them to the set of open nodes. And use a priority queue kind of thing for the set of open nodes. I don't think this is a very smart implementation of anything, but it seems fine so far. It keeps track of the lowest and highest costs in the queue and for each cost present it keeps a linked list (in `lists`) with all the nodes that cost that much. Something like that.
+We'll discover neighbouring nodes through a `neighbours` function and add them to the set of open nodes. And use a priority queue kind of thing for the set of open nodes. I don't think this is a very smart implementation of the queue, but it seems fine so far. It keeps track of the lowest and highest costs in the queue and for each cost present it keeps a linked list (in `lists`) with all the nodes that cost that much. Something like that.
 
-It's not a general purpose queue and I tend bake in some stuff. Here I'm putting the `seen`/visited nodes in there as well, so I can add stuff to the queue and then the queue just won't bother with it if I shouldn't have added it. Stuff like that. Also information about how we got to each of those nodes (the `from` stuff). Can add and remove and modify stuff to suit the puzzle. For the example it's fun to have something we can reconstruct a path with.
+It's not a general purpose queue and I tend bake in some more pathfinding stuff. Here I'm putting the `seen`/visited nodes in there as well, so I can add stuff to the queue and then the queue just won't bother with it if I shouldn't have added it. Stuff like that. Also information about how we got to each of those nodes (the `from` stuff). Can add and remove and modify stuff to suit the puzzle. For the example it's fun to have something we can reconstruct a path with.
 
 ``` run
 Queue = {}
