@@ -35,7 +35,7 @@ function Vec.__tostring(v) return v.x .. "," .. v.y end
 
 And typically the nodes in the graph are not 2D positions, but more than that. If turning is an action with a cost, the nodes probably consist of positions and directions, and the neighbours of a node will include "turned" notes with the same position. Last year it was something like position and direction and momentum, along with some peculiar rules concerning the momentum stuff. It was a little confusing. Either way, it is good to figure out what should go in a node, and not just go "oh, 2D-map, so the nodes are x,y-positions."
 
-Our nodes will be `things` with positions and directions:
+Our node will be a `thing`, with positions and directions:
 
 ``` run
 Thing = {}
@@ -175,7 +175,7 @@ function neighbours(th, map)
 end
 ```
 
-One step picks a minimally expensive thing from the queue and adds its neighbours. Returns the thing and its cost. Caller can decide if we're done or wanna keep stepping.
+One step picks a minimally expensive thing from the queue and then adds its neighbours to the queue. Returns the thing and its cost. Caller can decide if we're done or wanna keep stepping.
 
 ``` run
 function step(map, q)
