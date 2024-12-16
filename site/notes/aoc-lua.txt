@@ -1,4 +1,4 @@
-# Some Advent of Code Lua
+# Advent of Lua
 :pub ZkE3Ob
 :blurb Lua uf advent.
 :template lua

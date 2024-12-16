@@ -1,0 +1,235 @@
+# Advent of Dijkstra
+:pub ZkEIL5
+:blurb Adjent.
+:template lua
+
+Sometimes in Advent of Code there's a pathfinding thing. So I'll keep some pathfinding code here.
+
+It's a bit much, so I'm putting it here instead of where the other ^./aoc-lua.txt AoC code for copypasting^ is. I think it's probably Dijkstra's algorithm, or at least something those lines.
+
+Typically we're dealing with 2D positions and directions. Vectors:
+
+``` run
+function memo(key, new)
+  local all = setmetatable({}, { __mode = "v" })
+  return function(...)
+    local k = key(...)
+    local found = all[k]
+    if found then return found end
+    local v = new(...)
+    all[k] = v
+    return v
+  end
+end
+
+Vec = {}
+vec = memo(
+  function(x, y) return tostring(x) .. "," .. y end,
+  function(x, y) return setmetatable({ x = x, y = y }, Vec) end)
+  Vec.__add = function(a, b) return vec(a.x + b.x, a.y + b.y) end
+N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
+N.l = W ; N.r = E ; E.l = N ; E.r = S ; S.l = E ; S.r = W ; W.l = S ; W.r = N
+N.name = "^" ; S.name = "V" ; E.name = ">" ; W.name = "<"
+function Vec.__tostring(v) return v.x .. "," .. v.y end
+```
+
+And typically the nodes in the graph are not 2D positions, but more than that. If turning is an action with a cost, the nodes probably consist of positions and directions, and the neighbours of a node will include "turned" notes with the same position. Last year it was something like position and direction and momentum, along with some peculiar rules concerning the momentum stuff. It was a little confusing. Either way, it is good to figure out what should go in a node, and not just go "oh, 2D-map, so the nodes are x,y-positions."
+
+Our nodes will be `things` with positions and directions:
+
+``` run
+Thing = {}
+thing = memo(
+  function(pos, dir) return tostring(pos) .. " " .. dir.name end,
+  function(pos, dir) return setmetatable({ pos = pos, dir = dir }, Thing) end)
+function Thing.__tostring(th) return tostring(th.pos) .. " " .. th.dir.name end
+```
+
+HERE'S A LAZY THING:
+
+``` run
+Lazy = {}
+function Lazy.__index(t, k)
+  local list = {}
+  t[k] = list
+  return list
+end
+```
+
+We'll discover neighbouring nodes through a `neighbours` function and add them to the set of open nodes. And use a priority queue kind of thing for the set of open nodes. I don't think this is a very smart implementation of anything, but it seems fine so far. It keeps track of the lowest and highest costs in the queue and for each cost present it keeps a linked list (in `lists`) with all the nodes that cost that much. Something like that.
+
+It's not a general purpose queue and I tend bake in some stuff. Here I'm putting the `seen`/visited nodes in there as well, so I can add stuff to the queue and then the queue just won't bother with it if I shouldn't have added it. Stuff like that. Also information about how we got to each of those nodes (the `from` stuff). Can add and remove and modify stuff to suit the puzzle. For the example it's fun to have something we can reconstruct a path with.
+
+``` run
+Queue = {}
+Queue.__index = Queue
+function Queue.new()
+    local q = {
+        highest = 0,
+        lowest = 0,
+        seen = {},
+        lists = setmetatable({}, Lazy)
+    }
+    setmetatable(q, Queue)
+    return q
+end
+
+function Queue.put(q, thing, cost, from)
+  local seen = q.seen[thing]
+  if seen then
+    if seen.cost == cost then
+      if from then seen.from[from] = true end
+      return
+    elseif seen.cost < cost then
+      return
+    end
+    local prev = q.lists[seen.cost]
+    local current = prev.next
+    while current do
+      if current.thing == thing then
+        prev.next = current.next
+        break
+      end
+      local next = current.next
+      prev = current
+      current = next
+    end
+  end
+  q.seen[thing] = { cost = cost, from = from and { [from] = true } or {} }
+  q.lists[cost].next = { thing = thing, next = q.lists[cost].next }
+  q.highest = math.max(q.highest, cost)
+end
+
+function Queue.get(q)
+  local i = q.lowest
+  for i = q.lowest, q.highest do
+    local list = q.lists[i]
+    if list.next then
+      local entry = list.next
+       list.next = entry.next
+       local thing = entry.thing
+       q.lowest = i
+       return thing, i
+    end
+  end
+end
+```
+
+Pretty objecty. Ok.
+
+Map-reading and map-writing. S and E for start and end positions:
+
+``` run
+function mappy(lines)
+  local map, start, stop = {}, nil, nil
+  local y = 0
+  local w = 0
+  for line in lines do
+    y = y + 1
+    local x = 0
+    for c in line:gmatch(".") do
+      x = x + 1
+      local v = vec(x, y)
+      if c == "#" then
+        map[v] = c
+      elseif c == "S" then
+        start = v
+      elseif c == "E" then
+        stop = v
+      end
+    end
+    w = math.max(w, x)
+  end
+  return map, start, stop, w, y
+end
+
+function printmap(map, start, stop, w, h)
+  for y = 1, h do
+    for x = 1, w do
+      local v = vec(x, y)
+      io.write(
+        v == start and "S"
+        or v == stop and "E"
+        or map[v]
+        or " "
+      )
+    end
+    io.write("\n")
+  end
+  return map, start, stop
+end
+```
+
+The `neighbours` function gets neighbours of a node along with the cost for going to them:
+
+``` run
+function costly(t, c) return { thing = t, cost = c } end
+
+function neighbours(th, map)
+  local p, d = th.pos, th.dir
+  local res = { costly(thing(p, d.l), 1), costly(thing(p, d.r), 1) }
+  if not map[p + d] then
+    table.insert(res, costly(thing(p + d, d), 1))
+  end
+  return res
+end
+```
+
+One step picks a minimally expensive thing from the queue and adds its neighbours. Returns the thing and its cost. Caller can decide if we're done or wanna keep stepping.
+
+``` run
+function step(map, q)
+  local th, cost = q:get()
+  for _, n in ipairs(neighbours(th, map)) do
+    q:put(n.thing, cost + n.cost, th)
+  end
+  return th, cost
+end
+```
+
+And then a function that does the stuff. Reads a map, does the steps until we get to the end positions, reconstructs a path and prints stuff.
+
+(This should _find_ all paths from start to end. But we're just reconstructing one of them. Just, needed all paths for this year's puzzle, so it's there.)
+
+``` run
+function solve(lines)
+  local map, start, stop, w, h = mappy(lines)
+  local q = Queue.new()
+  q:put(thing(start, N), 0)
+  local th, lowest
+  while (not lowest) or q.lowest < lowest do
+    local current, cost = step(map, q, stop)
+    if current.pos == stop and not lowest then
+      th, lowest = current, cost
+    end
+  end
+  while th do
+    map[th.pos] = th.dir.name
+    local seen = q.seen[th]
+    th = seen and next(seen.from)
+  end
+  print(lowest)
+  printmap(map, start, stop, w, h)
+end
+```
+
+``` repl
+local example = [[
+####################
+#              E   #
+#### ###############
+#                  #
+#################  #
+#                  #
+#    ###############
+#    #             #
+#  #############   #
+#       S          #
+####################
+]]
+
+solve(example:gmatch("[^\n]+"))
+```
+
+Seems to work.
+
