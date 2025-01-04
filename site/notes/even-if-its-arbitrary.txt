@@ -1,20 +1,15 @@
 # Even if it's arbitrary
+:todo
 
 From The Reflective Practitioner, the architecture example thing. The studio master, Quist, says this at one point:
 
 > You should begin with a discipline, even if it is arbitrary, because the site is so screwy—you can always break it open later.
 
-Implicitly, I think: Begin with a discipline you _have some mastery of._ Start with what you know, what you're familliar with. Or at least that's a theme in other parts of the book:
+Also there's stuff like:
 
 > The familiar situation functions as a precedent, or a metaphor, or—in Thomas Kuhn’s phrase—an exemplar for the unfamiliar one.
 
 > Faced with some phenomenon that he finds unique, the inquirer nevertheless draws on some element of his familiar repertoire which he treats as exemplar or as generative metaphor for the new phenomenon.
-
-And stuff like that.
-
-Anyway, it's stuck with me. And I think it's kind of because it is like sensible and reasonable and stuff. But also superficially _kind of similar_ to this thing that I get pretty annoyed about. Like there's a way of approaching things where you start with what you know, and then you stay with what you know, and if there's anything about this new and unique situation that does not fit neatly into what you know then that's just not taken into account. And I can get a little "no, this is unlike! and different! and not familliar!"
-
-I guess it's more about the part where "the situation talks back" and whether or not you're willing to listen. Using the known and familiar and the what worked before to poke at the thing in order to _get to_ that "back-talk" situation situation is more like, yeah okay that's fair.
 
 Blah blah.
 
