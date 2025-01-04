@@ -58,8 +58,6 @@ end
 
 We'll discover neighbouring nodes through a `neighbours` function and add them to the set of open nodes. And use a priority queue kind of thing for the set of open nodes. I don't think this is a very smart implementation of the queue, but it seems fine so far. It keeps track of the lowest and highest costs in the queue and for each cost present it keeps a linked list (in `lists`) with all the nodes that cost that much. Something like that.
 
-It's not a general purpose queue and I tend bake in some more pathfinding stuff. Here I'm putting the `seen`/visited nodes in there as well, so I can add stuff to the queue and then the queue just won't bother with it if I shouldn't have added it. Stuff like that. Also information about how we got to each of those nodes (the `from` stuff). Can add and remove and modify stuff to suit the puzzle. For the example it's fun to have something we can reconstruct a path with.
-
 ``` run
 Queue = {}
 Queue.__index = Queue
@@ -73,7 +71,15 @@ function Queue.new()
     setmetatable(q, Queue)
     return q
 end
+```
 
+It's not a general purpose queue and I tend bake in some more pathfinding stuff. Here I'm putting the `seen`/visited nodes in there as well, so I can add stuff to the queue and then the queue just won't bother with it if I shouldn't have added it. Stuff like that. Also information about how we got to each of those nodes (the `from` stuff below). Can add and remove and modify stuff to suit the puzzle. For the example it's fun to have something we can reconstruct a path with.
+
+I might be doing something a bit muddy and weird here. But I'm not sure if it is and if it is I'm not sure how weird. Anyway the distinction between a node we've seen since we've added it as a neighbour and a visited/closed node that we know we've got the lowest possible cost for might not be that clear. The `if seen then` bit takes care of stuff if we find the same node with a lower cost later, and we only know that we've got the shortest part to a node when we `get` it from the queue, not when it's added to `seen`. I think that's fine? But I dunno.
+
+(Things depend on the map/graph and in this example I don't think the "lower cost for previously seen node" case comes up, so I could get away with renaming `seen` to `visited` or `closed` remove a bunch if stuff from the `if seen then` part. But I won't.)
+
+``` run
 function Queue.put(q, thing, cost, from)
   local seen = q.seen[thing]
   if seen then

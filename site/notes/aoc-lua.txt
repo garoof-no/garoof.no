@@ -155,6 +155,49 @@ Sets are tables where we only care about the keys (and just set the values to tr
 
 You can use the same table as a list and a dictionary and a set if you'd like. Unless you can't because the keys are clashing or something. Or maybe don't want. But like. Some times.
 
+### Popping a thing from a set
+
+There's a `next` function:
+
+``` repl
+local table = { x = 1, y = 3, z = 5 }
+print(next(table))
+```
+
+You can use it to get a first key and value, and also a next given a key given a previous key:
+
+``` repl
+local t = { x = 1, y = 3, z = 5 }
+local k, v = next(t)
+while k do
+  print(k, v)
+  k, v = next(t, k)
+end
+```
+
+(I think that when we use the `pairs` function to get an iterator, `next` is used under the hood.)
+
+Sometimes there's stuff like: I have this set of "candidates" and I wanna pick one and do something with it andalso the doing generates more candidates and I don't wanna pick the same thing multiple times. `next` is useful. Since it's a set I'll ignore the second return value from next and just use the key:
+
+``` repl
+local set = { [1] = true, [3] = true, [5] = true }
+local closed = {}
+
+local function add(n)
+  if n < 1000 and not closed[n] then set[n] = true end
+end
+
+local n = next(set)
+while n do
+  set[n] = nil
+  closed[n] = true
+  print(n)
+  add(n + n + n)
+  add(n * n)
+  n = next(set)
+end
+```
+
 ## Memo
 
 Helper function if I need to do the cachy memoization thing with more than one type of data structure. I typically want to pass in a "key" function and a constructor function:
