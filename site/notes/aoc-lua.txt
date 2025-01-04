@@ -164,7 +164,7 @@ local table = { x = 1, y = 3, z = 5 }
 print(next(table))
 ```
 
-You can use it to get a first key and value, and also a next given a key given a previous key:
+You can use it to get a first key and value from a table, and also a next key and value given a previous key:
 
 ``` repl
 local t = { x = 1, y = 3, z = 5 }
