@@ -5,9 +5,9 @@ Smalltalk workspaces are like notepads. Very basic text editors:
 
 ``` drawing
 +-----------------------+
-| workspace             |
+|`workspace`            |
 +-----------------------+
-| (text editor thing)   |
+|`(text editor thing)`  |
 |                       |
 |                       |
 |                       |
@@ -46,11 +46,11 @@ Inspector windows tend to look like this.
 
 ``` drawing
 +--------------------+
-| inspecting: foo    |
+|`inspecting: foo`   |
 +----+---------------+
-| a  | (main part)   |
-| b  |               |
-| c  |               |
+|`a` |`(main part)`  |
+|`b` |               |
+|`c` |               |
 |    |               |
 |    |               |
 +----+---------------+
@@ -64,15 +64,15 @@ That's really a general theme: You get small text editors in all kinds of differ
 
 ``` drawing
 +--------------------------------------------+
-| package browser                            |
+|`package browser`                           |
 +-----------+---------+------------+---------+
-| clusters/ | classes | method     | methods |
-| packages  | classes | categories |         |
+|`clusters/`|`classes`|`method`    |`methods`|
+|`packages` |`classes`|`categories`|         |
 |           |         |            |         |
 |           |         |            |         |
 |           |         |            |         |
 +-----------+---------+------------+---------+
-| (text editor thing)                        |
+|`(text editor thing)`                       |
 |                                            |
 |                                            |
 +--------------------------------------------+
@@ -84,13 +84,13 @@ If you search for implementers of a method, or senders (callers) of a method, yo
 
 ``` drawing
 +---------------------+
-| implenters of foo   |
+|`implenters of foo`  |
 +---------------------+
-| Object>>foo         |
-| Blep>>foo           |
-| String class>>foo   |
+|`Object>>foo`        |
+|`Blep>>foo`          |
+|`String class>>foo`  |
 +---------------------+
-| (text editor thing) |
+|`(text editor thing)`|
 |                     |
 |                     |
 +---------------------+
@@ -100,17 +100,17 @@ If your code crashes, or you halt (breakpoint) or interrupt it, you can open a d
 
 ``` drawing
 +------------------------------+
-| debugger                     |
+|`debugger`                    |
 +-----------------+------------+
-| stack overflow! | local vars |
-| Blep>>foo       |            |
-| Blep>>foo       |            |
-| Blep>>foo       |            |
-| Blep>>foo       |            |
+|`stack overflow!`|`local vars`|
+|`Blep>>foo`      |            |
+|`Blep>>foo`      |            |
+|`Blep>>foo`      |            |
+|`Blep>>foo`      |            |
 +-----------------+------------+
-| foo                          |
-|                              | <-(text edtitor thing)
-|    self foo                  |
+|`foo`                         |
+|                              | <--`(text edtitor thing)`
+|`   self foo`                 |
 +------------------------------+
 ```
 

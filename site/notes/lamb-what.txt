@@ -22,24 +22,24 @@ For example, can take a look at expression `(λa.a (foo a)) bar` and its sub-exp
 * `foo a` is a function application with a function `foo` and argument `a`
 
 ``` drawing
-            (application)
-          (λa.a (foo a)) bar
-             /         \
-            /           \
-    (abstraction)     (reference)
-     λa.a (foo a)          bar
-          |
-          |
-     (application)
-       a (foo a)
-      /        \
-     /          \
-(reference)   (application)
-     a            foo a
+            `(application)`
+          `(λa.a (foo a)) bar`
+              /         \
+             /           \
+    `(abstraction)`   `(reference)`
+     `λa.a (foo a)`        `bar`
+           |
+           |
+     `(application)`
+       `a (foo a)`
+       /        \
+      /          \
+`(reference)` `(application)`
+    `a`          `foo a`
                  /     \
                 /       \
-        (reference)    (reference)
-            foo             a
+       `(reference)`  `(reference)`
+           `foo`           `a`
  
 ``` Syntax tree for `(λa.a (foo a)) bar`
 

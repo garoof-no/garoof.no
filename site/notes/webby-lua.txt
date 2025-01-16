@@ -31,10 +31,10 @@ There's a C program that consist of Lua and a `main.c` with:
 
 ``` drawing
 .---------.                               .--------.
-|    C    |      run_lua(sourcecode)      |   JS   |
+|   `C`   |     `run_lua(sourcecode)`     |  `JS`  |
 |.-------.|<------------------------------|        |
-||  Lua  ||                               |        |
-||       ||  lua_web_send(code, payload)) |        |
+|| `Lua` ||                               |        |
+||       || `lua_web_send(code, payload))`|        |
 ||       ||------------------------------>|        |
 |'-------'|                               |        |
 '---------'                               '--------'

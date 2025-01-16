@@ -116,6 +116,7 @@ local function newlines()
 end
 
 local space, horiz, vert, bottom, top, lowhoriz = 32, 45, 124, 46, 39, 95
+local textmode = 96
 local fslash, bslash = 47, 92
 local plus = 43
 local arrl, arrr, arru, arrd = 60, 62, 94, 86
@@ -134,7 +135,7 @@ local horisl = set(horiz, plus, top, bottom, arrl)
 local horisr = set(horiz, plus, top, bottom, arrr)
 
 function newmap()
-  local map = { w = 0, h = 0 }
+  local map = { w = 0, h = 0, texts = {} }
 
   map.addline = function(str)
     str = str or ""
@@ -142,15 +143,32 @@ function newmap()
     local x = 0
     local y = map.h + 1
     map.h = y
+    local text, textstart
     for _, code in utf8.codes(str) do
       x = x + 1
-      if code ~= space then
+      if code == textmode then
+        if text then
+          table.insert(
+            map.texts, { pos = textstart, str = utf8.char(table.unpack(text)) }
+          )
+          text, textstart = nil, nil
+        else
+          text, textstart = {}, point(x + 1, y)
+        end
+      elseif text then
+        table.insert(text, code)
+      elseif code ~= space then
         local key = x .. "," .. y
         local value = point(x, y)
         value.code = code
         map[key] = value
         table.insert(map, value)
       end
+    end
+    if text then
+      table.insert(
+        map.texts, { pos = textstart, str = utf8.char(table.unpack(text)) }
+      )
     end
     map.w = math.max(map.w, x)
   end
@@ -188,32 +206,6 @@ local function render(map, out, size)
   local res = nil
 
   local lines = newlines()
-  local texts = {}
-  local text = nil
-
-  local function newtext(c, p)
-    text = { c }
-    text.first = p
-    text.last = p
-    table.insert(texts, text)
-    return text
-  end
-
-  local function addchar(c, p)
-    if text and text.last.y == p.y then
-      if text.last.x == p.x - 1 then
-        table.insert(text, c)
-        text.last = p
-        return
-      elseif text.last.x == p.x - 2 then
-        table.insert(text, space)
-        table.insert(text, c)
-        text.last = p
-        return
-      end
-    end
-    newtext(c, p)
-  end
 
   for _, p in ipairs(map) do
     local x = p.x
@@ -221,10 +213,8 @@ local function render(map, out, size)
     local code = p.code
     local bx = x * 4
     local by = y * 8
-    local added = false
     local function add(x1, y1, x2, y2)
       lines.add(x1, y1, x2, y2)
-      added = true
     end
     if code == horiz then add(bx, by + 4, bx + 4, by + 4)
     elseif code == vert then add(bx + 2, by, bx + 2, by + 8)
@@ -236,7 +226,6 @@ local function render(map, out, size)
       local l, r = map.at(x - 1, y), map.at(x + 1, y)
       local d = map.at(x, y + 1)
       local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
-      local added = false
       if horisl[l] then add(bx, by + 4, px, py) end
       if dl == fslash or l == lowhoriz then
         add(bx, by + 8, px, py)
@@ -292,8 +281,6 @@ local function render(map, out, size)
         add(bx + 2, by + 8, bx, by + 4)
         add(bx + 2, by + 8, bx + 4, by + 4)
       end
-    elseif code and not added then
-      addchar(code, p)
     end
   end
 
@@ -322,11 +309,10 @@ local function render(map, out, size)
     out(lineSvg(v))
   end
 
-  for k, v in ipairs(texts) do
-    local x = v.first.x * 4 * xscale
-    local y = v.first.y * 8 * yscale
-    local str = escape(utf8.char(table.unpack(v)))
-    out('<text x="' .. x ..'" y="' .. y .. '">' .. str .. '</text>')
+  for _, t in ipairs(map.texts) do
+    local x = t.pos.x * 4 * xscale
+    local y = t.pos.y * 8 * yscale
+    out('<text x="' .. x ..'" y="' .. y .. '">' .. escape(t.str) .. '</text>')
   end
 
   out("</svg>")

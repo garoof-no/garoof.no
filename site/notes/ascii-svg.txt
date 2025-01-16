@@ -8,7 +8,7 @@ I made thing for this website/^./gd.txt Glorpdown^ a little while ago. Thing tha
 ````
 ``` drawing
 .-------.   .-------.
-| hello +-->| world |
+|`hello`+-->|`world`|
 '-------'   '-------'
 ```
 ````
@@ -17,7 +17,7 @@ And get:
 
 ``` drawing
 .-------.   .-------.
-| hello +-->| world |
+|`hello`+-->|`world`|
 '-------'   '-------'
 ```
 
@@ -35,22 +35,22 @@ So eh. Decided to do the one character at a time thing. If I did that and also h
 
 ``` drawing
 .-----------.                 .--------------.
-|   line    |                 | one char at  |
-|  joining  |                 |   a time     |
-| machinery |                 |  processor   |
+|  `line`   |                 |`one char at` |
+| `joining` |                 |  `a time`    |
+|`machinery`|                 | `processor`  |
 '-----------'                 '--------------'
      |                               |
-     |      add((1, 1), (2, 2))      |
+     |     `add((1, 1), (2, 2))`     |
      |<------------------------------|
-     |      add((2, 2), (2, 1))      |
+     |     `add((2, 2), (2, 1))`     |
      |<------------------------------|
-     |      add((3, 3), (4, 4))      |
+     |     `add((3, 3), (4, 4))`     |
      |<------------------------------|
      |                               |
-     |         lines plox            |
+     |        `lines plox`           |
      |<------------------------------|
-     | { (1, 1), (2, 2), (2, 1) }    |
-     | { ((3, 3), (4, 4)) }          |
+     |`{ (1, 1), (2, 2), (2, 1) }`   |
+     |`{ ((3, 3), (4, 4)) }`         |
      |------------------------------>|
      |                               |
      |                               |
