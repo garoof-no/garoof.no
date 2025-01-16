@@ -1,0 +1,122 @@
+# Smalltalk workspaces
+:todo
+
+Smalltalk workspaces are like notepads. Very basic text editors:
+
+``` drawing
++-----------------------+
+| workspace             |
++-----------------------+
+| (text editor thing)   |
+|                       |
+|                       |
+|                       |
++-----------------------+
+```
+
+But they come with three smalltalky commands. In the version I've used they've been called:
+
+* Do it
+* Show it (I think I've seen this called Print it elsewhere)
+* Inspect it
+
+And they've been invoked by choosing them from e.g. the right click menu, or by pressing Ctrl+D/S/I. All the commands run either the selected code, or the line your cursor is at if there's no selection. Only difference between them is what's done with the value you get from evaluating: Do it ignores the value. Show it inserts the `printString` of the result into the editor, at the end of the selection or line (and it selects that inserted text, so you can easily delete it if you want to). Inspect it, uh, inspects it. Like it calls `inspect` on whichever object it got. Will get back to that.
+
+I think that these days this kind of thing is done here and there. It's not unheard of. Anyway in my experience it is _so much_ better than a traditional REPL. You have this little notepad with snippets and stuff for testing and this-and-that and to me it's just a way friendlier thing to deal with than like a command line input.
+
+(The reason why the lambda calculus talks I've been in involved in uh, have been the way they've been is largely because: When I first tried to learn lambda calculus I needed some kind of "lambda calculator" in order to try things out and check my understanding. I found some stuff online, but it was typically stuff like: "Here's an input field. Input your expression here and click this button and I'll show you the result over here." And like I very quickly realized that no, I'm not getting anwyhere without a "workspace." It was only when I'd put an evaluator into a text editor that I was able to quickly expermient and try stuff and get a feel for things.)
+
+That's kind of the "notepad" part of it. Another part of it is that it's like hooked up, all live and stuff. The system you're working on is typically running in the same environment, and you can probably get at some piece you're interested through some outer-layer global variable or something. I've worked with GUI applications, and like, it's very easy to just use the system, like a user would, and get to the part you're interesting in changing or debugging or whatever, and open a workspace and like look into the state of things, grab onto some pieces, test some code against stuff, etc. etc. You very naturally and organically get in a comfortable position: You have some data you grabbed from actual system in actual state you're interested in, you have some snippets of code you can run and check the results of for testing, and then you can try out changing a method or whatever you're going to do and immeditately run it via your test snippets and so on. It's so uh, it's all so nearby, there and within reach.
+
+## TDD
+
+I sometimes wanna blame how poor my TDD is on this. This all feels very natural and intuitive, and I think I'm often working in a fairly TDD-like way and get _some_ of the same benefits. I mean, Kent Beck did say (in Test Driven Development: By Example):
+
+> Sometimes I see Test-Driven Development (TDD) as an attempt to give any software engineer, working in any environment, the sense of comfort and intimacy we had with our Smalltalk environment and our Smalltalk programs.
+
+Anyway the TDD thing I think I'm sometimes missing out on is the part where I'm acutally left with tests that I can also run later. There's something about turning the test code into actual tests that sometimes uh, doesn't happen. The obvious thing is I have to isolate things, which can be more or less cumbersome depending on the cirsumstances and legacies. There's also something about formalizing what test success and failure actually is. Sometimes my testing is doing Show it on some code and then seeing that it run without throwing and also looking at the printed result and determining whether or not it is outrageous.
+
+I dunno. Maybe I'll learn.
+
+## `inspect`, and so on and so forth and what have
+
+So Inspect it calls `inspect` on the result object. `inspect` typically opens an inspector window.
+
+Inspector windows tend to look like this.
+
+``` drawing
++--------------------+
+| inspecting: foo    |
++----+---------------+
+| a  | (main part)   |
+| b  |               |
+| c  |               |
+|    |               |
+|    |               |
++----+---------------+
+```
+
+Like if this is inspecting an object with instance variables called `a`, `b` and `c`, then it lists those variables on the left. You can click on an element of the list and it's show it's `printString` in the main part, or you can double click on it and you'll `inspect` _that_ object, typically opening yet another window. If you open it on a list you'll get a list of index numbers on the left instead of variable names. If you open it on a dictionary/map you'll get the keys on the left. You can make your own inspector for you own objects if you'd like. I made one for objects representing XML elements once.
+
+The main part of the inspector window is also a text editor-like thing: You can write code there and do/show/inspect it if you want. `self` is bound to the object you're inspecting for this code. Also you can write some code and "save" it, evaluating it and storing the result as the new value of the selected instance variable.
+
+That's really a general theme: You get small text editors in all kinds of different contexts, and if you have a text editor you can probably run code in it. E.g. you get the same kind of "method editor" in several different places. You get it if you choose a method in a class when viewing class in e.g. the package browser. The package browser is more or less the most "modern IDE look and feel" kind of window around:
+
+``` drawing
++--------------------------------------------+
+| package browser                            |
++-----------+---------+------------+---------+
+| clusters/ | classes | method     | methods |
+| packages  | classes | categories |         |
+|           |         |            |         |
+|           |         |            |         |
+|           |         |            |         |
++-----------+---------+------------+---------+
+| (text editor thing)                        |
+|                                            |
+|                                            |
++--------------------------------------------+
+```
+
+They work the same, you can editor your method when you get to it, it doesn't have to be in this or that context. It certainly doesn't have to be _in a file,_ etc.
+
+If you search for implementers of a method, or senders (callers) of a method, you get a list of methods and you'll you'll get a little text editor for the one you've selected:
+
+``` drawing
++---------------------+
+| implenters of foo   |
++---------------------+
+| Object>>foo         |
+| Blep>>foo           |
+| String class>>foo   |
++---------------------+
+| (text editor thing) |
+|                     |
+|                     |
++---------------------+
+```
+
+If your code crashes, or you halt (breakpoint) or interrupt it, you can open a debugger. You get a text editor there too, so when you choose a method in the stack frame list, you can look at the method there, and also edit it there directly and save it (although you typically don't get to e.g. resume from your halt/breakpoint/resumable exception after modifying a method that way):
+
+``` drawing
++------------------------------+
+| debugger                     |
++-----------------+------------+
+| stack overflow! | local vars |
+| Blep>>foo       |            |
+| Blep>>foo       |            |
+| Blep>>foo       |            |
+| Blep>>foo       |            |
++-----------------+------------+
+| foo                          |
+|                              | <-(text edtitor thing)
+|    self foo                  |
++------------------------------+
+```
+
+## PS yes really Ctrl+S
+
+Yes. Really. In this particular Smalltalk Ctrl+S evaluates some code and prints the results in the editor. It's running on Windows has a very "old Windows" look and feel, and Ctrl+S evaluates some code and prints the results in the editor. And remember, you can do that in _all_ those little text editor thing. This is great onboarding experience: Someone is new to the language, the development environment, the application domain and a bunch of other things. They have very carefully and with little confidence written a line of code in a method. And they press Ctrl+S, meaning to save their changes.
+
+So okay Ctrl+S doesn't do what they want. Also it prints stuff _into the_ text editor. Maybe just an error message because the line they're on isn't syntactically complete and runnable on its own. Either way, this happens and they don't pick up on exactly _what_ happens, but get the impression that uh maybe they pressed the wrong key or something, so they Ctr+S again. Now the result of the first thing they evaluate is selected, so they'll evaluate _that_ and print more stuff into the editor. It's an experience!
+
