@@ -119,7 +119,7 @@ If your code crashes, or you halt (breakpoint) or interrupt it, you can open a d
 +-----------------+------------+
 |`foo`                         |
 |                              | <--`(text edtitor thing)`
-|`   self foo`                 |
+|    `self foo`                |
 +------------------------------+
 ```
 
