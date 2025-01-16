@@ -1,7 +1,16 @@
 # Smalltalk workspaces
-:todo
+:pub Zl1IJa
+:blurb  Bla bla blah.
 
-Smalltalk workspaces are like notepads. Very basic text editors:
+Okay I've done a lot of Smalltalk programming professionally. I'm happy about that: It's a fun system, and it is one I think have actually changed the way I think about things. Without it I'm not sure I would have as strong feels about about deadness and liveness and systems vs. languages and batch compilation and this and that. I have my share of complaints as well or whatever, but eh. It's a very whole thing and it really is meaningfully different from the majority of things. Most things are not.
+
+It's also different and good in ways that I think are often hard to communicate. The parts fit together and their sum is greater than them and that. It's very easy to explain one neat thing, and then kind of give the impression that like, "it's like developping Java code with IntelliJ or whatever, but with this one additional thing," or something like that. And in my experience, it really isn't. Like yeah, most of the parts are "like" similar parts in this or that mainstream enterprise system. But it's an entire thing, a whole, and the difference just runs deeper or something.
+
+I dunno.
+
+----
+
+Anyway here's a thing. Smalltalk workspaces are like notepads. Very basic text editors:
 
 ``` drawing
 +-----------------------+
@@ -60,7 +69,7 @@ Like if this is inspecting an object with instance variables called `a`, `b` and
 
 The main part of the inspector window is also a text editor-like thing: You can write code there and do/show/inspect it if you want. `self` is bound to the object you're inspecting for this code. Also you can write some code and "save" it, evaluating it and storing the result as the new value of the selected instance variable.
 
-That's really a general theme: You get small text editors in all kinds of different contexts, and if you have a text editor you can probably run code in it. E.g. you get the same kind of "method editor" in several different places. You get it if you choose a method in a class when viewing class in e.g. the package browser. The package browser is more or less the most "modern IDE look and feel" kind of window around:
+That's really a general theme: You get small text editors in many different contexts, and if you have a text editor you can probably run code in it. E.g. you get the same kind of "method editor" in several different places. You get it if you choose a method in a class when viewing class in e.g. the package browser. The package browser is more or less the most "modern IDE look and feel" kind of window around:
 
 ``` drawing
 +--------------------------------------------+
@@ -78,8 +87,6 @@ That's really a general theme: You get small text editors in all kinds of differ
 +--------------------------------------------+
 ```
 
-They work the same, you can editor your method when you get to it, it doesn't have to be in this or that context. It certainly doesn't have to be _in a file,_ etc.
-
 If you search for implementers of a method, or senders (callers) of a method, you get a list of methods and you'll you'll get a little text editor for the one you've selected:
 
 ``` drawing
@@ -95,6 +102,8 @@ If you search for implementers of a method, or senders (callers) of a method, yo
 |                     |
 +---------------------+
 ```
+
+They work the same, you can edit your method when you get to it, it doesn't have to be in this or that context. It certainly doesn't have to be _in a file,_ etc.
 
 If your code crashes, or you halt (breakpoint) or interrupt it, you can open a debugger. You get a text editor there too, so when you choose a method in the stack frame list, you can look at the method there, and also edit it there directly and save it (although you typically don't get to e.g. resume from your halt/breakpoint/resumable exception after modifying a method that way):
 
@@ -114,9 +123,5 @@ If your code crashes, or you halt (breakpoint) or interrupt it, you can open a d
 +------------------------------+
 ```
 
-## PS yes really Ctrl+S
-
-Yes. Really. In this particular Smalltalk Ctrl+S evaluates some code and prints the results in the editor. It's running on Windows has a very "old Windows" look and feel, and Ctrl+S evaluates some code and prints the results in the editor. And remember, you can do that in _all_ those little text editor thing. This is great onboarding experience: Someone is new to the language, the development environment, the application domain and a bunch of other things. They have very carefully and with little confidence written a line of code in a method. And they press Ctrl+S, meaning to save their changes.
-
-So okay Ctrl+S doesn't do what they want. Also it prints stuff _into the_ text editor. Maybe just an error message because the line they're on isn't syntactically complete and runnable on its own. Either way, this happens and they don't pick up on exactly _what_ happens, but get the impression that uh maybe they pressed the wrong key or something, so they Ctr+S again. Now the result of the first thing they evaluate is selected, so they'll evaluate _that_ and print more stuff into the editor. It's an experience!
+Mlep.
 
