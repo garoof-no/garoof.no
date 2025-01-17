@@ -72,19 +72,19 @@ The main part of the inspector window is also a text editor-like thing: You can 
 That's really a general theme: You get small text editors in many different contexts, and if you have a text editor you can probably run code in it. E.g. you get the same kind of "method editor" in several different places. You get it if you choose a method in a class when viewing class in e.g. the package browser. The package browser is more or less the most "modern IDE look and feel" kind of window around:
 
 ``` drawing
-+--------------------------------------------+
-|`package browser`                           |
-+-----------+---------+------------+---------+
-|`clusters/`|`classes`|`method`    |`methods`|
-|`packages` |`classes`|`categories`|         |
-|           |         |            |         |
-|           |         |            |         |
-|           |         |            |         |
-+-----------+---------+------------+---------+
-|`(text editor thing)`                       |
-|                                            |
-|                                            |
-+--------------------------------------------+
++---------------------------------------------+
+|`package browser`                            |
++-----------+----------+------------+---------+
+|`clusters/`|`classes/`|`method`    |`methods`|
+|`packages` |`globals `|`categories`|         |
+|           |          |            |         |
+|           |          |            |         |
+|           |          |            |         |
++-----------+----------+------------+---------+
+|`(text editor thing)`                        |
+|                                             |
+|                                             |
++---------------------------------------------+
 ```
 
 If you search for implementers of a method, or senders (callers) of a method, you get a list of methods and you'll you'll get a little text editor for the one you've selected:
