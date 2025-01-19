@@ -5,7 +5,7 @@
 
 ^./lambs.txt (There's a list with all the lambda notes here.)^
 
-Bit of prelude first. ^./lamb-nums.txt Some stuff from an earlier numbery post:^
+Bit of prelude first. ^./nums.txt Some stuff from an earlier numbery post:^
 
 ``` prelude
 0 ≜ λf.λx.x

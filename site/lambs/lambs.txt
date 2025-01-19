@@ -5,13 +5,13 @@ Bla blah. This is a collection of notes with lambda calculus stuff. The posts te
 
 The ones called “How/What do the lambdas?” are more introductiony than the others, with stuff about syntax and semantics and how the editors work and such.
 
-^./lamb-nums.txt Some numbery functions^
-^./lamb-how.txt How do the lambdas?^
-^./lamb-what.txt What do the lambdas?^
-^./lamb-bools.txt Some booly functions^
-^./lamb-pairs.txt Pairs^
-^./lamb-succ.txt Successor^
-^./lamb-design-pattern.txt A design pattern?^
+^./nums.txt Some numbery functions^
+^./how.txt How do the lambdas?^
+^./what.txt What do the lambdas?^
+^./bools.txt Some booly functions^
+^./pairs.txt Pairs^
+^./succ.txt Successor^
+^./design-pattern.txt A design pattern?^
 
 Also a lambda playground:
 

@@ -5,7 +5,7 @@
 
 ^./lambs.txt (There's a list with all the lambda notes here.)^
 
-^./lamb-succ.txt Previously we made zero and successor:^
+^./succ.txt Previously we made zero and successor:^
 ``` prelude
 0 ≜ λf.λx.x
 
