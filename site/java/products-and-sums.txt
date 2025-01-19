@@ -29,14 +29,15 @@ public sealed interface BI permits B, I {}
 Anyway, we can make an BI value from a bool or from an int:
 
 ```
+public final static java.util.Random random  = new java.util.Random();
 public static BI.B b() {
-  return new BI.B(new java.util.Random().nextInt(2) > 0);
+  return new BI.B(random.nextInt(2) > 0);
 }
 public static BI.I i() {
-  return new BI.I(new java.util.Random().nextInt());
+  return new BI.I(random.nextInt());
 }
 public static BI bi() {
-  return new java.util.Random().nextInt(2) > 0 ? b() : i();
+  return random.nextInt(2) > 0 ? b() : i();
 }
 ```
 
@@ -77,5 +78,20 @@ public static void main(String[] args) {
 }
 ```
 
+One test run gave this:
 
+```
+Pair[a=B[b=true], b=B[b=false]]    true    b
+Pair[a=I[i=1446473161], b=B[b=true]]    ib    b
+Pair[a=B[b=false], b=B[b=false]]    false    b
+Pair[a=B[b=false], b=I[i=-1934537206]]    bi    b
+Pair[a=I[i=1251217138], b=I[i=-12664252]]    1238552886    i
+Pair[a=B[b=false], b=B[b=false]]    false    b
+Pair[a=I[i=2071893759], b=I[i=1527894353]]    -695179184    i
+Pair[a=I[i=-259687046], b=I[i=-2067391554]]    1967888696    i
+Pair[a=I[i=-78306323], b=I[i=1503432803]]    1425126480    i
+Pair[a=I[i=-1525890285], b=B[b=true]]    ib    b
+```
+
+Okay.
 
