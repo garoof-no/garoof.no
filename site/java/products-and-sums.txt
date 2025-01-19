@@ -95,3 +95,24 @@ Pair[a=I[i=-1525890285], b=B[b=true]]    ib    b
 
 Okay.
 
+----
+
+There are edges. They're mostly: The "sealed interface and records"-matching is kind of its own thing and currently it doesn't play that nice with other types.
+
+You can't e.g. do a match like `case BI.I(100)`. Matching on `int`s and stuff is coming later.
+
+And while you _can_ match on an enum and get the exhaustiveness checking and that, you can't combine it with record matching. Like if you have:
+
+```
+public enum En { A, B }
+record E(En e) {}
+```
+
+You _can_ do `case A` on an `En` value. And you can do `case E(var e)`. But you can't do `case E(En.A)` or something like that.
+
+You can do `case E(var e) when e == En.A`. The `when` part is basically just some boolean expression far as Java is concerned and like outside the domain of exhaustiveness checking, and so the whole case basically won't "count" as far as that's concerned. But it can be handy.
+
+As far as I'm aware the plan is to have all this stuff work more better together in later Java versions. Also some "functional update" stuff or records should be coming along at some point. So like, things will probably improve, but also what's there now can be pretty useful, really...
+
+(This is as of Java 23 or so.)
+
