@@ -1,0 +1,81 @@
+# Java: Products and sums
+:todo
+
+* Products are "and"-types: In order to construct a product of A and B you need to supply an A _and_ a B.
+* Sums are "or"-types: In order to construct a sum of A or B you need to supply an A _or_ a B.
+* Sums are tagged and you can have a sum of e.g. A and A: When you supply an A you're explicit about which summand you mean.
+* I mean, same goes for products, just: Something like "tagged vs. untagged pair" doesn't seem to be as much of a thing as "tagged vs. untagged union."
+
+----
+
+Okay so Java. I think things are like less rotten and also less state than I'd maybe think. Or at least they can be.
+
+Sealed interfaces implemented by records make fine sum types:
+
+```
+public sealed interface BI {
+  record B(boolean b) implements BI {}
+  record I(int i) implements BI {}
+}
+```
+
+If you want to define the summands in a different place you might need to use `permits`:
+
+```
+public sealed interface BI permits B, I {}
+// define I and B elsewhere
+```
+
+Anyway, we can make an BI value from a bool or from an int:
+
+```
+public static BI.B b() {
+  return new BI.B(new java.util.Random().nextInt(2) > 0);
+}
+public static BI.I i() {
+  return new BI.I(new java.util.Random().nextInt());
+}
+public static BI bi() {
+  return new java.util.Random().nextInt(2) > 0 ? b() : i();
+}
+```
+
+And records make fine products:
+
+```
+public record Pair(BI a, BI b) {}
+```
+
+Let's match, in a couple different ways:
+
+```
+public static void test() {
+  var p = new Pair(bi(), bi());
+  System.out.print(p);
+
+  System.out.print(switch(p) {
+    case Pair(BI.B(var a), BI.B(var b)) -> "    %s    ".formatted(a || b);
+    case Pair(BI.B(var _), BI.I(var _)) -> "    bi    ";
+    case Pair(BI.I(var _), BI.B(var _)) -> "    ib    ";
+    case Pair(BI.I(var a), BI.I(var b)) -> "    %s    ".formatted(a + b);
+  });
+  
+  System.out.println(switch(p) {
+    case Pair(BI.B(var _), var _), Pair(var _, BI.B(var _)) -> "b";
+    case Pair(BI.I(var _), BI.I(var _)) -> "i";
+  });
+}
+```
+
+Can run it with some values:
+
+```
+public static void main(String[] args) {
+  for (int i = 0; i < 10; i++) {
+    test();
+  }
+}
+```
+
+
+
