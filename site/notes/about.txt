@@ -18,7 +18,7 @@ POSSE is an abbreviation for Publish (on your) Own Site, Syndicate Elsewhere. PO
 
 Not that there's anything wrong with POSSE, but POSSN really takes the edge of things.
 
-It's possible to like, write a thing and put it on the site and not commit to doing anything more than that with it. Sometimes I give it a day or two and then decide if I wanna post a link to it somewhere else. Or maybe link to it when I'm in some situation where it seems relevant. Or just not.
+It's possible to like, write a thing and put it on the site and not commit to doing anything more than that with it. Sometimes I give it a day or two and then decide if I wanna post a link to it somewhere else. Or maybe link to it when it seems relevant to some situation. Or just not.
 
 ## Blog?
 
