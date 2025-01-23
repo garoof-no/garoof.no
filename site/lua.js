@@ -61,14 +61,14 @@
         myrun();
       }
     };
-    const label = elem("label", {}, `${str} `, inp);
+    const stuf = str === "" ? inp : elem("label", {}, `${str} `, inp);
     const button = elem(
       "button",
       { onclick: myrun },
       "▶"
     );
     resume = button;
-    const el = elem("pre", { className: "output" }, label, button);
+    const el = elem("pre", { className: "output" }, stuf, button);
     currentOut.append(el, elem("pre", { className: "output" }));
     inp.focus();
   };
@@ -131,7 +131,6 @@
 
     const myrun = () => {
       currentOut = out;
-      console.log(resume);
       if (resume !== null) {
         resume.disabled = true;
         resume = null;

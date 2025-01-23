@@ -102,3 +102,59 @@ p(foo(List, List.of(1, 2, 3)))
 
 And be like ooh, it worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
 
+## The IO monad
+
+Okay so in Haskell, if you wanna make an application, you don't normally "write a program" but instead write a plugin for the Haskell framework, and then you can run the Haskell framework with your plugin being set up for like callbacks and stuff. I imagine this is familiar stuff for people who know Angular and Spring and stuff. Here's an IO:
+
+``` run
+IO = {}
+function IO.unit(x) return { io = "value", value = x } end
+function IO.putstr(str) return { io = "putstr", str = str } end
+IO.getline = { io = "getline" }
+function IO.bind(m, f) return { io = "bound", first = m, f = f } end
+```
+
+Here's a framework:
+
+``` run
+function framework(plugin)
+  if plugin.io == "value" then
+    return plugin.value
+  elseif plugin.io == "putstr" then
+    print(plugin.str)
+    return IO.unit(nil)
+  elseif plugin.io == "getline" then
+    return web.read()
+  elseif plugin.io == "bound" then
+      local first = framework(plugin.first)
+      framework(plugin.f(first))
+  end
+end
+```
+
+Let's ^https://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/ pretend that people have two names^ and write a plugin for asking about someone's names and then greeting them:
+
+``` repl
+local plugin = IO.bind(
+  IO.putstr("What is your first name?"),
+  function()
+    return IO.bind(
+      IO.getline,
+      function(fpart)
+        return IO.bind(
+          IO.putstr("What is your last name?"),
+          function()
+            return IO.bind(
+              IO.getline,
+              function(lpart)
+                return IO.putstr("Hi, " .. fpart .. " " .. lpart)
+              end)
+          end)
+      end)
+  end)
+
+return framework(plugin)
+```
+
+So convenient :)
+
