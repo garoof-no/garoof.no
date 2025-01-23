@@ -22,7 +22,50 @@
       console.log("html: " + str);
     }
   };
+
+  const luarun = str => `return web.run(function() ${str} end)`;
+  const luaresume = str => `return web.resume(function() ${str} end)`;
+  
   let Module;
+
+  let resume = null;
+
+  const run = (code) => {
+    if (resume !== null) {
+      resume.disabled = true;
+    }
+    Module.ccall("run_lua", "number", ["string"], [code]);
+  };
+
+  const luastr = (str) => {
+    let i = 1;
+    while (true) {
+      const eqs = "=".repeat(i);
+      const start = `[${eqs}[`
+      const stop = `]${eqs}]`
+      if (!str.includes(stop)) {
+        return `${start}${str}${stop}`;
+      }
+      i++;
+    }
+  };
+
+  const read = (str) => {
+    if (currentOut === null) {
+      console.log("read: " + str);
+    }
+    const inp = elem("input");
+    const label = elem("label", {}, `${str} `, inp);
+    const button = elem(
+      "button",
+      { onclick: () => run(luaresume(`return ${luastr(inp.value)}`)) },
+      "▶"
+    );
+    resume = button;
+    const el = elem("pre", { className: "output" }, label, button);
+    currentOut.append(el, elem("pre", { className: "output" }));
+  };
+  
   let ModuleConfig = {
     print: (function () {
       return (text) => {
@@ -53,8 +96,10 @@
           return;
         }
         print("return: " + payload);
-      } else if (code == "html") {
+      } else if (code === "html") {
           html(payload);
+      } else if (code === "read") {
+        read(payload);
       } else {
         console.error(`unkown code sent from Lua. code: "%o". payload: %o`, code, payload);
       }
@@ -67,10 +112,7 @@
     });
     const toolbar = elem("div", { className: "toolbar" });
     const out = elem("div", { }, elem("pre", { className: "output" }));
-    const run = (e) => {
-      currentOut = out;
-      Module.ccall("run_lua", "number", ["string"], [ta.value]);
-    };
+
     element.after(ta, toolbar, out);
     element.remove();
     
@@ -80,17 +122,27 @@
     const extra = ta.offsetHeight - ta.clientHeight;
     ta.setAttribute("style", `height: ${height + extra}px;`);
 
+    const myrun = () => {
+      currentOut = out;
+      console.log(resume);
+      if (resume !== null) {
+        resume.disabled = true;
+        resume = null;
+      }
+      run(luarun(ta.value));
+    };
+
     if (element.classList.contains("run")) {
-      run();
+      myrun()
     }
     if (element.classList.contains("repl")) {
       toolbar.append(
-        elem("button", { className: "toolbar-button", title: "Run", onclick: run }, "▶"),
+        elem("button", { className: "toolbar-button", title: "Run", onclick: myrun }, "▶"),
         elem(
           "button", {
             className: "toolbar-button",
             title: "Clear output",
-            onclick: (e) => {
+            onclick: () => {
               out.replaceChildren(elem("pre", { className: "output" }));
             }
           },
@@ -107,7 +159,28 @@
       Module.ccall("run_lua", "number", ["string"], [`
       local send = webSend
       webSend = nil
-      web = {}
+      web = {
+        run = function(thunk)
+          coroutine.wrap(
+            function()
+              local _, res = pcall(thunk)
+              if res ~= nil then send("return", tostring(res)) end
+            end
+          )()
+        end,
+        resume = function(thunk)
+          local prev = web.co
+          web.co = nil
+          coroutine.resume(prev, thunk);
+        end,
+        read = function(str)
+          web.co = coroutine.running()
+          send("read", str)
+          local thunk = coroutine.yield()
+          local res = thunk()
+          return res
+        end
+      }
       local Web = {}
       setmetatable(web, Web)
       function Web:__index(code)
