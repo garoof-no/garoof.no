@@ -55,15 +55,22 @@
       console.log("read: " + str);
     }
     const inp = elem("input");
+    const myrun = () => run(luaresume(`return ${luastr(inp.value)}`))
+    inp.onkeyup = (e) => {
+      if (e.key === "Enter") {
+        myrun();
+      }
+    };
     const label = elem("label", {}, `${str} `, inp);
     const button = elem(
       "button",
-      { onclick: () => run(luaresume(`return ${luastr(inp.value)}`)) },
+      { onclick: myrun },
       "▶"
     );
     resume = button;
     const el = elem("pre", { className: "output" }, label, button);
     currentOut.append(el, elem("pre", { className: "output" }));
+    inp.focus();
   };
   
   let ModuleConfig = {
