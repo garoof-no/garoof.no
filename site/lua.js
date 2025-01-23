@@ -28,12 +28,11 @@
   
   let Module;
 
-  let resume = null;
+  let resume = [];
 
   const run = (code) => {
-    if (resume !== null) {
-      resume.disabled = true;
-    }
+    resume.forEach(x => { x.disabled = true; });
+    resume = [];
     Module.ccall("run_lua", "number", ["string"], [code]);
   };
 
@@ -67,7 +66,7 @@
       { onclick: myrun },
       "▶"
     );
-    resume = button;
+    resume = [inp, button];
     const el = elem("pre", { className: "output" }, stuf, button);
     currentOut.append(el, elem("pre", { className: "output" }));
     inp.focus();
@@ -131,10 +130,6 @@
 
     const myrun = () => {
       currentOut = out;
-      if (resume !== null) {
-        resume.disabled = true;
-        resume = null;
-      }
       run(luarun(ta.value));
     };
 

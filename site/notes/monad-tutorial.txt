@@ -1,12 +1,13 @@
 # Monad tutorial
 :template lua
-:todo
+:pub Zl1PP3
+:blurb My neighbour Totorial.
 
 You know what they say: You can't become proficient in Lua without understanding monads.
 
 I guess I think of a monad as some structure you can slap onto another type. If the another type is a type of number, then you can have monady things like list of numbers or maybe a number.
 
-Some of the examples are pretty data structurey, but I think that in general it's more like some spacetime structure. Like lists and maybes are pretty spacey, but you can also have something like a promise of a number, which is like sure, there's data structure, but it's also like "maybe a number _later_" which uh has to do with time.
+Some of the typical ones are pretty data structurey, but I think that in general it's more like some spacetime structure? Like lists and maybes are pretty spacey, but you can also have something like a promise of a number, which is like sure, there's data structure, but it's also like "maybe a number _later_" which uh has to do with time.
 
 Whatever. You need a way to turn a value of the type you're slapping the monad onto into a value of the monad type. Like:
 
@@ -19,7 +20,7 @@ And you need the bindy flatmappy thing:
 * Something that takes a list of numbers and a function from a number to a list of numbers, and gives you a list of numbers
 * And so on
 
-Blah blah.
+Blah blah. I'm most certainly not doing promise stuff, but the others are fine:
 
 ``` run
 function p(o)
@@ -102,9 +103,26 @@ p(foo(List, List.of(1, 2, 3)))
 
 And be like ooh, it worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
 
+Or like:
+
+``` repl
+local function map(monad, m, f)
+  return monad.bind(
+    m,
+    function(x) return monad.unit(f(x)) end)
+end
+local function f(n) return n + n end
+
+p(map(Maybe, Maybe.nope, f))
+p(map(Maybe, Maybe.unit(5), f))
+p(map(List, List.of(1, 2, 3), f))
+```
+
+Oh well.
+
 ## The IO monad
 
-Okay so in Haskell, if you wanna make an application, you don't normally "write a program" but instead write a plugin for the Haskell framework, and then you can run the Haskell framework with your plugin being set up for like callbacks and stuff. I imagine this is familiar stuff for people who know Angular and Spring and stuff. Here's an IO:
+Okay so in Haskell, if you wanna make an application, you don't normally "write a program," but instead write a plugin for the Haskell framework. The Haskell framework uses the plugin to set up callbacks into your code and stuff. I imagine this is familiar stuff for people who know Angular and Spring and such. Here's an IO:
 
 ``` run
 IO = {}
@@ -114,6 +132,8 @@ IO.getline = { io = "getline" }
 function IO.bind(m, f) return { io = "bound", first = m, f = f } end
 ```
 
+Again: The `unit` thing is probably the least interesting. Bind is okay. But like an important thing is that there are these _other_ ways to get IO values as well. In this case `putstr` and  `getline`.
+
 Here's a framework:
 
 ``` run
@@ -122,12 +142,12 @@ function framework(plugin)
     return plugin.value
   elseif plugin.io == "putstr" then
     print(plugin.str)
-    return IO.unit(nil)
+    return nil
   elseif plugin.io == "getline" then
     return web.read()
   elseif plugin.io == "bound" then
-      local first = framework(plugin.first)
-      framework(plugin.f(first))
+    local first = framework(plugin.first)
+    framework(plugin.f(first))
   end
 end
 ```
@@ -140,14 +160,14 @@ local plugin = IO.bind(
   function()
     return IO.bind(
       IO.getline,
-      function(fpart)
+      function(first)
         return IO.bind(
           IO.putstr("What is your last name?"),
           function()
             return IO.bind(
               IO.getline,
-              function(lpart)
-                return IO.putstr("Hi, " .. fpart .. " " .. lpart)
+              function(last)
+                return IO.putstr("Hi, " .. first .. " " .. last .. " :)")
               end)
           end)
       end)
@@ -156,5 +176,5 @@ local plugin = IO.bind(
 return framework(plugin)
 ```
 
-So convenient :)
+So convenient :) No idea why you'd want to syntactically sugar any of that, but some people `do`.
 
