@@ -1,0 +1,104 @@
+# Monad tutorial
+:template lua
+:todo
+
+You know what they say: You can't become proficient in Lua without understanding monads.
+
+I guess I think of a monad as some structure you can slap onto another type. If the another type is a type of number, then you can have monady things like list of numbers or maybe a number.
+
+Some of the examples are pretty data structurey, but I think that in general it's more like some spacetime structure. Like lists and maybes are pretty spacey, but you can also have something like a promise of a number, which is like sure, there's data structure, but it's also like "maybe a number _later_" which uh has to do with time.
+
+Whatever. You need a way to turn a value of the type you're slapping the monad onto into a value of the monad type. Like:
+
+* Something that takes e.g. a number and gives you a list with one value that is that number
+* Something that takes e.g. a number and gives you a maybe-value with that number present
+* Something that takes e.g. a number and gives you a promise where the promised number is like there and also that number
+
+And you need the bindy flatmappy thing:
+
+* Something that takes a list of numbers and a function from a number to a list of numbers, and gives you a list of numbers
+* And so on
+
+Blah blah.
+
+``` run
+function p(o)
+  print(type(o) == "table" and table.concat(o, ", ") or o)
+end
+
+List = {}
+function List.unit(x) return { x } end
+function List.bind(list, f)
+  local res = {}
+  for _, old in ipairs(list) do
+    for _, new in ipairs(f(old)) do
+      table.insert(res, new)
+    end
+  end
+  return res
+end
+
+Maybe = {}
+function Maybe.unit(x) return { x } end
+function Maybe.bind(maybe, f)
+  return maybe[1] and f(maybe[1]) or {}
+end
+```
+
+If you have _only_ the "monad interface" operations, lists and options would both just be containers that always had one element. Very uninteresting and not much fun:
+
+``` repl
+local l = List.unit(2)
+p(l)
+local l2 = List.bind(l, function(n) return List.unit(n + n) end)
+p(l2)
+
+local m = Maybe.unit(3)
+p(m)
+local m2 = Maybe.bind(m, function(n) return Maybe.unit(n * n) end)
+p(m2)
+```
+
+Something like: The "monad interface" stuff is some stuff that e.g. lists and maybes have in common and it's also stuff that is incredibly useless on its own. The different monads better have other stuff you can do with them that is not part of the "monad interface." Stuff like:
+
+* You have like ways of making empty lists and larger lists and stuff
+* You can make a maybe with _no_ value
+* You can whatever something or other with a promise I guess?
+
+``` run
+function List.of(...) return { ... } end
+
+Maybe.nope = {}
+function Maybe.orelse(m, v) return m[1] or v end
+```
+
+So now things are more okay:
+
+``` repl
+local function div(a, b)
+  return b == 0 and Maybe.nope or Maybe.unit(a // b)
+end
+
+p(Maybe.orelse(div(7, 3), "nope"))
+p(Maybe.orelse(div(7, 0), "nope"))
+
+local l = List.of(1, 3, 5, 8)
+p(List.bind(l, function(n) return List.of(n, n + n) end))
+```
+
+OKAY VERY GOOD. GREAT.
+
+And like then I guess you can write some stuff in terms of the "monad interface" and have it work with whichever:
+
+``` repl
+local function foo(monad, m)
+  return monad.bind(m, function(n) return monad.unit(n + n) end)
+end
+
+p(foo(Maybe, Maybe.nope))
+p(foo(Maybe, Maybe.unit(5)))
+p(foo(List, List.of(1, 2, 3)))
+```
+
+And be like ooh, it worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
+
