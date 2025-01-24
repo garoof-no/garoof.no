@@ -60,15 +60,14 @@
         myrun();
       }
     };
-    const stuf = str === "" ? inp : elem("label", {}, `${str} `, inp);
+    const el = str === "" ? inp : elem("label", {}, `${str} `, inp);
     const button = elem(
       "button",
       { onclick: myrun },
       "▶"
     );
     resume = [inp, button];
-    const el = elem("pre", { className: "output" }, stuf, button);
-    currentOut.append(el, elem("pre", { className: "output" }));
+    currentOut.lastElementChild.append(el, button, "\n");
     inp.focus();
   };
   
