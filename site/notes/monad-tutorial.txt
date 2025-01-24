@@ -173,7 +173,7 @@ local plugin = IO.bind(
       end)
   end)
 
-return framework(plugin)
+framework(plugin)
 ```
 
 So convenient :)
