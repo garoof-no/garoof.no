@@ -122,7 +122,7 @@ Oh well.
 
 ## The IO monad
 
-Okay so in Haskell, if you wanna make an application, you don't normally "write a program," but instead write a plugin for the Haskell framework. The Haskell framework uses the plugin to set up callbacks into your code and stuff. I imagine this is familiar stuff for people who know Angular and Spring and such. Here's an IO:
+Okay so in Haskell, if you wanna make an application, you don't normally "write a program," but instead write a plugin for the Haskell framework. The Haskell framework uses the plugin to set up callbacks into your code and stuff. I imagine this is familiar stuff for people who know Angular and Spring and such. Plugins are values of the IO type. Here's an IO:
 
 ``` run
 IO = {}
@@ -176,5 +176,8 @@ local plugin = IO.bind(
 return framework(plugin)
 ```
 
-So convenient :) No idea why you'd want to syntactically sugar any of that, but some people `do`.
+So convenient :)
 
+So like our plugin code never actually called the side-effecting things, `print` and `web.read`, itself. It just returned values that described what it needed done, along with callbacks, and let the framework deal with that side of things.
+
+No idea why you'd want to syntactically sugar any of that, but some people `do`.
