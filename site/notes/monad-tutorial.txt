@@ -101,7 +101,7 @@ p(foo(Maybe, Maybe.unit(5)))
 p(foo(List, List.of(1, 2, 3)))
 ```
 
-And be like ooh, it worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
+And be like ooh, `foo` worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
 
 Or like:
 
