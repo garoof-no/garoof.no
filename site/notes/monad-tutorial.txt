@@ -199,7 +199,6 @@ Anyway. A thing we can do is to make a different version of the framework, e.g. 
 We'll make another framework:
 
 ``` run
-
 function testhalp(plugin, inputs)
   if plugin.io == "value" then
     return { { value = plugin.value, out = "" } }
