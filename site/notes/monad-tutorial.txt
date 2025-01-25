@@ -5,22 +5,22 @@
 
 You know what they say: You can't become proficient in Lua without understanding monads.
 
-I guess I think of a monad as some structure you can slap onto another type. If the another type is a type of number, then you can have monady things like list of numbers or maybe a number.
+I guess I think of a monad as some structure for slapping onto another type. If the another type is a type of number, then we can have monady things like list of numbers or maybe a number.
 
-Some of the typical ones are pretty data structurey, but I think that in general it's more like some spacetime structure? Like lists and maybes are pretty spacey, but you can also have something like a promise of a number, which is like sure, there's data structure, but it's also like "maybe a number _later_" which uh has to do with time.
+Some of the typical ones are pretty data structurey, but I think that in general it's more like some spacetime structure? Like lists and maybes are pretty spacey, but we can also have something like a promise of a number, which is like sure, there's data structure, but it's also like "maybe a number _later_" which uh has to do with time.
 
-Whatever. You need a way to turn a value of the type you're slapping the monad onto into a value of the monad type. Like:
+Whatever. We need a way to turn a value of the type we're slapping the monad onto into a value of the monad type. Like:
 
-* Something that takes e.g. a number and gives you a list with one value that is that number
-* Something that takes e.g. a number and gives you a maybe-value with that number present
-* Something that takes e.g. a number and gives you a promise where the promised number is like there and also that number
+* Something that takes a thing and gives us a list containing only that thing
+* Something that takes a thing and gives us a maybe-value with that thing present
+* Something that takes a thing and gives us a promise where the promised thing is like there _right now_ and also it is that very thing
 
-And you need the bindy flatmappy thing:
+And we need the bindy flatmappy thing:
 
-* Something that takes a list of numbers and a function from a number to a list of numbers, and gives you a list of numbers
+* Something that takes a list of numbers and a function from a number to a list of numbers, and gives us a list of numbers
 * And so on
 
-Blah blah. I'm most certainly not doing promise stuff, but the others are fine:
+Blah blah. I'm most certainly not doing any promise stuff, but the others are fine:
 
 ``` run
 function p(o)
@@ -46,7 +46,7 @@ function Maybe.bind(maybe, f)
 end
 ```
 
-If you have _only_ the "monad interface" operations, lists and options would both just be containers that always had one element. Very uninteresting and not much fun:
+If we had _only_ the "monad interface" operations, lists and options would both just be containers that always had one element. Very uninteresting and not much fun:
 
 ``` repl
 local l = List.unit(2)
@@ -60,11 +60,11 @@ local m2 = Maybe.bind(m, function(n) return Maybe.unit(n * n) end)
 p(m2)
 ```
 
-Something like: The "monad interface" stuff is some stuff that e.g. lists and maybes have in common and it's also stuff that is incredibly useless on its own. The different monads better have other stuff you can do with them that is not part of the "monad interface." Stuff like:
+Something like: The "monad interface" stuff is some stuff that e.g. lists and maybes _in some sense_ have in common and it's also stuff that is incredibly useless on its own. The different types better have other stuff we can do with them that is not part of the "monad interface" as well. Stuff like:
 
-* You have like ways of making empty lists and larger lists and stuff
-* You can make a maybe with _no_ value
-* You can whatever something or other with a promise I guess?
+* Making empty lists and longer lists and stuff
+* Making a maybe with _no_ value
+* Whatever something or other with a promise I guess?
 
 ``` run
 function List.of(...) return { ... } end
@@ -83,13 +83,14 @@ end
 p(Maybe.orelse(div(7, 3), "nope"))
 p(Maybe.orelse(div(7, 0), "nope"))
 
-local l = List.of(1, 3, 5, 8)
-p(List.bind(l, function(n) return List.of(n, n + n) end))
+local function f(n) return List.of(n, n + n) end
+p(List.bind(List.of(), f))
+p(List.bind(List.of(1, 3, 5, 8), f))
 ```
 
 OKAY VERY GOOD. GREAT.
 
-And like then I guess you can write some stuff in terms of the "monad interface" and have it work with whichever:
+And like then I guess we can write some stuff in terms of the "monad interface" and have it work with whichever:
 
 ``` repl
 local function foo(monad, m)
@@ -101,7 +102,7 @@ p(foo(Maybe, Maybe.unit(5)))
 p(foo(List, List.of(1, 2, 3)))
 ```
 
-And be like ooh, `foo` worked on both lists and maybes! It's not very impressive so you might have to say ooh several times.
+And be like ooh, `foo` worked on both lists and maybes! It's not very impressive so we might have to say ooh several times.
 
 Or like:
 
@@ -122,7 +123,7 @@ Oh well.
 
 ## The IO monad
 
-Okay so in Haskell, if you wanna make an application, you don't normally "write a program," but instead write a plugin for the Haskell framework. The Haskell framework uses the plugin to set up callbacks into your code and stuff. I imagine this is familiar stuff for people who know Angular and Spring and such. Plugins are values of the IO type. Here's an IO:
+Okay so in Haskell, if we wanna make an application, we don't normally "write a program," but instead write a plugin for the Haskell framework. The Haskell framework uses the plugin to set up callbacks into our code and stuff. I imagine this is familiar stuff for people who know Angular and Spring and such. Plugins are values of the IO type. Here's an IO:
 
 ``` run
 IO = {}
@@ -132,7 +133,7 @@ function IO.getline(code) return { io = "getline", code = code } end
 function IO.bind(m, f) return { io = "bound", first = m, f = f } end
 ```
 
-Again: The `unit` thing is probably the least interesting. Bind is okay. But like an important thing is that there are these _other_ ways to get IO values as well. In this case `putstr` and  `getline`.
+Again: The `unit` thing is probably the least interesting. Bind is okay. But like an important thing is that there are these _other_ ways to get IO values as well. In this case `putstr` and `getline`.
 
 Here's a framework:
 
@@ -180,19 +181,15 @@ And then plug it into the framework:
 framework(plugin)
 ```
 
-So convenient :)
-
-So like our plugin code never actually called the side-effecting things, `print` and `web.read`, itself. It just returned values that described what it needed done, along with callbacks, and let the framework deal with that side of things.
-
-No idea why you'd want to syntactically sugar any of that, but some people `do`.
+So convenient :) No idea why anyone would want to syntactically sugar any of that, but some people `do`.
 
 ## Interpretation
 
-When we're returning values that describe what we want done instead of just doing is that we're letting something else do the doing. That's not really "a monad thing" or anything, it's just a thing that's fun to do. Like it's cool that you can do the monad bind stuff on the values or whatever, but "returning values instead of performing side effects" is a fun and valuable idea on its own.
+Our plugin code never actually called the side-effecting things, `print` and `web.read`, itself. It just returned values that described what it needed done, along with callbacks, and let the framework deal with that side of things. That's not really "a monad thing" or anything, it's just a thing that's fun to do. Like it's cool that we can do the monad bind stuff on the values or whatever, but "returning values instead of performing side effects" is a fun and valuable idea on its own.
 
 So the framework looks at the IO value it has and decides what to do with it. It goes like:
 
-* Oh, it just holds a value: I'll return the value.
+* Oh, it just holds a value: I'll return that value.
 * Or oh, it's a `putstr` with a string: I'll show the string to the user.
 * Or oh, it's a `getline`: I'll go get a string from the user and return that.
 * Or oh, oh! It's an IO value `bound` to a function: I'll handle the IO value, pass the result to the function, and then handle the IO value I get back from the function.
@@ -251,6 +248,4 @@ testframework(plugin, inputs)
 ```
 
 Blep.
-
-
 
