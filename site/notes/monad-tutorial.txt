@@ -199,9 +199,6 @@ Anyway. A thing we can do is to make a different version of the framework, e.g. 
 We'll make another framework:
 
 ``` run
-function List.map(f, l)
-  return List.bind(l, function(x) return List.unit(f(x)) end)
-end
 
 function testhalp(plugin, inputs)
   if plugin.io == "value" then
@@ -209,12 +206,11 @@ function testhalp(plugin, inputs)
   elseif plugin.io == "putstr" then
     return { { value = nil, out = "  " .. plugin.str .. "\n" } }
   elseif plugin.io == "getline" then
-    local res = inputs[plugin.code]
-    return List.map(
-      function(s)
-        return { value = s, out = "  > " .. s .. "\n" }
-      end,
-      res)
+    local res = {}
+    for _, s in ipairs(inputs[plugin.code]) do
+      table.insert(res, { value = s, out = "  > " .. s .. "\n" })
+    end
+    return res
   elseif plugin.io == "bound" then
     local first = testhalp(plugin.first, inputs, i)
     local res = {}
