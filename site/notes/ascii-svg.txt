@@ -247,16 +247,16 @@ end
 Okay. I dunno. I like to think of each character as occupying some space within the larger map, but kind of having its own local coordinates. Characters are often roughly twice as tall as they are wide, particularly in monospacey ASCII art stuff, so e.g. 4 by 8:
 
 ``` drawing
-  0 1 2 3 4
-0 +-+-+-+-+
-1 +-+-+-+-+
-2 +-+-+-+-+
-3 +-+-+-+-+
-4 +-+-+-+-+
-5 +-+-+-+-+
-6 +-+-+-+-+
-7 +-+-+-+-+
-8 +-+-+-+-+
+  `0 1 2 3 4`
+`0`+-+-+-+-+
+`1`+-+-+-+-+
+`2`+-+-+-+-+
+`3`+-+-+-+-+
+`4`+-+-+-+-+
+`5`+-+-+-+-+
+`6`+-+-+-+-+
+`7`+-+-+-+-+
+`8`+-+-+-+-+
 ```
 
 So then we can think of the top left of the character as (0, 0), the middle as (2, 4), the bottom right as (4, 8), and so on.
@@ -264,25 +264,25 @@ So then we can think of the top left of the character as (0, 0), the middle as (
 Characters that are next to each other mildly overlap:
 
 ``` drawing
-            0 1 2 3 4
-    0 1 2 3 4
-  0 +-+-+-+-+-+-+-+-+
-  1 +-+-+-+-+-+-+-+-+
-  2 +-+-+-+-+-+-+-+-+
-  3 +-+-+-+-+-+-+-+-+
-  4 +-+-+-+-+-+-+-+-+
-  5 +-+-+-+-+-+-+-+-+
-  6 +-+-+-+-+-+-+-+-+
-  7 +-+-+-+-+-+-+-+-+
-0 8 +-+-+-+-+-+-+-+-+
-1   +-+-+-+-+-+-+-+-+
-2   +-+-+-+-+-+-+-+-+
-3   +-+-+-+-+-+-+-+-+
-4   +-+-+-+-+-+-+-+-+
-5   +-+-+-+-+-+-+-+-+
-6   +-+-+-+-+-+-+-+-+
-7   +-+-+-+-+-+-+-+-+
-8   +-+-+-+-+-+-+-+-+
+            `0 1 2 3 4`
+    `0 1 2 3 4`
+  `0`+-+-+-+-+-+-+-+-+
+  `1`+-+-+-+-+-+-+-+-+
+  `2`+-+-+-+-+-+-+-+-+
+  `3`+-+-+-+-+-+-+-+-+
+  `4`+-+-+-+-+-+-+-+-+
+  `5`+-+-+-+-+-+-+-+-+
+  `6`+-+-+-+-+-+-+-+-+
+  `7`+-+-+-+-+-+-+-+-+
+`0 8`+-+-+-+-+-+-+-+-+
+`1`  +-+-+-+-+-+-+-+-+
+`2`  +-+-+-+-+-+-+-+-+
+`3`  +-+-+-+-+-+-+-+-+
+`4`  +-+-+-+-+-+-+-+-+
+`5`  +-+-+-+-+-+-+-+-+
+`6`  +-+-+-+-+-+-+-+-+
+`7`  +-+-+-+-+-+-+-+-+
+`8`  +-+-+-+-+-+-+-+-+
 ```
 
 (4, 0) of one character is the same point as (0, 0) of the character to its right, etc.
@@ -407,8 +407,8 @@ A few things:
 For the extending in either direction part: One way to do it is to just have two array-like tables. Like a polyline with six points could look like this:
 
 ``` drawing
- first    last
-  2 1    1 2 3 4
+`first`  `last`
+ `2 1`  `1 2 3 4`
  +-+-+  +-+-+-+-+
  +-+-+  +-+-+-+-+
 ```
