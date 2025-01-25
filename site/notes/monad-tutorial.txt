@@ -128,7 +128,7 @@ Okay so in Haskell, if you wanna make an application, you don't normally "write 
 IO = {}
 function IO.unit(x) return { io = "value", value = x } end
 function IO.putstr(str) return { io = "putstr", str = str } end
-IO.getline = { io = "getline" }
+function IO.getline(code) return { io = "getline", code = code } end
 function IO.bind(m, f) return { io = "bound", first = m, f = f } end
 ```
 
@@ -147,32 +147,36 @@ function framework(plugin)
     return web.read()
   elseif plugin.io == "bound" then
     local first = framework(plugin.first)
-    framework(plugin.f(first))
+    return framework(plugin.f(first))
   end
 end
 ```
 
 Let's ^https://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/ pretend that people have two names^ and write a plugin for asking about someone's names and then greeting them:
 
-``` repl
-local plugin = IO.bind(
+``` run
+plugin = IO.bind(
   IO.putstr("What is your first name?"),
   function()
     return IO.bind(
-      IO.getline,
+      IO.getline("first"),
       function(first)
         return IO.bind(
           IO.putstr("What is your last name?"),
           function()
             return IO.bind(
-              IO.getline,
+              IO.getline("last"),
               function(last)
                 return IO.putstr("Hi, " .. first .. " " .. last .. " :)")
               end)
           end)
       end)
   end)
+```
 
+And then plug it into the framework:
+
+``` repl
 framework(plugin)
 ```
 
@@ -181,3 +185,72 @@ So convenient :)
 So like our plugin code never actually called the side-effecting things, `print` and `web.read`, itself. It just returned values that described what it needed done, along with callbacks, and let the framework deal with that side of things.
 
 No idea why you'd want to syntactically sugar any of that, but some people `do`.
+
+## Interpretation
+
+When we're returning values that describe what we want done instead of just doing is that we're letting something else do the doing. That's not really "a monad thing" or anything, it's just a thing that's fun to do. Like it's cool that you can do the monad bind stuff on the values or whatever, but "returning values instead of performing side effects" is a fun and valuable idea on its own.
+
+So the framework looks at the IO value it has and decides what to do with it. It goes like:
+
+* Oh, it just holds a value: I'll return the value.
+* Or oh, it's a `putstr` with a string: I'll show the string to the user.
+* Or oh, it's a `getline`: I'll go get a string from the user and return that.
+* Or oh, oh! It's an IO value `bound` to a function: I'll handle the IO value, pass the result to the function, and then handle the IO value I get back from the function.
+
+Anyway. A thing we can do is to make a different version of the framework, e.g. for automated testing or something. Then we might not want to wait for user input, but maybe just automatically try different strings when "interpreting" a `getline` IO value.
+
+We'll make another framework:
+
+``` run
+function List.map(f, l)
+  return List.bind(l, function(x) return List.unit(f(x)) end)
+end
+
+function testhalp(plugin, inputs)
+  if plugin.io == "value" then
+    return { { value = plugin.value, out = "" } }
+  elseif plugin.io == "putstr" then
+    return { { value = nil, out = "  " .. plugin.str .. "\n" } }
+  elseif plugin.io == "getline" then
+    local res = inputs[plugin.code]
+    return List.map(
+      function(s)
+        return { value = s, out = "  > " .. s .. "\n" }
+      end,
+      res)
+  elseif plugin.io == "bound" then
+    local first = testhalp(plugin.first, inputs, i)
+    local res = {}
+    for _, fres in ipairs(first) do
+      for _, lres in ipairs(testhalp(plugin.f(fres.value), inputs)) do
+        table.insert(res, { value = lres.value, out = fres.out .. lres.out })
+      end
+    end
+    return res
+  end
+end
+
+function testframework(plugin, inputs)
+  for i, res in ipairs(testhalp(plugin, inputs)) do
+    io.write(i .. ":\n")
+    io.write(res.out)
+    io.write("\n")
+  end
+end
+```
+
+We'll run it, configured with our plugin _and_ some strings to use for the `getline` stuff:
+
+``` repl
+local inputs = {
+  first = { "Mary", "James", "Blip", "Blop" },
+  last = { "Smith", "Mlep", "Mlap" }
+}
+
+testframework(plugin, inputs)
+```
+
+Blep.
+
+
+
