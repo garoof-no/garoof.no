@@ -1,0 +1,16 @@
+# Lua-monader
+:template slides-lua
+:lang nb
+
+:slide
+# Meep meep
+
+asdasd
+
+:slide
+# Meep meep
+
+``` repl
+print(("test"):rep(20))
+```
+

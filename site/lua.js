@@ -112,20 +112,19 @@
   };
 
   const create = (element) => {
-    const ta = elem("textarea", {
+    const ta = document.body.appendChild(elem("textarea", {
       value: element.innerText,
-    });
-    const toolbar = elem("div", { className: "toolbar" });
-    const out = elem("div", { }, elem("pre", { className: "output" }));
-
-    element.after(ta, toolbar, out);
-    element.remove();
-    
+    }));
     ta.setAttribute("style", "height: 0;");
     const height = ta.scrollHeight;
     ta.setAttribute("style", `height: ${height}px;`);
     const extra = ta.offsetHeight - ta.clientHeight;
     ta.setAttribute("style", `height: ${height + extra}px;`);
+    
+    const toolbar = elem("div", { className: "toolbar" });
+    const out = elem("div", { }, elem("pre", { className: "output" }));
+    element.after(ta, toolbar, out);
+    element.remove();
 
     const myrun = () => {
       currentOut = out;

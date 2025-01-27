@@ -21,9 +21,15 @@ const outElement = (() => {
   const outElement = elem("div");
   
   const create = (element) => {
-    const ta = elem("textarea", {
+    const ta = document.body.appendChild(elem("textarea", {
       value: element.innerText,
-    });
+    }));
+    ta.setAttribute("style", "height: 0;");
+    const height = ta.scrollHeight;
+    ta.setAttribute("style", `height: ${height}px;`);
+    const extra = ta.offsetHeight - ta.clientHeight;
+    ta.setAttribute("style", `height: ${height + extra}px;`);
+    
     const toolbar = elem("div", { className: "toolbar" });
     const out = elem("pre", { className: "output" });
     const run = (e) => {
@@ -35,12 +41,6 @@ const outElement = (() => {
     };
     element.after(ta, toolbar, out);
     element.remove();
-    
-    ta.setAttribute("style", "height: 0;");
-    const height = ta.scrollHeight;
-    ta.setAttribute("style", `height: ${height}px;`);
-    const extra = ta.offsetHeight - ta.clientHeight;
-    ta.setAttribute("style", `height: ${height + extra}px;`);
 
     if (element.classList.contains("run")) {
       run();

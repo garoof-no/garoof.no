@@ -1,25 +1,41 @@
-local templates = require("../templates")
-local gd = require("../gd")
+local templates = require("templates")
+local gd = require("gd")
 
-return function(url)
+local function slider()
   local i = 1
-  local kvtable = gd.basekvtable()
-  kvtable.slide = function(v)
+  local function slide()
     i = i + 1
     return [[</div><div id="s]] .. i .. [[" class="slide">
-<p><a href="#s]] .. (i - 1) .. [[" class="prev" title="prev">&lt;&lt;</a> <a href="#s]] .. (i + 1) .. [[" class="next" title="next">&gt;&gt;</a></p>]]
+<p><a href="#s]] .. (i - 1)
+      .. [[" class="prev" title="prev">&lt;&lt;</a> <a href="#s]] .. (i + 1)
+      .. [[" class="next" title="next">&gt;&gt;</a></p>]]
   end
+  local kvtable = gd.basekvtable()
+  kvtable.slide = slide
+  
   return {
-    before = function(token)
-        return templates.beforetitle(url) .. templates.title(token)
-            .. [[<style>]]
-            .. templates.css("30rem")
-            ..
-[[body:has(> #slideshow:checked) div.slide:not(#s1, :target),
+    kvtable = kvtable,
+    first = [[
+<label for="slideshow">Slideshow</label><input id="slideshow" type="checkbox" checked />
+<div class="slide" id="s1">
+<p>&lt;&lt; <a href="#s2" class="next" title="next">&gt;&gt;</a></p>
+]],
+  last = function()
+    return
+[[</div><div class="slide" id="s]] .. (i + 1) ..
+[["><p><a href="#s]] .. i .. [[" class="prev" title="prev">&lt;&lt;</a> &gt;&gt;</p></div>]]
+  end
+  }
+end
+
+local slidecss = [[
+body:has(> #slideshow:checked) div.slide:not(#s1, :target),
 :root:has(:target) body:has(> #slideshow:checked) #s1:not(:target) {
   display: none;
 }
-</style>
+]]
+
+local scripttag = [[
 <script>
 const click = (selector) => {
   for (const a of document.querySelectorAll(selector)) {
@@ -33,18 +49,30 @@ document.onkeypress = (e) => {
   } else if (e.key === "w") { click("#slideshow"); }
 };
 </script>
-</head>
-<body>
-<label for="slideshow">Slideshow</label><input id="slideshow" type="checkbox" checked />
-<div class="slide" id="s1">
-<p>&lt;&lt; <a href="#s2" class="next" title="next">&gt;&gt;</a></p>
-]] .. templates.nav(url, token)
+]]
+
+local function create()
+  local sl = slider()
+  return {
+    before = function(url, token)
+        return templates.beforetitle(url) .. templates.title(token)
+          .. [[<style>]] .. templates.css("30rem") .. slidecss .. [[</style>]]
+          .. scripttag
+          .. [[</head><body>]]
+          .. sl.first
+          .. templates.nav(url, token)
     end,
     after = function()
-      return [[</div><div class="slide" id="s]] .. (i + 1) ..
-[["><p><a href="#s]] .. i .. [[" class="prev" title="prev">&lt;&lt;</a> &gt;&gt;</p></div>]]
-        .. templates.aftercontent
+      return sl.last() .. templates.aftercontent
     end,
-    kvtable = kvtable
+    kvtable = sl.kvtable
   }
 end
+
+return {
+  slider = slider,
+  slidecss = slidecss,
+  scripttag = scripttag,
+  create = create
+}
+

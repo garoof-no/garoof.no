@@ -40,10 +40,10 @@ local function writeHtml(parser, htmlfilename)
   local url = meta.absoluteurls and (function(u) return u end)
     or gd.relativeurl(htmlfilename:match("^[.]/(.+)/.*$") or "/")
     
-  local template = findtemplate(meta.template)(url)
+  local template = findtemplate(meta.template).create()
   local title = gd.titlefrom(first)
   local res = { { path = htmlfilename, title = title, meta = meta } }
-  fout:write(template.before(first))
+  fout:write(template.before(url, first))
   local html = gd.html(url, template.pretable, template.kvtable)
   fout:write(html(first))
   for token in parser do
