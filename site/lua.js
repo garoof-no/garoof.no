@@ -126,6 +126,32 @@
     element.after(ta, toolbar, out);
     element.remove();
 
+    const selected = () => {
+      const str = ta.value;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      if (start !== end) {
+        return { str: str.substring(start, end), pos: end };
+      }
+      let lineStart = str.lastIndexOf("\n", start - 1) + 1;
+      if (lineStart < 0) { lineStart = 0; }
+      let lineEnd = str.indexOf("\n", start);
+      if (lineEnd < 0) { lineEnd = str.length; }
+      return { str: str.substring(lineStart, lineEnd), pos: lineEnd };
+    };
+
+    const insert = (str, pos) => {
+      ta.setRangeText(str, pos, pos, "select");
+    };
+
+    const onkeyup = e => {
+      if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "Enter") {
+        e.preventDefault();
+        const x = selected()
+        insert(x.str.split("").reverse().join(""), x.pos);
+      }
+    };
+
     const myrun = () => {
       currentOut = out;
       run(luarun(ta.value));
