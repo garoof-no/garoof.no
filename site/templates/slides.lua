@@ -55,7 +55,7 @@ local function create()
   local sl = slider()
   return {
     before = function(url, token)
-        return templates.beforetitle(url) .. templates.title(token)
+        return templates.beforetitle(url, token) .. templates.title(token)
           .. [[<style>]] .. templates.css("30rem") .. slidecss .. [[</style>]]
           .. scripttag
           .. [[</head><body>]]

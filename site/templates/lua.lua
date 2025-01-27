@@ -13,7 +13,7 @@ end
 
 local template = {
   before = function(url,token)
-    return templates.beforetitle(url) .. templates.title(token)
+    return templates.beforetitle(url, token) .. templates.title(token)
       .. scripttags(url)
       .. '<style>'
       .. templates.colorcss .. templates.css() .. templates.replcss

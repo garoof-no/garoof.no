@@ -6,7 +6,7 @@ local function create()
   local sl = slides.slider()
   return {
     before = function(url, token)
-        return templates.beforetitle(url) .. templates.title(token)
+        return templates.beforetitle(url, token) .. templates.title(token)
           .. [[<style>]] .. templates.css("30rem") .. slides.slidecss
           .. templates.replcss .. [[</style>]]
           .. lua.scripttags(url) .. slides.scripttag

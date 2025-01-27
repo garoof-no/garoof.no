@@ -2,7 +2,7 @@ local templates = require("templates")
 
 local template = {
   before = function(url, token)
-    return templates.beforetitle(url) .. templates.title(token)
+    return templates.beforetitle(url, token) .. templates.title(token)
       .. templates.style .. '</head><body>'
       .. templates.nav(url, token)
   end,

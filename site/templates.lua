@@ -1,8 +1,8 @@
 local gd = require("gd")
 
-local function beforetitle(url)
+local function beforetitle(url, token)
   return [[<!DOCTYPE html>
-<html lang="en">
+<html lang="]] .. (token.meta and token.meta.lang or "en") .. [[">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
