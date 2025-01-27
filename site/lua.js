@@ -6,9 +6,31 @@
     return el;
   };
   let currentOut = null;
+  let outStr = null;
   const print = (str) => {
     if (currentOut !== null) {
       currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
+    } else {
+      console.log(str);
+    }
+  };
+  const err = (str) => {
+    if (outStr !== null) {
+      outStr += ` ${str}`;
+      return;
+    }
+    if (currentOut !== null) {
+      currentOut.lastElementChild.append(
+        elem("span", { className: "error" }, str),
+        "\n"
+      );
+    } else {
+      console.log(str);
+    }
+  };
+  const show = (str) => {
+    if (outStr !== null) {
+      outStr += ` ${str}`;
     } else {
       console.log(str);
     }
@@ -24,6 +46,7 @@
   };
 
   const luarun = str => `return web.run(function() ${str} end)`;
+  const luashow = str => `web.show(show(${str}))`;
   const luaresume = str => `return web.resume(function() ${str} end)`;
   
   let Module;
@@ -101,6 +124,10 @@
           return;
         }
         print("return: " + payload);
+      } else if (code === "error") {
+        err(payload);
+      } else if (code === "show") {
+        show(payload);
       } else if (code === "html") {
           html(payload);
       } else if (code === "read") {
@@ -144,25 +171,30 @@
       ta.setRangeText(str, pos, pos, "select");
     };
 
-    const onkeyup = e => {
+    const myrun = (str) => {
+      currentOut = out;
+      run(luarun(str));
+    };
+
+    ta.onkeyup = e => {
       if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "Enter") {
         e.preventDefault();
-        const x = selected()
-        insert(x.str.split("").reverse().join(""), x.pos);
+        const sel = selected();
+        currentOut = out;
+        outStr = "";
+        const code = (e.shiftKey ? luarun : luashow)(sel.str);
+        run(code);
+        insert(outStr, sel.pos);
+        outStr = null;
       }
     };
 
-    const myrun = () => {
-      currentOut = out;
-      run(luarun(ta.value));
-    };
-
     if (element.classList.contains("run")) {
-      myrun()
+      myrun(ta.value)
     }
     if (element.classList.contains("repl")) {
       toolbar.append(
-        elem("button", { className: "toolbar-button", title: "Run", onclick: myrun }, "▶"),
+        elem("button", { className: "toolbar-button", title: "Run", onclick: () => myrun(ta.value) }, "▶"),
         elem(
           "button", {
             className: "toolbar-button",
@@ -211,6 +243,7 @@
       function Web:__index(code)
         return function(payload) send(code, payload) end
       end
+      show = tostring
       `]);
       for (const el of document.querySelectorAll(".lua.prelude")) {
         create(el)
