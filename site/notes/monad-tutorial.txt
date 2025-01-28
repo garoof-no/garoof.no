@@ -24,7 +24,7 @@ Blah blah. I'm most certainly not doing any promise stuff, but the others are fi
 
 ``` run
 function p(o)
-  print(type(o) == "table" and table.concat(o, ", ") or o)
+  print(show(o))
 end
 
 List = {}
@@ -40,9 +40,9 @@ function List.bind(list, f)
 end
 
 Maybe = {}
-function Maybe.unit(x) return { x } end
+function Maybe.unit(x) return { value = x } end
 function Maybe.bind(maybe, f)
-  return maybe[1] and f(maybe[1]) or {}
+  return maybe.value and f(maybe.value) or {}
 end
 ```
 
@@ -70,7 +70,7 @@ Something like: The "monad interface" stuff is some stuff that e.g. lists and ma
 function List.of(...) return { ... } end
 
 Maybe.nope = {}
-function Maybe.orelse(m, v) return m[1] or v end
+function Maybe.orelse(m, v) return m.value or v end
 ```
 
 So now things are more okay:

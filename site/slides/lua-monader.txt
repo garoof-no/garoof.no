@@ -1,16 +1,61 @@
 # Lua-monader
 :template slides-lua
 :lang nb
+:nonav
+
+hei hei hei hei
+
+# ^https://garoof.no/slides/lua-monader.html^
+
+^../index.html index^
 
 :slide
-# Meep meep
+# Bla bla bla
 
 asdasd
 
 :slide
-# Meep meep
+# Lister
+
+``` run
+List = {}
+function List.unit(x) return { x } end
+function List.bind(list, f)
+  local res = {}
+  for _, old in ipairs(list) do
+    for _, new in ipairs(f(old)) do
+      table.insert(res, new)
+    end
+  end
+  return res
+end
+```
 
 ``` repl
-print(("test"):rep(20))
+List.unit(2)
+List.bind(
+  List.unit(2),
+  function(n) return List.unit(n + n) end)
 ```
+
+:slide
+# Kanskjer
+
+``` run
+Maybe = {}
+function Maybe.unit(x) return { value = x } end
+function Maybe.bind(maybe, f)
+  return maybe.value and f(maybe.value) or {}
+end
+```
+
+``` repl
+Maybe.unit(3)
+Maybe.bind(
+  Maybe.unit(3),
+  function(n) return Maybe.unit(n * n) end)
+```
+
+
+
 

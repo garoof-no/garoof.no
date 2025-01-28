@@ -43,6 +43,10 @@ const click = (selector) => {
   }
 };
 document.onkeypress = (e) => {
+  const tn = document.activeElement.tagName;
+  if (tn === "TEXTAREA" || tn === "INPUT") {
+    return;
+  } 
   if (e.key === "q") { click("div.slide:target a.prev"); }
   else if (e.key === "e") {
     click("div.slide:target a.next, :root:not(:has(:target)) #s1 a.next");

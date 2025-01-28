@@ -251,7 +251,28 @@
       function Web:__index(code)
         return function(payload) send(code, payload) end
       end
-      show = tostring
+      function show(o)
+        if type(o) == "table" then
+          local is = {}
+          for i, v in ipairs(o) do
+            is[i] = true
+          end
+          local res = { "{", "" }
+          for k, v in pairs(o) do
+            if not is[k] then
+              table.insert(res, " " .. tostring(k) .. " = " .. tostring(v))
+              table.insert(res, ",")
+            end
+          end
+          for i, v in ipairs(o) do
+            table.insert(res, " " .. tostring(v))
+            table.insert(res, ",")
+          end
+          res[#res] = " }"
+          return table.concat(res)
+        else return tostring(o)
+        end
+      end
       `]);
       for (const el of document.querySelectorAll(".lua.prelude")) {
         create(el)
