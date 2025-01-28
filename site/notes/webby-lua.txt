@@ -52,3 +52,24 @@ If something is more complicated than just sending a message to the JS side, I c
 
 Blep.
 
+## One more string of Lua code
+
+Changed it a little:
+
+``` drawing
+.---------.                               .--------.
+|   `C`   |   `run_lua(runner, script)`   |  `JS`  |
+|.-------.|<------------------------------|        |
+|| `Lua` ||                               |        |
+||       || `lua_web_send(code, payload))`|        |
+||       ||------------------------------>|        |
+|'-------'|                               |        |
+'---------'                               '--------'
+```
+
+Two arguments are sent in the JS to C/Lua direction as well now. Kind of similar to the `code`/`payload` thing, but `runner` and `script` are both strings with Lua code. The `runner` should be a piece of Lua code that returns a function that will be used to run the `script`.
+
+I typically ended up wrapping the Lua code in some piece of "runner code" before sending it to the C/Lua side. Probably because I needed things to run in coroutines in order to get some kind of input (like from downloading a file or from an input field on the page) without blocking. So instead of sending `<code>` I'd send `helperfunction(function() <code> end)` or something. And then do something else for resuming the coroutine later.
+
+ It wasn't much of a problem doing that by concatenating strings on the JS side, but by sending two strings I can compile the code that is e.g. written by the user as is, without having it wrapped in additional stuff. If there's a compilation error, I guess it's nice that the error reporting reports on the code the user sees on the page instead of on something more altered...
+
