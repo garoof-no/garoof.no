@@ -45,18 +45,21 @@
     }
   };
 
-  const luarun = str => `return web.run(function() ${str} end)`;
-  const luashow = str => `web.show(show(${str}))`;
-  const luaresume = str => `return web.resume(function() ${str} end)`;
+
+  const luaplain = `return function(f) return f() end`;
+  const luarun = `return web.run`;
+  const luashow = `return function(f) web.show(show(f())) end`;
+  const luaresume = `return web.resume`;
+  
   
   let Module;
 
   let resume = [];
 
-  const run = (code) => {
+  const run = (runner, code) => {
     resume.forEach(x => { x.disabled = true; });
     resume = [];
-    Module.ccall("run_lua", "number", ["string"], [code]);
+    Module.ccall("run_lua", "number", ["string", "string"], [runner, code]);
   };
 
   const luastr = (str) => {
@@ -77,7 +80,7 @@
       console.log("read: " + str);
     }
     const inp = elem("input");
-    const myrun = () => run(luaresume(`return ${luastr(inp.value)}`))
+    const myrun = () => run(luaresume, `return ${luastr(inp.value)}`);
     inp.onkeyup = (e) => {
       if (e.key === "Enter") {
         myrun();
@@ -173,26 +176,31 @@
 
     const myrun = (str) => {
       currentOut = out;
-      run(luarun(str));
-    };
-
-    ta.onkeyup = e => {
-      if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "Enter") {
-        e.preventDefault();
-        const sel = selected();
-        currentOut = out;
-        outStr = "";
-        const code = (e.shiftKey ? luarun : luashow)(sel.str);
-        run(code);
-        insert(outStr, sel.pos);
-        outStr = null;
-      }
+      run(luarun, str);
     };
 
     if (element.classList.contains("run")) {
       myrun(ta.value)
     }
     if (element.classList.contains("repl")) {
+      ta.onkeyup = e => {
+        if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "Enter") {
+          e.preventDefault();
+          const sel = selected();
+          currentOut = out;
+          outStr = "";
+          let code;
+          let runner;
+          if (e.shiftKey) {
+            run(luarun, sel.str);
+          } else {
+            run(luashow, `return ${sel.str}`);
+          }
+          insert(outStr, sel.pos);
+          outStr = null;
+        }
+      };
+    
       toolbar.append(
         elem("button", { className: "toolbar-button", title: "Run", onclick: () => myrun(ta.value) }, "▶"),
         elem(
@@ -213,7 +221,7 @@
   window.addEventListener("load", (e) => {
     initWasmModule(ModuleConfig).then((aModule) => {
       Module = aModule;
-      Module.ccall("run_lua", "number", ["string"], [`
+      Module.ccall("run_lua", "number", ["string", "string"], [luaplain, `
       local send = webSend
       webSend = nil
       web = {
