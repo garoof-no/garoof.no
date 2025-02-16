@@ -43,7 +43,7 @@ I sometimes wanna blame how poor my TDD is on this. This all feels very natural 
 
 > Sometimes I see Test-Driven Development (TDD) as an attempt to give any software engineer, working in any environment, the sense of comfort and intimacy we had with our Smalltalk environment and our Smalltalk programs.
 
-Anyway the TDD thing I think I'm sometimes missing out on is the part where I'm acutally left with tests that I can also run later. There's something about turning the test code into actual tests that sometimes uh, doesn't happen. The obvious thing is I have to isolate things, which can be more or less cumbersome depending on the cirsumstances and legacies. There's also something about formalizing what test success and failure actually is. Sometimes my testing is doing Show it on some code and then seeing that it run without throwing and also looking at the printed result and determining whether or not it is outrageous.
+Anyway the TDD thing I think I'm sometimes missing out on is the part where I'm acutally left with tests that I can also run later. There's something about turning the test code into actual tests that sometimes uh, doesn't happen. The obvious thing is I have to isolate things, which can be more or less cumbersome depending on the circumstances and legacies. There's also something about formalizing what test success and failure actually is. Sometimes my testing is doing Show it on some code and then seeing that it run without throwing and also looking at the printed result and determining whether or not it is outrageous.
 
 I dunno. Maybe I'll learn.
 
