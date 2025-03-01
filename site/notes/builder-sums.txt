@@ -1,5 +1,5 @@
 # The builder pattern!!! and sums
-:blurb RTFReader is such an auteur.
+:blurb RTFReader is a true auteur.
 :pub Zl31LT
 
 So I've been reading ^https://en.wikipedia.org/wiki/Design_Patterns the design patterns book^.
