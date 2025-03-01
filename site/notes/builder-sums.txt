@@ -10,7 +10,7 @@ And like there are some ^https://www.youtube.com/watch?v=IkI9h7EGYvI "now this b
 
 Like, when people talk about using a builder, chances are it's just about something grotesque like slapping a Lombok `@Builder` onto something and save, uh, a number of lines that is proportional to how badly designed the relevant code is. Or at best _not that_ but still just something along the lines of "letting us call the setters one by one before the constructor."
 
-The pattern discussed in the book is for when we're building something more complex, and also for indirection or information hiding or whatever. They have an example that is almost like this:
+The pattern discussed in the book is for when the building is more complex, and also for something or other with indirection or information hiding or whatever. They have an example that is almost like this:
 
 ``` drawing
 +-------------+
