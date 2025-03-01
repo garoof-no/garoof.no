@@ -1,0 +1,87 @@
+# The builder pattern!!! and sum types
+:todo
+
+So I've been reading ^https://en.wikipedia.org/wiki/Design_Patterns the design patterns book^.
+
+And like there are some ^https://www.youtube.com/watch?v=IkI9h7EGYvI "now this book's not really aimed at me"^ moments, but it's like fun in a way. Since I work with like programming and with other people, I'm sometimes exposed to a programming idea, but it's likely to be a particularly weird idea, probably because it's kind of a copy of a copy of a copy and the original idea is _pretty much_ lost, and what's left is pretty shallow and is probably mostly about like very tiny convenience-adjustments.
+
+## The builder pattern
+
+Like, when people talk about using a builder, chances are it's just about something grotesque like slapping a Lombok `@Builder` onto something and save, uh, a number of lines that is proportional to how badly designed the relevant code is. And something along the lines of "letting us call the setters one by one before the constructor."
+
+The pattern discussed in the book is for when we're building something more complex, and also for indirection or information hiding or whatever. They have an example that is almost like this:
+
+``` drawing
++-------------+
+|`RTFReader`  |
++-------------+ `builder`      +-------------------------+
+|`ParseRTF()` |--------------->|`TextConverter`          |
++-------------+                +-------------------------+
+                               |`ConvertCharacter(char)` |
+                               |`ConvertFontChange(Font)`|
+                               |`ConvertParagraph()`     |
+                               +-----------+-------------+
+                                           ^
+                                           | `implements`
+                                           |
+             +-----------------------------+----------------------------+
+             |                             |                            |
+             |                             |                            |
+ +-----------+------------+   +------------+------------+  +------------+------------+
+ |`ASCIIConverter`        |   |`TeXConverter`           |  |`TextWidgetConverter`    |
+ +------------------------+   +-------------------------+  +-------------------------+
+ |`ConvertCharacter(char)`|   |`ConvertCharacter(char)` |  |`ConvertCharacter(char)` |
+ |`GetASCIIText()`        |   |`ConvertFontChange(Font)`|  |`ConvertFontChange(Font)`|
+ +------------------------+   |`ConvertParagraph()`     |  |`ConvertParagraph()`     |
+                              |`GetTeXText()`           |  |`GetTextWidget()`        |
+                              +-------------------------+  +-------------------------+
+```
+
+It has a Director (the `RTFReader`) that knows how to supply the stuff needed to build something (like it knows how to parse RTF). But it will let the actual building be done by a Builder (`TextConverter`). Client code will set up a Director with a ConcreteBuilder and the Director will call the appropriate Builder methods. The Director only deals with the Builder interface, but the client knows which concrete implementation of the Builder it's dealing with. If the client plugs a TeXConverter into a RTFReader and then sets it off to ParseRTF, then the RTFReader will call ConvertCharacter, ConvertFontChange and ConvertParagraph when appropriate. While the RTFReader won't know about the GetTeXText method, the client can use it after ParseRTF to get the thing that was built.
+
+Director can be used to build different things by plugging in different builders and this also lets us avoid e.g. the same thing being resposible for both "knowing how to read X" and "knowing how to build Y." Blah blah.
+
+So I think that the pattern discussed in the book, compared to what is often called builders these days, is like _more_ interesting. It deals with an actual thing and there is more to it than something like "letting us call some setters before the constructor."
+
+## Sums
+
+There is this way of being object oriented. This thing were we kind of send a message off and then some communicating objects do some stuff. And I don't necessarily hate that and I guess it can be useful for this or that, but like.
+
+I see this thing and I'm like: Maybe just take TextConverter and turn it into a sum type? Erase all the "Converter" and "Convert" from the names and have a Text type with Character(char), FontChange(Font) and Paragraph() as its summands/union cases. Like in Java, instead of e.g.:
+
+```
+public interface TextConverter {
+    void convertCharacter(char c);
+    void convertFontChange(Font f);
+    void convertParagraph();
+}
+```
+
+We could do:
+
+```
+public sealed interface Text {
+    record Character(char c) implements Text {}
+    record FontChange(Font f) implements Text {}
+    record Paragraph() implements Text {}
+}
+```
+
+And then return Text values instead of calling TextConverter methods. (Maybe call the parse method to get the next Text value, or have it return a stream of Text values, or whatever.)
+
+And like, they are two ways of capturing what is mostly the same thing: We have these three cases, character, font change and paragraph. Whether they're three methods on an interface or three union cases of a sum type, that type with the three things is the thing that both sides have to know about here. That's the shared information. The thing where if A and B share an understanding of this, then they don't need to know anything _more_ about each other.
+
+But with the interface with methods on it, we have this very direct and technical connection: A is talking to B. The Director is calling the Builder methods. And then we "deal with" that by hiding things, with the interface stuff. If instead A is returning values, then that connection just isn't there. Things are still connected somehow, but elsewhere: The client might pass the Text values it gets back to a builder kind of thing. But the client knows about the concrete builders anyway, so there just isn't this place where "hiding" is really a thing in that way.
+
+Anyway it's something I think comes up a fair amount in this particular kind of "object oriented design." We're introducing this connection and it immediately becomes kind of a "design problem," and it's like oof:
+
+* The whole thing with multiple kinds of things wa wanna build and the hiding of things that goes with it, the stuff that's kind of what the pattern addresses
+* But then we also wanna test the reader in isolation, but it doesn't work in isolation so we need a test double and maybe we will invent mock objects and make a framework
+* And sometimes we wanna log the RTF as ASCII text while also building TextWidget, so we need a new TextConverter implementation and maybe there are some patterns around for composing things
+
+And like we're wrapping things, maybe decorating or proxying, bridging and adapting, all this stuff that tends to lead to problems like these. And I dunno. We don't really get those kinds of problems with the "returning values" approach. Not in that way, certainly. And I think that um, there is this kind of programming practice around where these "communicating objects" approaches are chosen over "returning values" approaches, not _necessarily_ because the trade-offs are considered and in this or that particular situation, for these reasons, "communicating objects" wins out. But sometimes mostly because "returning values" isn't in the toolbox. (Probably sometimes because making _those kinds of values_ isn't in the toolbox.)
+
+Mlip mlop.
+
+PS This stuff isn't that much about the book. The book is from 1994 and the code in it is mostly C++ (and some Smalltalk). I'm sure my "use a sum type instead" reaction would make less or no sense in that context.
+
