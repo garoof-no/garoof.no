@@ -43,6 +43,8 @@ img { max-width: 100%; }
 textarea { width: 100%; font-size: 1.05rem; }
 time { font-style: italic; }
 :is(h1, h2, h3):target::after { content: " ⇐"; }
+del { text-decoration: line-through; background-color: #ffbbbb; color: #555555; }
+ins { text-decoration: none; background-color: #d4fcbc; color: #000000; }
 ]]
 end
 

@@ -315,14 +315,16 @@ local function strhtml(str, url, plain)
   end
 end
 
-local function prewriterf(class)
+local function prewriterf(class, linef)
   class = class and (' class="' .. class .. '"') or ""
   return function(url)
     return function (line)
       if line.type == "<pre" then
         return "<figure><pre" .. class .. "><code>"
       elseif line.type == "pre" then
-        return escape(line.rest)
+        if linef then return linef(line.rest)
+        else return escape(line.rest)
+        end
       elseif line.type == "prebr" then
         return "\n"
       elseif line.type == "pre>" then
@@ -429,8 +431,18 @@ local function relativeurl(frompath)
   end
 end
 
+local function diff(line)
+  local op, rest = line:match("(.)(.+)")
+  if not op then return escape(line) end
+  rest = escape(rest)
+  if op == "+" then return "<ins>" .. rest .. "</ins>" end
+  if op == "-" then return "<del>" .. rest .. "</del>" end
+  return rest
+end
+
 local function basepre()
   return {
+    diff = prewriterf(nil, diff),
     drawing = newdrawing,
     img = img,
     html = function(url)

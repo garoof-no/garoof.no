@@ -1,0 +1,89 @@
+# Making smaller steps
+:todo
+
+Some stuff. Worked with some code today that was kind of like:
+
+```
+function check(things)
+  local important = mostimportant(oldthings())
+  -- more stuff...
+end
+
+function isgood()
+  local things = newthings()
+  if #things == 0 then
+    return
+  end
+  -- more stuff...
+  check(things)
+end
+
+function ok()
+  isgood()
+  close()
+end
+```
+
+_Kind_ of like that. Not exactly, it wasn't Lua, and the functions were methods on a couple different objects, and the words mostly had more to do with the application domain. But it was something along those lines.
+
+And there was some stuff: `isgood` was kind of outer layer and only used in this context while `check` was more general and used a couple of other places. The checks made were kind of sanity checky "if this isn't right just abort" kind of things, so they just threw errors if anything was out of order.
+
+And lately some stuff has been changing. Some "the business rules are changing" changes, and the application needs to handle some things it didn't need to handle in the past. One local result of that is that we can't always automatically determine which old thing is the `mostimportant` thing.
+
+Blah. Nothing very extraordinary. I was going to change it so that, sometimes and under the right circumstances, instead of finding the most important thing it would find some _candidates_ and ask the user to decide which one to use. I started by making a couple of changes that didn't deal any with those circumstances or with finding candidates or with asking the user.
+
+One change:
+
+``` diff
+ function isgood()
+   local things = newthings()
+   if #things == 0 then
+-    return
++    return true
+   end
+   -- more stuff...
+   check(things)
++  return true
+ end
+
+ function ok()
+-  isgood()
++  if not isgood() then
++    return
++  end
+   close()
+ end
+```
+
+No meaningful change to the behaviour, just kind of setting things up so that later on `isgood` can return `false` in order to cancel things and keep `close()` from happending (if we ask the user to decide which thing is `important` and the user cancels).
+
+Another change:
+
+``` diff
+-function check(things)
+-  local important = mostimportant(oldthings())
++function check(things, important)
+   -- more stuff...
+ end
+
+ function isgood()
+   local things = newthings()
+   if #things == 0 then
+     return true
+   end
++  local important = mostimportant(oldthings())
+   -- more stuff...
+-  check(things)
++  check(things, important)
+   return true
+ end
+```
+
+(Also changed other usages of `check` since that was being used elsewhere as well.)
+
+Again, just setting things up. By turning `important` into an argument for `check` things are ready for doing more decision making in `isgood`. Because of the elsewheres where `check` was being used, it wouldn't make sense to make `check` do stuff like asking the user to decide. We only wanted that bit in the specific context where `isgood` was being used.
+
+So uh those were two commits. ^https://www.geepawhill.org/series/many-more-much-smaller-steps/ Many More Much Smaller Steps^ I guess?
+
+It's kind of nothing, but whenever I go like that and get some nothing-changes out of the way and like laid to rest, I feel kind of good about it. I guess it signals to me that I'm done with that bit. It might not be the final say on that part, but I think my mind kind of goes okay, that's done for now, might revisit it later or whatever, but now I'm no longer thinking about it. Which can be helpful. Also there's the "distance to most recent checkpoint" stuff.
+
