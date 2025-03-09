@@ -431,8 +431,8 @@ local function relativeurl(frompath)
 end
 
 local function diff(line)
-  local op, rest = line:match("(.)(.+)")
-  if not op then return escape(line) end
+  if line == "" then return "" end
+  local op, rest = line:match("(.)(.*)")
   rest = escape(rest)
   if op == "+" then return "<ins>" .. rest .. "</ins>" end
   if op == "-" then return "<del>" .. rest .. "</del>" end
