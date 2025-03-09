@@ -317,14 +317,13 @@ end
 
 local function prewriterf(class, linef)
   class = class and (' class="' .. class .. '"') or ""
+  linef = linef or escape
   return function(url)
     return function (line)
       if line.type == "<pre" then
         return "<figure><pre" .. class .. "><code>"
       elseif line.type == "pre" then
-        if linef then return linef(line.rest)
-        else return escape(line.rest)
-        end
+        return linef(line.rest)
       elseif line.type == "prebr" then
         return "\n"
       elseif line.type == "pre>" then

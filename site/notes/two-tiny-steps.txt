@@ -1,4 +1,4 @@
-# Making smaller steps
+# Two tiny steps
 :todo
 
 Some stuff. Worked with some code today that was kind of like:
