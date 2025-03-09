@@ -1,0 +1,197 @@
+# Adding diff support to Glorpdown
+:pub Zl3BEL
+:blurb Sometimes the same is different, but mostly it's the same.
+:template lua
+
+I decided it might be nice to be able to do stuff like copy-pasting some `git diff` output into a ^./gd.txt Glorpdown^ file.
+
+In Glorpdown, preformated text is written between lines starting with `\`\`\``. So:
+
+````
+```
+if foo("this") then
+  bar("that")
+end
+```
+````
+
+Becomes:
+
+```
+if foo("this") then
+  bar("that")
+end
+```
+
+That stuff is already "pluggable" through the opening `\`\`\`` line. I'd like to be able to do stuff like:
+
+````
+``` diff
+ if foo("this") then
+-  bar("that")
++  baz("that")
+ end
+```
+````
+
+And have that be rendered as fairly sensible HTML.
+
+## HTML
+
+Some pre-existing code for HTML-escaping a string:
+
+``` run
+local escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+```
+
+HTML has `del` and `ins` elements. Those are good.
+
+Glorpdown is pretty line-based and a function for turning a line of diff-text into a string of HTML would fit right in:
+
+``` run
+function diff(line)
+  if line == "" then return "" end
+  local op, rest = line:match("(.)(.*)")
+  rest = escape(rest)
+  if op == "+" then return "<ins>" .. rest .. "</ins>" end
+  if op == "-" then return "<del>" .. rest .. "</del>" end
+  return rest
+end
+```
+
+Can test it:
+
+``` repl
+local str = [[
+ if foo("this") then
+-  bar("that")
++  baz("that")
+ end
+]]
+
+for line in str:gmatch("[^\n]*") do print(diff(line)) end
+```
+
+Seems fine.
+
+Every line should start with a plus, minus or space. If it does not start with plus or minus it is treated like a space line. If we put unindented lines of regular code in in diff blocks, the `diff` function is mostly going to just eat the first characters the lines:
+
+``` repl
+local str = [[
+if foo("this") then
+  bar("that")
+  baz("that")
+end
+]]
+
+for line in str:gmatch("[^\n]*") do print(diff(line)) end
+```
+
+That's okay.
+
+## CSS
+
+I grabbed some colours and stuff from ^https://developer.mozilla.org/en-US/docs/Web/HTML/Element/del#try_it the del example at MDN^:
+
+``` diff
++del { text-decoration: line-through; background-color: #ffbbbb; color: #555555; }
++ins { text-decoration: none; background-color: #d4fcbc; color: #000000; }
+```
+
+## Plugging it in
+
+There's a helper function for handling code/preformatted text called `prewriterf`. It takes a `class` argument, for adding a CSS class to the `pre` elements it will create, and it returns a function that the rendering code can use when dealing with `\`\`\`` lines and the lines between them. I've added a new argument, `linef` to it. I've no idea what is up with my naming conventions but `linef` should be a function that turns a line of text into a string of HTML. It used to just HTML-`escape` all lines of code, so if `linef` is not supplied as an argument it will default to the `escape` function.
+
+``` diff
+-local function prewriterf(class)
++local function prewriterf(class, linef)
+   class = class and (' class="' .. class .. '"') or ""
++  linef = linef or escape
+   return function(url)
+     return function (line)
+       if line.type == "<pre" then
+         return "<figure><pre" .. class .. "><code>"
+       elseif line.type == "pre" then
+-        return escape(line.rest)
++        return linef(line.rest)
+       elseif line.type == "prebr" then
+         return "\n"
+       elseif line.type == "pre>" then
+         local res = "</code></pre>"
+         if not line.empty then
+           local caption = escape(line.rest)
+           res = res .. "<figcaption>"
+             .. strhtml(caption, url) .. "</figcaption>"
+         end
+         return res .. "</figure>"
+       else
+         error("unreachable: " .. line.type)
+       end
+     end
+   end
+ end
+```
+
+And then it's like, putting `prewriterf` and `diff` together and making the thing available by adding it to a key of the table that's used for deciding what to do with `\`\`\`` blocks:
+
+``` diff
+ local function basepre()
+   return {
++    diff = prewriterf(nil, diff),
+     drawing = newdrawing,
+     img = img,
+     html = function(url)
+       return function(line)
+         if line.type == "<pre" then return ""
+         elseif line.type == "pre" then return line.rest
+         elseif line.type == "prebr" then return "\n"
+         elseif line.type == "pre>" then return ""
+         else error("unreachable: " .. line.type)
+         end
+       end
+     end
+   }
+ end
+```
+
+## Good?
+
+So now:
+
+````
+``` diff
+ if foo("this") then
+-  bar("that")
++  baz("that")
+ end
+```
+````
+
+Becomes:
+
+``` diff
+ if foo("this") then
+-  bar("that")
++  baz("that")
+ end
+```
+
+Okay good.
+
+## Anyway
+
+Anyway I like being able to just do stuff like that. I'm sure it's all stupidly designed and badly coded, but it's _my_ stupid and bad which is like a very relatable and understandable stupid and bad for me. And for small things, I really prefer just making it instead of doing stuff like finding out if the tools I'm using already support this kind of thing, if there's something I can/must configure, or maybe a plugin I can add or make make myself, or some something like that.
+
+Blep.
+
