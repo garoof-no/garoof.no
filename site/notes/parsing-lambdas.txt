@@ -1,0 +1,246 @@
+# Parsing an lambdas
+:pub Zl3LOZ
+:blurb Luambda calculus.
+:template lua
+
+Hi hello we'll reserve these characters for _stuff:_
+
+``` run
+reserved = "λ\\.()"
+```
+
+## Identifiers
+
+Whitespace characters and reserved ones can't be used in identifiers. An attempt to parse an identifier will start at the start of the string (`^`), skip any whitespace characters (`%s`), and then look for at least one non-whitespace-or-reserved character. Successfully parsing an identifier will return the identifier name and a remainder string for the stuff that comes after it:
+
+``` run
+id = "%s*([^%s" .. reserved .. "]+)"
+function identifier(s)
+  return s:match("^" .. id .. "(.*)")
+end
+```
+
+Helper thing for testing:
+
+``` run
+function p(a, ...)
+  if a == nil then
+    print(nil)
+    return
+  end
+  local res = { '"' .. tostring(a) .. '"' }
+  for _, v in ipairs({...}) do
+    table.insert(res, '"' .. tostring(v) .. '"')
+  end
+  print(table.unpack(res))
+end
+```
+
+Testing:
+
+``` repl
+p(identifier([[foo]]))
+p(identifier([[  foo]]))
+p(identifier([[  foo (blah)]]))
+p(identifier([[  foo(blah)]]))
+p(identifier([[(foo)]]))
+```
+
+Seems okay!
+
+## Lambdas
+
+We'll use "λ" for lambda but we will allow using "\\" instead, for input convenience. Uuuuuh Lua patterns are kind of not exactly regex uuuh. We'll just use two patterns. Successfully parsing a lambda will return its parameter name and a remainder string that will contain the body expression of the lambda. (So "successfully" here just means that the "lambda, parameter, dot" part is fine, not that the full expression is okay and well formed and stuff.)
+
+``` run
+lamlam = "^%s*λ" .. id .. "%s*[.](.*)"
+lamslash = "^%s*%\\" .. id .. "%s*[.](.*)"
+function lambda(s)
+  local res, rest = s:match(lamlam)
+  if res then return res, rest end
+  return s:match(lamslash)
+end
+```
+
+Testim:
+
+``` repl
+p(lambda([[λx.x x]]))
+p(lambda([[\x.x x]]))
+p(lambda([[ λ xy . x x ]]))
+p(lambda([[λ x y . x x ]]))
+p(lambda([[x.x x]]))
+p(lambda([[foo]]))
+```
+
+## Parentheses
+
+Okay let's see. ^https://www.lua.org/manual/5.4/manual.html#6.4.1 Lua patterns^.
+
+> %bxy, where x and y are two distinct characters; such item matches strings that start with x, end with y, and where the x and y are balanced. This means that, if one reads the string from left to right, counting +1 for an x and -1 for a y, the ending y is the first y where the count reaches 0. For instance, the item %b() matches expressions with balanced parentheses.
+
+There's a chance we could use that for parentheses(!). Successfully matching returns a string with the stuff that's within the parentheses. And as per usual it also returns a remainder string for the stuff that comes after.
+
+``` run
+function parens(s)
+  local res, rest = s:match("^%s*(%b())(.*)")
+  if not res then return nil end
+  return res:sub(2, #res - 1), rest
+end
+```
+
+``` repl
+p(parens([[(foo bar) baz buzz]]))
+p(parens([[    (foo bar) baz buzz]]))
+p(parens([[    foo (bar) baz buzz]]))
+p(parens([[)foo bar( baz buzz]]))
+```
+
+## Nothing
+
+We clearly also wanna parse nothing:
+
+``` run
+function nothing(s)
+  return s:match("^%s*$")
+end
+```
+
+Test:
+
+``` repl
+p(nothing(""))
+p(nothing("     "))
+p(nothing("foo"))
+p(nothing("      foo"))
+```
+
+## The entire thing
+
+So those should kind of be the things that can be combined to make the things. An expression is one of the following:
+
+* `<identifier>` (variable reference)
+* `λ<identifier>.<exp>` (function abstraction)
+* `<exp> <exp>` (function application)
+
+And we have kind of dealt with variables references and function abstractions. And the parenthesis stuff has _something_ to do with function application. Um.
+
+Okay then so one way to deal with stuff: Parse stuff so we end up with a list of things, and:
+
+* If the list has no things then that's bad.
+* If the list has one thing in it then that's the thing we want.
+* If the list has several things in it, we can turn it into one function application thing.
+
+So there's some "one thing" vs. "a series of things" stuff. Let's see how it goes:
+
+``` run
+function parseone(s)
+  local res, rest = identifier(s)
+  if res then return { id = res }, rest end
+  res, rest = lambda(s)
+  if res then
+    local body = parse(rest)
+    if body.error then return body, ""
+    else return { param = res, body = body }, ""
+    end
+  end
+  res, rest = parens(s)
+  if res then return parse(res), rest end
+  return { error = 'no good: "' .. s .. '"' }
+end
+
+function parselist(s)
+  local res = {}
+  while not nothing(s) do
+    local parsed
+    parsed, s = parseone(s)
+    if parsed.error then return parsed end
+    table.insert(res, parsed)
+  end
+  return res
+end
+
+function parse(s)
+  local list = parselist(s)
+  if list.error then return list end
+  if #list == 0 then return { error = "found: nothing. expected: something." } end
+  local res = list[1]
+  for i = 2, #list do
+    res = { fun = res, arg = list[i] }
+  end
+  return res
+end
+```
+
+* So `parseone` parses one thing but not the entire thing. It returns a fully parsed thing along with a remainder string for the stuff after.
+* `parselist` parses an entire thing, but it returns a list and not one syntax tree thing.
+* `parse` parses an entire thing.
+* Okay.
+* I kind of like "while not nothing."
+
+For testing:
+
+``` run
+function pl(t, indent)
+  indent = indent or 0
+  local spaces = ("  "):rep(indent)
+  if t.error then
+    print(spaces .. "error: " .. t.error)
+  elseif t.id then
+    print(spaces .. "identifier: " .. t.id)
+  elseif t.param then
+    print(spaces .. "lambda parameter: " .. t.param)
+    pl(t.body, indent + 1)
+  elseif t.fun then
+    print(spaces .. "function:")
+    pl(t.fun, indent + 1)
+    print(spaces .. "argument:")
+    pl(t.arg, indent + 1)
+  end
+end
+```
+
+Testing. These should work:
+
+``` repl
+pl(parse([[λx.x x]]))
+```
+
+``` repl
+pl(parse([[λa.λb.λc.a b c]]))
+```
+
+``` repl
+pl(parse([[λa.λb.λc.a (b c)]]))
+```
+
+``` repl
+pl(parse([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) (λf.λx.f x)]]))
+```
+
+Probably fine. We can _kind of_ tell that the parenthesis stuff works out okay by looking at the shape of things of the `a b c` vs. the `a (b c)` one.
+
+These shouldn't work:
+
+``` repl
+pl(parse([[]]))
+```
+
+``` repl
+pl(parse([[foo ()]]))
+```
+
+``` repl
+pl(parse([[λx.(]]))
+```
+
+``` repl
+pl(parse([[λx.(]]))
+```
+
+``` repl
+pl(parse([[λx x]]))
+```
+
+Also good. Not great. But eh, "good."
+
