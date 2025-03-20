@@ -244,3 +244,71 @@ pl(parse([[λx x]]))
 
 Also good. Not great. But eh, "good."
 
+# Also unparsing the lambdas
+:pub Zl3MOZ
+:blurb String concatenation.
+
+Blargh blargh blargh. We're going to want our parentheses back:
+
+``` run
+function pstring(s)
+  return "(" .. s .. ")"
+end
+```
+
+Unparsing turns a lambda expression object thing into a string. Again with the three kinds of things:
+
+* `<identifier>` (variable reference)
+* `λ<identifier>.<exp>` (function abstraction)
+* `<exp> <exp>` (function application)
+
+It's only the function application that splits like a tree and contains more than one proper subexpression. Unparsing would work okay by slapping parantheses around the function parts and argument parts of the applications, but some of those parentheses would be unnecessary:
+
+* We never need parentheses around a variable reference. A helper function for putting parentheses around a subexpressions but only if necessary could make sense.
+* And since there's left associativity stuff, some things need parenthesis in argument positions but not in function positions. Having two helper functions could make sense.
+
+`unparse` will delegate to `funstring` and `argstring`:
+
+``` run
+function funstring(x)
+  local str = unparse(x)
+  return x.param and pstring(str) or str
+end
+
+function argstring(x)
+  local str = unparse(x)
+  return x.id and str or pstring(str)
+end
+
+-- uns the parse
+function unparse(x)
+  return
+    x.id
+    or (x.param and "λ" .. x.param .. "." .. unparse(x.body))
+    or (funstring(x.fun) .. " " .. argstring(x.arg))
+end
+```
+
+(I guess we don't _need_ parenthesis around lambda abstractions in argument positions, but I like it better with.)
+
+Another helpy testy function:
+
+``` run
+function pup(s)
+  print(unparse(parse(s)))
+end
+```
+
+Some tests:
+
+``` repl
+pup([[λx.x x]])
+pup([[(λx.((x) ((x))))]])
+pup([[λx.x λx.x]])
+pup([[λa.λb.λc.a b c]])
+pup([[λa.λb.λc.a (b c)]])
+pup([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) (λf.λx.f x)]])
+```
+
+That's it I think.
+
