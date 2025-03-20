@@ -189,12 +189,12 @@ function pl(t, indent)
   elseif t.id then
     print(spaces .. "identifier: " .. t.id)
   elseif t.param then
-    print(spaces .. "lambda parameter: " .. t.param)
+    print(spaces .. "lambda: " .. t.param)
     pl(t.body, indent + 1)
   elseif t.fun then
-    print(spaces .. "function:")
+    print(spaces .. "apply:")
     pl(t.fun, indent + 1)
-    print(spaces .. "argument:")
+    print(spaces .. "to:")
     pl(t.arg, indent + 1)
   end
 end
