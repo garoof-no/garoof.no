@@ -345,19 +345,19 @@ So if in our syntax tree we find something that looks _kind of like this:_
 
 ``` drawing
               `(app)`
-          `(λx.a x b) foo`
-             /          \
-            /            \
-        `(lam)`        `(var)`
-       `λa.a x b`       `foo`
+         `(λx.a x b) foo`
+            /          \
+           /            \
+       `(lam)`        `(var)`
+      `λa.a x b`       `foo`
            |
            |
         `(app)`
         `a x b`
+         /    \
         /      \
-       /        \
-    `(app)`   `(var)`
-     `a x`      `b`
+    `(app)`  `(var)`
+     `a x`     `b`
      /   \
     /     \
 `(var)` `(var)`
@@ -420,7 +420,7 @@ This one works out more weirdly:
 ps([[(λx.λy.x) y]])
 ```
 
-The outer `y` that is the function argument is a free variable here, but it is "captured" by the "lambda y" bit when it is substituted for `x`. We end up with `λy.y` and like that `y` wasn't supposed to be bound to that parameter.
+The outer `y` that is the function argument is a free variable here, but it is "captured" by the "lambda y" bit when it is substituted for `x`. We end up with `λy.y` and like that `y` wasn't supposed to refer to that parameter.
 
 We'll deal with that later.
 
