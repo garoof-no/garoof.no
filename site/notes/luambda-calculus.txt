@@ -1,7 +1,18 @@
-# Parsing an lambdas
+# Luambda calculus
+:template lua
+
+In which blah bla Lua bla blah lambda calculus.
+
+I've changed my mind a few times about how to do this. One large post vs. multiple smaller ones. I like small posts, but. I want a post to be self contained in the sense of having all the necessary code in the post, so eh. It's kind of split into parts at least:
+
+* ^#pub-Zl3LOZ Parsing^
+* ^#pub-Zl3MOZ Unparsing^
+* ^#pub-Zl3PFE Substitution^
+
+## Parsing an lambdas
 :pub Zl3LOZ
 :blurb Luambda calculus.
-:template lua
+
 
 Hi hello we'll reserve these characters for _stuff:_
 
@@ -9,7 +20,7 @@ Hi hello we'll reserve these characters for _stuff:_
 reserved = "λ\\.()"
 ```
 
-## Identifiers
+### Identifiers
 
 Whitespace characters and reserved ones can't be used in identifiers. An attempt to parse an identifier will start at the start of the string (`^`), skip any whitespace characters (`%s`), and then look for at least one non-whitespace-or-reserved character. Successfully parsing an identifier will return the identifier name and a remainder string for the stuff that comes after it:
 
@@ -48,7 +59,7 @@ p(identifier([[(foo)]]))
 
 Seems okay!
 
-## Lambdas
+### Lambdas
 
 We'll use "λ" for lambda but we will allow using "\\" instead, for input convenience. Uuuuuh Lua patterns are kind of not exactly regex uuuh. We'll just use two patterns. Successfully parsing a lambda will return its parameter name and a remainder string that will contain the body expression of the lambda. (So "successfully" here just means that the "lambda, parameter, dot" part is fine, not that the full expression is okay and well formed and stuff.)
 
@@ -73,7 +84,7 @@ p(lambda([[x.x x]]))
 p(lambda([[foo]]))
 ```
 
-## Parentheses
+### Parentheses
 
 Okay let's see. ^https://www.lua.org/manual/5.4/manual.html#6.4.1 Lua patterns^.
 
@@ -115,13 +126,27 @@ p(nothing("foo"))
 p(nothing("      foo"))
 ```
 
-## The entire thing
+### The entire thing
 
 So those should kind of be the things that can be combined to make the things. An expression is one of the following:
 
 * `<identifier>` (variable reference)
 * `λ<identifier>.<exp>` (function abstraction)
 * `<exp> <exp>` (function application)
+
+``` run
+function var(id)
+  return { var = id }
+end
+
+function lam(param, body)
+  return { param = param, body = body }
+end
+
+function app(fun, arg)
+  return { fun = fun, arg = arg }
+end
+```
 
 And we have kind of dealt with variables references and function abstractions. And the parenthesis stuff has _something_ to do with function application. Um.
 
@@ -136,12 +161,12 @@ So there's some "one thing" vs. "a series of things" stuff. Let's see how it goe
 ``` run
 function parseone(s)
   local res, rest = identifier(s)
-  if res then return { id = res }, rest end
+  if res then return var(res), rest end
   res, rest = lambda(s)
   if res then
     local body = parse(rest)
     if body.error then return body, ""
-    else return { param = res, body = body }, ""
+    else return lam(res, body), ""
     end
   end
   res, rest = parens(s)
@@ -166,7 +191,7 @@ function parse(s)
   if #list == 0 then return { error = "found: nothing. expected: something." } end
   local res = list[1]
   for i = 2, #list do
-    res = { fun = res, arg = list[i] }
+    res = app(res, list[i])
   end
   return res
 end
@@ -186,8 +211,8 @@ function pl(t, indent)
   local spaces = ("  "):rep(indent)
   if t.error then
     print(spaces .. "error: " .. t.error)
-  elseif t.id then
-    print(spaces .. "identifier: " .. t.id)
+  elseif t.var then
+    print(spaces .. "var: " .. t.var)
   elseif t.param then
     print(spaces .. "lambda: " .. t.param)
     pl(t.body, indent + 1)
@@ -244,7 +269,7 @@ pl(parse([[λx x]]))
 
 Also good. Not great. But eh, "good."
 
-# Also unparsing the lambdas
+## Also unparsing the lambdas
 :pub Zl3MOZ
 :blurb String concatenation.
 
@@ -277,13 +302,13 @@ end
 
 function argstring(x)
   local str = unparse(x)
-  return x.id and str or pstring(str)
+  return x.var and str or pstring(str)
 end
 
 -- uns the parse
 function unparse(x)
   return
-    x.id
+    x.var
     or (x.param and "λ" .. x.param .. "." .. unparse(x.body))
     or (funstring(x.fun) .. " " .. argstring(x.arg))
 end
@@ -311,4 +336,91 @@ pup([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) (λf.λx.f x)]])
 ```
 
 That's it I think.
+
+## Substituting stuff for variable references
+:pub Zl3PFE
+:blurb The pubst-subst pattern.
+
+So if in our syntax tree we find something that looks _kind of like this:_
+
+``` drawing
+              `(app)`
+          `(λx.a x b) foo`
+             /          \
+            /            \
+        `(lam)`        `(var)`
+      `λa.a foo b`      `foo`
+           |
+           |
+        `(app)`
+       `a foo a`
+        /      \
+       /        \
+    `(app)`   `(var)`
+     `a x`      `a`
+     /   \
+    /     \
+`(var)` `(var)`
+  `a`    `foo`
+ 
+``` Syntax tree for `(λx.a x b) foo`
+
+Like, if there's some function application that has a lambda/function abstraction as its _function part,_ then we can do a rewrite. It doesn't matter what the argument part of the application is. As long as the _function part_ is a lambda we're good, and can:
+
+* Substitute the function argument for every reference to the lambda parameter within the lambda body
+* And replace the entire function application with that modified lambda body
+
+So if we have `(λx.a x b) foo`, we can substitute `foo` for `x` in `a x b`, and get `a foo b`.
+
+The `subst` function will take substitute `replacement` for every reference to `var` in `exp`:
+
+``` run
+function subst(replacement, var, exp)
+  local function halp(x)
+    return
+      (x.var == var and replacement)
+      or (x.param and x.param ~= var and lam(x.param, halp(x.body)))
+      or (x.fun and app(halp(x.fun), halp(x.arg)))
+      or x
+  end
+  return halp(exp)
+end
+```
+
+Variable references to `var` are replaced with `replacement`. We recursively handle lambda bodies _if_ the lambda parameter does not shadow `var` (cos then the outer `var` can't be referred to from within that body). And we recursively handle the function and argument parts of function applications.
+
+Testing: This kind of "application with a lambda argument" formation can appear wherever in the syntax tree, but we're not dealing with that right now and will test with expressions where a suitable function application is the top/outermost thing. Here's a helper function:
+
+``` run
+function ps(str)
+  local app = parse(str)
+  local lam = app.fun
+  print(unparse(subst(app.arg, lam.param, lam.body)))
+end
+```
+
+And a test:
+
+```repl
+ps([[(λx.a x b) foo]])
+```
+
+Some more:
+
+```repl
+ps([[(λx.a x) (λy.y y)]])
+ps([[(λx.a x (λy.b x)) foo]])
+ps([[(λx.a x (λx.b x)) foo]])
+```
+Those are fine and the shadowing stuff works like it should.
+
+This one works out more weirdly:
+
+```repl
+ps([[(λx.λy.x) y]])
+```
+
+The outer `y` that is the function argument is a free variable here, but it is "captured" by the "lambda y" bit when it is substituted for `x`. We end up with `λy.y` and like that `y` wasn't supposed to be bound to that parameter.
+
+We'll deal with that later.
 
