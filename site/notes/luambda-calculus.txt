@@ -349,19 +349,19 @@ So if in our syntax tree we find something that looks _kind of like this:_
              /          \
             /            \
         `(lam)`        `(var)`
-      `λa.a foo b`      `foo`
+       `λa.a x b`       `foo`
            |
            |
         `(app)`
-       `a foo a`
+        `a x b`
         /      \
        /        \
     `(app)`   `(var)`
-     `a x`      `a`
+     `a x`      `b`
      /   \
     /     \
 `(var)` `(var)`
-  `a`    `foo`
+  `a`     `x`
  
 ``` Syntax tree for `(λx.a x b) foo`
 
