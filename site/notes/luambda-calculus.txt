@@ -422,7 +422,7 @@ The outer `y` that is the function argument is a free variable here, but it is "
 
 We'll deal with that later.
 
-## Free and bound variables
+## Free variables
 :blurb Function abstraction is a prison.
 :pub Zl3SLQ
 
@@ -447,7 +447,7 @@ When a variable reference appears in an expression it is either a "free" or a "b
 
 So in `(λx.λy.x) y`, the rightmost variable reference, the `y`, is free. The `x` within the lambdas is bound to the parameter of the outermost lambda. And our problem here is that we want to substitute the free `y` for that `x` but we don't want it to "become bound" by the inner lambda with the `y` parameter.
 
-Side note: We tend to look at a sub-expression and say stuff like "`y` is a free variable _in_ `(λx.λy.x) y`." This might not be the full expression we're working with and `y` could very well be bound to the parameter of some outer lambda if we looked at the whole thing, like if the whole thing was `λy.(λx.λy.x) y`. This would be equally problematic, since doing the same rewrite within that expression would change the `y` reference from refering to the outermost `y` parameter to the innermost one. But like that's a nice thing, kind of: If a variable reference is free _in_ the argument of a function application, then it's possible for it to get captured. We don't need to think to much about the surrounding context.
+Side note: We tend to look at a sub-expression and say stuff like "`y` is a free variable _in_ `(λx.λy.x) y`." This might not be the full expression we're working with and `y` could very well be bound to the parameter of some outer lambda if we looked at the whole thing, like if the whole thing was `λy.(λx.λy.x) y`. This would be equally problematic, since doing the same rewrite within that expression would change the `y` reference from refering to the outermost `y` parameter to the innermost one. But like that's a nice thing, kind of: If a variable reference is free _in_ the argument of a function application, then it's possible for it to get captured. We don't need to think too much about the surrounding context.
 
 A function for finding free variables will be useful:
 
