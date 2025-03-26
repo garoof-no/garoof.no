@@ -360,8 +360,7 @@ So if in our syntax tree we find something that looks _kind of like this:_
      /   \
     /     \
 `(var)` `(var)`
-  `a`     `x`
- 
+  `a`     `x` 
 ``` Syntax tree for `(λx.a x b) foo`
 
 Like, if there's some function application that has a lambda/function abstraction as its _function part,_ then we can do a rewrite. It doesn't matter what the argument part of the application is. As long as the _function part_ is a lambda we're good, and can:
@@ -422,4 +421,79 @@ ps([[(λx.λy.x) y]])
 The outer `y` that is the function argument is a free variable here, but it is "captured" by the "lambda y" bit when it is substituted for `x`. We end up with `λy.y` and like that `y` wasn't supposed to refer to that parameter.
 
 We'll deal with that later.
+
+## Free and bound variables
+:blurb Function abstraction is a prison.
+:pub Zl3SLQ
+
+When a variable reference appears in an expression it is either a "free" or a "bound" variable. It is bound if it appears somewhere within the body of a lambda that has a parameter with the same name, and it is bound to(?) that parameter. And if that's not the case then it's free. I'm not super certain about the terminology here and whenever I look it up in order to make sure I'm using the words correctly I get a little confused by what I find, but uh that's what those words are going to mean here.
+
+``` drawing
+      `(app)`
+   `(λx.λy.x) y`
+      /        \
+     /          \
+ `(lam)`      `(free)`
+`λx.λy.x`       `y`
+    |
+    |
+ `(lam)`
+  `λy.x`
+      | 
+      |  
+  `(bound)`
+     `x`
+``` Syntax tree for `(λx.λy.x) y` with variable references marked as bound/free
+
+So in `(λx.λy.x) y`, the rightmost variable reference, the `y`, is free. The `x` within the lambdas is bound to the parameter of the outermost lambda. And our problem here is that we want to substitute the free `y` for that `x` but we don't want it to "become bound" by the inner lambda with the `y` parameter.
+
+Side note: We tend to look at a sub-expression and say stuff like "`y` is a free variable _in_ `(λx.λy.x) y`." This might not be the full expression we're working with and `y` could very well be bound to the parameter of some outer lambda if we looked at the whole thing, like if the whole thing was `λy.(λx.λy.x) y`. This would be equally problematic, since doing the same rewrite within that expression would change the `y` reference from refering to the outermost `y` parameter to the innermost one. But like that's a nice thing, kind of: If a variable reference is free _in_ the argument of a function application, then it's possible for it to get captured. We don't need to think to much about the surrounding context.
+
+A function for finding free variables will be useful:
+
+``` run
+function free(exp)
+  local bound, res = {}, {}
+  function halp(x)
+    if x.var then
+      if not bound[x.var] then res[x.var] = true end
+    elseif x.param then
+      local new = not bound[x.param]
+      if new then bound[x.param] = true end
+      halp(x.body)
+      if new then bound[x.param] = nil end
+    else
+      halp(x.fun)
+      halp(x.arg)
+    end
+  end
+  halp(exp)
+  return res
+end 
+```
+
+That was stateful and awkward, I mean that was fun. Lua sets are typically tables where the the keys are the elements we're interested in and the values are all `true` or something. Like `<set>[<element>] = true` adds an element to a set and `<set>[<element>] = nil` removes an element.
+
+Another helper function for testing:
+
+``` run
+function pf(str)
+  local res = {}
+  for k, _ in pairs(free(parse(str))) do
+    table.insert(res, k)
+  end
+  print(table.concat(res, ", "))
+end
+```
+
+And some tests:
+
+``` repl
+pf([[(λx.λy.x) y]])
+pf([[λy.(λx.λy.x) y]])
+pf([[λy.(λx.λy.z) y]])
+pf([[λy.(λx.λy.z) a]])
+```
+
+Is fine.
 
