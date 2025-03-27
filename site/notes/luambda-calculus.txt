@@ -8,6 +8,9 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3LOZ Parsing^
 * ^#pub-Zl3MOZ Unparsing^
 * ^#pub-Zl3PFE Substitution^
+* ^#pub-Zl3PFE Substitution^
+* ^#pub-Zl3SLQ Free variables^
+* ^#pub-Zl3TKp Renaming a variable^
 
 ## Parsing an lambdas
 :pub Zl3LOZ
@@ -368,7 +371,7 @@ Like, if there's some function application that has a lambda/function abstractio
 * Substitute the function argument for every reference to the lambda parameter within the lambda body
 * And replace the entire function application with that modified lambda body
 
-So if we have `(λx.a x b) foo`, we can substitute `foo` for `x` in `a x b`, and get `a foo b`.
+So if we have `(λx.a x b) foo`, we can substitute `foo` for `x` in `a x b`, and get `a foo b`. This is called "beta reduction."
 
 The `subst` function will take substitute `replacement` for every reference to `var` in `exp`:
 
@@ -496,4 +499,93 @@ pf([[λy.(λx.λy.z) a]])
 ```
 
 Is fine.
+
+## Renaming a variable
+:pub A rose with any other name, renamed by a capture-avoiding substitution, would
+:pub Zl3TKp
+
+Okay okay okay, so! We have `(λx.λy.x) y`, we wanna do the beta reduction thing, but the argument `y` is kind of in conflict with the inner lambda `y`. But if we rename the lambda `y` to like `a` or something then we can avoid the conflict. `(λx.λy.x) y` is "alpha equivalent" to `(λx.λa.x) y`. We can rename things however we'd like, as long as we don't mess up which references go with which parameters, and the expressions will kind of have the same "meaning." `λx.λy.y x` is alpha equivalent to `λa.λb.b a` and so on and etc.
+
+We'll make a function for renaming the parameter of a lambda and all the references to it. Or actually we won't. `subst` pretty much does that:
+
+``` repl
+local exp = parse([[λy.x]])
+print(unparse(lam("a", subst(var("a"), exp.param, exp.body))))
+```
+
+Something like that. If we have found the lambda that's causing the conflict, we can rename its parameter like that. `subst` would take case of all the references to the parameter, but since this is a horrible example there aren't any in this one :)
+
+Anyway `subst` does the stuff and we mostly just have to deal with finding a new name. We should avoid any names that appear as free variables in either the argument expression or in the body of the lambda where we're doing the renaming. We kind of might as well just avoid all names that are in use in the entire function application, or maybe the entire expression we're working with. Also it's nice if the new name has something to do with the old one instead of just being something random. Like `x` being renamed `x2` could seem more sensible to a human than if it's being renamed to like `asdzxcsar` or something.
+
+`all` is kind of like `free` but simpler:
+
+``` run
+function all(exp)
+  local res = {}
+  function halp(x)
+    if x.var then
+      res[x.var] = true
+    elseif x.param then
+      res[x.param] = true
+      halp(x.body)
+    else
+      halp(x.fun)
+      halp(x.arg)
+    end
+  end
+  halp(exp)
+  return res
+end 
+```
+
+And its test helper function is similar to `free`'s test helper function:
+
+``` run
+function af(str)
+  local res = {}
+  for k, _ in pairs(all(parse(str))) do
+    table.insert(res, k)
+  end
+  print(table.concat(res, ", "))
+end
+```
+
+Test:
+
+``` repl
+af([[(λx.λy.x) y]])
+af([[(λa.λb.c) d]])
+af([[λx.x]])
+```
+
+And `unique` will return a new name that is based on the `name` argument and also is not in the `used` argument set:
+
+``` run
+idsplit = "^([^%s" .. reserved .. "]-)(%d*)$"
+function unique(name, used)
+  local start, num = name:match(idsplit)
+  num = num == "" and 1 or tonumber(num)
+  while true do
+    num = num + 1
+    local new = start .. num
+    if not used[new] then return new end
+  end
+end
+```
+
+Test:
+
+``` repl
+local used = all(parse([[x x2 y]]))
+print(unique("x", used))
+print(unique("x1", used))
+print(unique("x2", used))
+print(unique("x3", used))
+print(unique("y", used))
+print(unique("a2b", used))
+print(unique("a2b3", used))
+print(unique("a2b3e", used))
+```
+
+Bit of a "lambda core utils" detour, but uh. Yeah. I think most of the utils are dealt with now at least...
 
