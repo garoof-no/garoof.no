@@ -17,6 +17,7 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3SLQ Free variables^
 * ^#pub-Zl3TKp Renaming a variable^
 * ^#pub-Zl3W0a Eval^
+* ^#pub-Zl3WFI REPL stuff^
 
 ### Oh btw "cases"
 
@@ -769,6 +770,8 @@ eval([[(λx.x x) (λx.x x)]], 100)
 Blap.
 
 ## Lambda REPL stuff
+:blurb Practical.
+:pub Zl3WFI
 
 The stuff for evaluating expressions is like done, but in order to make it _practical_ lambda calculus, it's nice to have some additional stuff for convenience. Let's support having a list of definitions:
 
