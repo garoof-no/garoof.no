@@ -1,62 +1,105 @@
 "use strict";
-(() => {
+const luarun = (() => {
   const elem = (tagName, props, ...children) => {
     const el = Object.assign(document.createElement(tagName), props);
     el.replaceChildren(...children);
     return el;
   };
-  let currentOut = null;
-  let outStr = null;
-  const print = (str) => {
-    if (currentOut !== null) {
-      currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
-    } else {
-      console.log(str);
-    }
-  };
-  const err = (str) => {
-    if (outStr !== null) {
-      outStr += ` ${str}`;
-      return;
-    }
-    if (currentOut !== null) {
-      currentOut.lastElementChild.append(
-        elem("span", { className: "error" }, str),
-        "\n"
-      );
-    } else {
-      console.log(str);
-    }
-  };
-  const show = (str) => {
-    if (outStr !== null) {
-      outStr += ` ${str}`;
-    } else {
-      console.log(str);
-    }
-  };
-  const html = (str) => {
-    if (currentOut !== null) {
-      const el = elem("div", {});
-      el.innerHTML = str;
-      currentOut.append(el, elem("pre", { className: "output" }));
-    } else {
-      console.log("html: " + str);
+
+  let currentHandler = null;
+  const handle = (code, payload) => {
+    if (currentHandler && currentHandler[code]) {
+      currentHandler[code](payload);
+    } else if (code === "print") {
+      console.log(payload);
+    } else if (code === "error") {
+      console.error(payload);
+    } else if (code !== "return" || payload !== "") {
+      console.log(`${code}:\n${payload}`);
     }
   };
 
+  const handler = (currentOut, outStr) => {
+    return Object.assign(
+      Object.create(null),
+      {
+        return: (str) => {
+          if (str !== "") {
+            console.log(`return: "${str}"`);
+          }
+        },
+        print: (str) => {
+          if (currentOut) {
+            currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
+          } else {
+            console.log(str);
+          }
+        },
+        error: (str) => {
+          if (outStr) {
+            outStr += ` ${str}`;
+            return;
+          }
+          if (currentOut) {
+            currentOut.lastElementChild.append(
+              elem("span", { className: "error" }, str),
+              "\n"
+            );
+          } else {
+            console.log(str);
+          }
+        },
+        show: (str) => {
+          if (outStr) {
+            outStr += ` ${str}`;
+          } else {
+            console.log(str);
+          }
+        },
+        html: (str) => {
+          if (currentOut) {
+            const el = elem("div", {});
+            el.innerHTML = str;
+            currentOut.append(el, elem("pre", { className: "output" }));
+          } else {
+            console.log("html: " + str);
+          }
+        },
+        read: (str) => {
+          if (currentOut === null) {
+            console.log("read: " + str);
+          }
+          const inp = elem("input");
+          const myrun = () => run(luaresume, `return ${luastr(inp.value)}`, handler(currentOut, outStr));
+          inp.onkeyup = (e) => {
+            if (e.key === "Enter") {
+              myrun();
+            }
+          };
+          const el = str === "" ? inp : elem("label", {}, `${str} `, inp);
+          const button = elem(
+            "button",
+            { onclick: myrun },
+            "▶"
+          );
+          resume = [inp, button];
+          currentOut.lastElementChild.append(el, button, "\n");
+          inp.focus();
+        }
+      });
+  };
 
   const luaplain = `return function(f) return f() end`;
   const luarun = `return web.run`;
   const luashow = `return function(f) web.show(show(f())) end`;
   const luaresume = `return web.resume`;
   
-  
   let Module;
 
   let resume = [];
 
-  const run = (runner, code) => {
+  const run = (runner, code, handler) => {
+    currentHandler = handler;
     resume.forEach(x => { x.disabled = true; });
     resume = [];
     Module.ccall("run_lua", "number", ["string", "string"], [runner, code]);
@@ -74,28 +117,6 @@
       i++;
     }
   };
-
-  const read = (str) => {
-    if (currentOut === null) {
-      console.log("read: " + str);
-    }
-    const inp = elem("input");
-    const myrun = () => run(luaresume, `return ${luastr(inp.value)}`);
-    inp.onkeyup = (e) => {
-      if (e.key === "Enter") {
-        myrun();
-      }
-    };
-    const el = str === "" ? inp : elem("label", {}, `${str} `, inp);
-    const button = elem(
-      "button",
-      { onclick: myrun },
-      "▶"
-    );
-    resume = [inp, button];
-    currentOut.lastElementChild.append(el, button, "\n");
-    inp.focus();
-  };
   
   let ModuleConfig = {
     print: (function () {
@@ -104,7 +125,7 @@
           text = arguments.join(" ");
         }
         if (text != "emsc") {
-          print(text);
+          handle("print", text);
         }
       };
     })(),
@@ -112,33 +133,9 @@
       if (arguments.length > 1) {
         text = arguments.join(" ");
       }
-      if (currentOut !== null) {
-        currentOut.lastElementChild.append(
-          elem("span", { className: "error" }, text),
-          elem("br")
-        );
-      } else {
-        console.error(text);
-      }
+      handle("error", text);
     },
-    send: (code, payload) => {
-      if (code === "return") {
-        if (payload === "") {
-          return;
-        }
-        print("return: " + payload);
-      } else if (code === "error") {
-        err(payload);
-      } else if (code === "show") {
-        show(payload);
-      } else if (code === "html") {
-          html(payload);
-      } else if (code === "read") {
-        read(payload);
-      } else {
-        console.error(`unkown code sent from Lua. code: "%o". payload: %o`, code, payload);
-      }
-    }
+    send: handle
   };
 
   const create = (element) => {
@@ -175,8 +172,7 @@
     };
 
     const myrun = (str) => {
-      currentOut = out;
-      run(luarun, str);
+      run(luarun, str, handler(out));
     };
 
     if (element.classList.contains("run")) {
@@ -187,17 +183,15 @@
         if ((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "Enter") {
           e.preventDefault();
           const sel = selected();
-          currentOut = out;
-          outStr = "";
           let code;
           let runner;
           if (e.shiftKey) {
-            run(luarun, sel.str);
+            run(luarun, sel.str, handler(out, outStr));
           } else {
-            run(luashow, `return ${sel.str}`);
+            run(luashow, `return ${sel.str}`, handler(out, outStr));
           }
           insert(outStr, sel.pos);
-          outStr = null;
+          currentHandler = handler(out);
         }
       };
     
@@ -282,4 +276,5 @@
       };
     });
   });
+  return run;
 })();
