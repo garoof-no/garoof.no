@@ -1,7 +1,7 @@
 # Luambda calculus
 :template lua
 
-In which blah bla Lua bla blah lambda calculus.
+Maybe I wanna do my lambda things with Lua instead of <previous thing>. This is kind of devbloggy I guess. Writing it down as I go.
 
 I've changed my mind a few times about how to do this. One large post vs. multiple smaller ones. I like small posts, but. I want a post to be self contained in the sense of having all the necessary code in the post, so eh. It's kind of split into parts at least:
 
@@ -11,6 +11,17 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3PFE Substitution^
 * ^#pub-Zl3SLQ Free variables^
 * ^#pub-Zl3TKp Renaming a variable^
+* ^#pub-Zl3W0a Eval^
+
+### Oh btw "cases"
+
+A thing that comes up a fair amount is that in some function there's a lambda calculus expression passed in as an argument and we wanna do like case analysis and do different stuff depending on which it is: Variable reference, function abstraction or function application. I have in the past often done that by pattern matching or something, something kind of structured with named cases. In the Lua code below it's mostly just if-elseing and checking stuff like:
+
+* If `<exp>.param` then that means <exp> (has a parameter so) it must be a lambda
+* If `<exp>.fun` then it must be a function application
+* And if `<exp>.var` then that means it's a variable reference
+
+Also stuff like `<exp>.var == <name>` combines checking if something is a variable reference with checking if it refers to the <name> I am interested in. And like sometimes I do or-and-Lua-isms instead of if-else. I dunno. Some times I do stuff that feels maybe more structured and disciplined than this, but I think doing it this way is kind of fun too. Oh well.
 
 ## Parsing an lambdas
 :pub Zl3LOZ
@@ -501,7 +512,7 @@ pf([[λy.(λx.λy.z) a]])
 Is fine.
 
 ## Renaming a variable
-:pub A rose with any other name, renamed by a capture-avoiding substitution, would
+:blurb A rose with any other name, renamed by a capture-avoiding substitution, would
 :pub Zl3TKp
 
 Okay okay okay, so! We have `(λx.λy.x) y`, we wanna do the beta reduction thing, but the argument `y` is kind of in conflict with the inner lambda `y`. But if we rename the lambda `y` to like `a` or something then we can avoid the conflict. `(λx.λy.x) y` is "alpha equivalent" to `(λx.λa.x) y`. We can rename things however we'd like, as long as we don't mess up which references go with which parameters, and the expressions will kind of have the same "meaning." `λx.λy.y x` is alpha equivalent to `λa.λb.b a` and so on and etc.
@@ -517,7 +528,7 @@ Something like that. If we have found the lambda that's causing the conflict, we
 
 Anyway `subst` does the stuff and we mostly just have to deal with finding a new name. We should avoid any names that appear as free variables in either the argument expression or in the body of the lambda where we're doing the renaming. We kind of might as well just avoid all names that are in use in the entire function application, or maybe the entire expression we're working with. Also it's nice if the new name has something to do with the old one instead of just being something random. Like `x` being renamed `x2` could seem more sensible to a human than if it's being renamed to like `asdzxcsar` or something.
 
-`all` is kind of like `free` but simpler:
+`all` finds all identifiers used in an expression. It's similar to `free` but simpler:
 
 ``` run
 function all(exp)
@@ -541,7 +552,7 @@ end
 And its test helper function is similar to `free`'s test helper function:
 
 ``` run
-function af(str)
+function pa(str)
   local res = {}
   for k, _ in pairs(all(parse(str))) do
     table.insert(res, k)
@@ -553,12 +564,12 @@ end
 Test:
 
 ``` repl
-af([[(λx.λy.x) y]])
-af([[(λa.λb.c) d]])
-af([[λx.x]])
+pa([[(λx.λy.x) y]])
+pa([[(λa.λb.c) d]])
+pa([[λx.x]])
 ```
 
-And `unique` will return a new name that is based on the `name` argument and also is not in the `used` argument set:
+The `unique` function will return a new name that is based on the `name` argument and also is not in the `used` argument set:
 
 ``` run
 idsplit = "^([^%s" .. reserved .. "]-)(%d*)$"
@@ -587,5 +598,165 @@ print(unique("a2b3", used))
 print(unique("a2b3e", used))
 ```
 
-Bit of a "lambda core utils" detour, but uh. Yeah. I think most of the utils are dealt with now at least...
+Beep boop. There's a conflict if:
+
+* In the body of the lambda that is the function part of a function application
+* There is a lambda with a parameter whose name also appear as a free variable in the argument part of the function application
+* And within the body of _that_ lambda there is a reference to the parameter of the outer function-application-lambda
+
+The `rename` function will take a reducible function application as its argument. If there's a conflict it will do one bit of renaming and return a new expression. If there isn't it will return nil.
+
+``` run
+function rename(exp)
+  local param = exp.fun.param
+  local argfree = free(exp.arg)
+  local function halp(x)
+    if x.var then return nil
+    elseif x.param == param then return nil
+    elseif argfree[x.param] and free(x.body)[param] then
+      local new = unique(x.param, all(exp))
+      return lam(new, subst(var(new), x.param, x.body))
+    elseif x.param then
+      local body = halp(x.body)
+      return body and lam(x.param, body)
+    else
+      local fun = halp(x.fun)
+      if fun then return app(fun, x.arg) end
+      local arg = halp(x.arg)
+      return arg and app(x.fun, arg)
+    end
+  end
+  local body = halp(exp.fun.body)
+  return body and app(lam(param, body), exp.arg)
+end
+```
+
+Test halpy function:
+
+``` run
+function pr(str)
+  local res = rename(parse(str))
+  print(res and unparse(res))
+end
+```
+
+Test:
+
+``` repl
+pr([[(λx.λy.x) y]])
+pr([[(λx.λy.x y) y]])
+pr([[(λx.λx.x) y]])
+```
+
+Mlep.
+
+## Luambda eval
+:blurb Bla bla bla.
+:pub Zl3W0a
+
+Attempting a `step` of evaluation will result in one of three things:
+
+* Normal: A nothing-step, if there's nothing to do (the expression is in normal form/there's no function application in it that can be reduced).
+* Reduction: One beta-reduction rewrite.
+* Rename: One rename of a lambda parameter and the variable references to it, in order to avoid variable capture in a beta-reduction that'll come in a later step.
+
+``` run
+function step(exp)
+  if exp.var then return "normal", exp
+  elseif exp.param then
+    local res, body = step(exp.body)
+    return res, lam(exp.param, body)
+  else
+    if exp.fun.param then
+      local renamed = rename(exp)
+      if renamed then
+        return "rename", renamed
+      else
+        return "reduction", subst(exp.arg, exp.fun.param, exp.fun.body)
+      end
+    else
+      local res, fun = step(exp.fun)
+      if res ~= "normal" then
+        return res, app(fun, exp.arg)
+      else
+        local res, arg = step(exp.arg)
+        return res, app(fun, arg)
+      end
+    end
+  end
+end
+```
+
+And `eval` will parse a string and then and do a bunch of steps:
+
+``` run
+function eval(str, steps)
+  local res, exp = nil, parse(str)
+  if exp.error then
+    print(exp.error)
+    return
+  end
+  local i = 0
+  while res ~= "normal" and (not steps or i < steps) do
+    print(unparse(exp))
+    i = i + 1
+    res, exp = step(exp)
+  end
+end
+```
+
+Testing:
+
+``` repl
+eval([[(λx.x) foo]])
+```
+
+``` repl
+eval([[λx.x]])
+```
+
+``` repl
+eval([[(λx.λy.y x) foo bar]])
+```
+
+``` repl
+eval([[(λx.λy.x) (foo bar)]])
+```
+
+``` repl
+eval([[(boop (λx.λy.x)) (foo bar)]])
+```
+
+``` repl
+eval([[(λx.λy.x y) y]])
+```
+
+``` repl
+eval([[(λx.λx.x) y]])
+```
+
+Good and fine. Does the extremely good error reporting work?
+
+``` repl
+eval([[(λx.x) (λyλ]])
+```
+
+No good is good. Let's addition:
+
+``` repl
+local two = [[λf.λx.f (f x)]]
+local three = [[λf.λx.f (f (f x))]]
+local plus = [[λa.λb.λf.λx.a f (b f x)]]
+eval("(" .. plus .. ") (" .. two .. ") (" .. three .. ")")
+```
+
+It's five!
+
+If we wanna make something infinite run for not forever we can say how many steps we wanna do:
+
+``` repl
+eval([[(λx.x x) (λx.x x)]], 100)
+```
+
+Okay bye.
 
