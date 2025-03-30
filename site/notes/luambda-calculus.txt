@@ -14,7 +14,6 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3LOZ Parsing^
 * ^#pub-Zl3MOZ Unparsing^
 * ^#pub-Zl3PFE Substitution^
-* ^#pub-Zl3PFE Substitution^
 * ^#pub-Zl3SLQ Free variables^
 * ^#pub-Zl3TKp Renaming a variable^
 * ^#pub-Zl3W0a Eval^
@@ -36,7 +35,7 @@ Also stuff like `<exp>.var == <name>` combines checking if something is a variab
 Hi hello we'll reserve these characters for _stuff:_
 
 ``` run
-reserved = "λ\\.()"
+reserved = "λ\\≜:=.()"
 ```
 
 ### Identifiers
@@ -767,5 +766,157 @@ If we wanna make something infinite run for not forever we can say how many step
 eval([[(λx.x x) (λx.x x)]], 100)
 ```
 
-Okay bye.
+Blap.
+
+## Lambda REPL stuff
+
+The stuff for evaluating expressions is like done, but in order to make it _practical_ lambda calculus, it's nice to have some additional stuff for convenience. Let's support having a list of definitions:
+
+``` run
+function adddef(defs, name, exp)
+  if not defs[name] then table.insert(defs, name) end
+  defs[name] = exp
+end
+function removedef(defs, name)
+  defs[name] = nil
+  local found = false
+  for i = 1, #defs do
+    if defs[i] == name then found = true end
+    if found then defs[i] = defs[i + 1] end
+  end
+end
+```
+
+For testing:
+
+``` run
+function pd(defs)
+  local res = {}
+  for _, name in ipairs(defs) do
+    table.insert(res, name .. " = " .. defs[name])
+  end
+  print(table.concat(res, ", "))
+end
+```
+
+We're going to use it with parsed expressions, but we can test it with just some strings:
+
+``` repl
+local defs = {}
+adddef(defs, "x", "foo")
+pd(defs)
+adddef(defs, "y", "bar")
+pd(defs)
+adddef(defs, "z", "baz")
+pd(defs)
+adddef(defs, "y", "blep")
+pd(defs)
+removedef(defs, "y")
+pd(defs)
+adddef(defs, "y", "bar")
+pd(defs)
+removedef(defs, "x")
+pd(defs)
+removedef(defs, "x")
+pd(defs)
+removedef(defs, "y")
+pd(defs)
+removedef(defs, "z")
+pd(defs)
+```
+
+This is probably mostly just preference stuff:
+
+* Ordered list stuff because I do like to allow definitions to use other defintions, but I also only like to let later ones referer to earlier ones.
+* Adding a previously defined name overwrites that definition and doesn't move it to the end of the list.
+* Removing a name that is not defined is a no-op.
+
+In order to let newer definitions refer to older ones we run through the list in reverse order and use `subst` to replace stuff in an expression:
+
+``` run
+function replacedefs(defs, exp)
+  for i = #defs, 1, -1 do
+    exp = subst(defs[defs[i]], defs[i], exp)
+  end
+  return exp
+end
+```
+
+Probably works! We'll find out later.
+
+We will use `≜` or `:=` to make definitions.
+
+``` run
+defdef = "^" .. id .. "%s*≜" .. "%s*(.*)"
+defequal = "^" .. id .. "%s*:=" .. "%s*(.*)"
+function def(s)
+  local res, rest = s:match(defdef)
+  if res then return res, rest end
+  return s:match(defequal)
+end
+```
+
+Testing:
+
+``` repl
+p(def([[id ≜ λx.x x]]))
+p(def([[0 := λf.λx.x x]]))
+p(def([[id ≜]]))
+p(def([[λx.x x]]))
+```
+
+We'll undefine terms by not having an expression following the `≜`/`:=`, so this should be all we need.
+
+`makerepl` makes REPL:
+
+``` run
+function makerepl()
+  local defs = {}
+  return {
+    execute = function(str)
+      local name, rest = def(str)
+      if name then
+        print(name, rest)
+        if nothing(rest) then
+          removedef(defs, name)
+        else
+          local exp = parse(rest)
+          if exp.error then print(exp.error)
+          else
+            adddef(defs, name, exp)
+            print(name .. " is defined :)")
+          end
+        end
+      else eval(str, 1000)
+      end
+    end,
+    replacedefs = function(str)
+      local exp = parse(str)
+      if exp.error then print(exp.error)
+      else print(unparse(replacedefs(defs, exp)))
+      end
+    end
+  }
+end
+```
+
+Bit of testing:
+
+``` repl
+local repl = makerepl()
+
+repl.execute([[2 ≜ λf.λx.f (f x)]])
+repl.execute([[+ ≜ λa.λb.λf.λx.a f (b f x)]])
+repl.execute([[4 ≜ + 2 2]])
+repl.execute([[+ 2 4]])
+repl.replacedefs([[+ 2 4]])
+```
+
+Trying to execute `+ 2 4` doesn't do much, but replacing the defined names with their definitions works. Is how I want it to be. The REPL thing just prints stuff and doesn't e.g. return a useful value to the caller. I think that should be okay. We'll just manually test the string it printed here:
+
+``` repl
+makerepl().execute([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) ((λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) (λf.λx.f (f x)))]])
+```
+
+I think that's enough REPL. Maybe plug it into web page later.
 

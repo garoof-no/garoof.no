@@ -20,20 +20,23 @@ const luarun = (() => {
   };
 
   const handler = (currentOut, outStr) => {
+    const print = (str) => {
+      if (currentOut) {
+        currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
+      } else {
+        console.log(str);
+      }
+    };
     return Object.assign(
       Object.create(null),
       {
         return: (str) => {
           if (str !== "") {
-            console.log(`return: "${str}"`);
+            print(`return: "${str}"`);
           }
         },
         print: (str) => {
-          if (currentOut) {
-            currentOut.lastElementChild.append(elem("samp", {}, str), "\n");
-          } else {
-            console.log(str);
-          }
+          print(str);
         },
         error: (str) => {
           if (outStr) {
