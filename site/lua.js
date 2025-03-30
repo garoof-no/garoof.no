@@ -19,6 +19,8 @@ const luarun = (() => {
     }
   };
 
+  const outStrKey = Symbol("outstr");
+  
   const handler = (currentOut, outStr) => {
     const print = (str) => {
       if (currentOut) {
@@ -27,7 +29,8 @@ const luarun = (() => {
         console.log(str);
       }
     };
-    return Object.assign(
+    let res;
+    res = Object.assign(
       Object.create(null),
       {
         return: (str) => {
@@ -40,7 +43,7 @@ const luarun = (() => {
         },
         error: (str) => {
           if (outStr) {
-            outStr += ` ${str}`;
+            res[outStrKey] += ` ${str}`;
             return;
           }
           if (currentOut) {
@@ -54,7 +57,7 @@ const luarun = (() => {
         },
         show: (str) => {
           if (outStr) {
-            outStr += ` ${str}`;
+            res[outStrKey] += ` ${str}`;
           } else {
             console.log(str);
           }
@@ -73,7 +76,7 @@ const luarun = (() => {
             console.log("read: " + str);
           }
           const inp = elem("input");
-          const myrun = () => run(luaresume, `return ${luastr(inp.value)}`, handler(currentOut, outStr));
+          const myrun = () => run(luaresume, `return ${luastr(inp.value)}`, res);
           inp.onkeyup = (e) => {
             if (e.key === "Enter") {
               myrun();
@@ -90,6 +93,8 @@ const luarun = (() => {
           inp.focus();
         }
       });
+      res[outStrKey] = "";
+      return res;
   };
 
   const luaplain = `return function(f) return f() end`;
@@ -189,11 +194,11 @@ const luarun = (() => {
           let code;
           let runner;
           if (e.shiftKey) {
-            run(luarun, sel.str, handler(out, outStr));
+            run(luarun, sel.str, handler(out, true));
           } else {
-            run(luashow, `return ${sel.str}`, handler(out, outStr));
+            run(luashow, `return ${sel.str}`, handler(out, true));
           }
-          insert(outStr, sel.pos);
+          insert(currentHandler[outStrKey], sel.pos);
           currentHandler = handler(out);
         }
       };
