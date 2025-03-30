@@ -20,7 +20,7 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3WFI REPL stuff^
 * ^#pub-Zl3WJJ Putting it onto webpage^
 
-### Oh btw "cases"
+### Cases, Luaisms and Unstructured Programming without `go to` Statements
 
 A thing that comes up a fair amount is that in some function there's a lambda calculus expression passed in as an argument and we wanna do like case analysis and do different stuff depending on which it is: Variable reference, function abstraction or function application. I have in the past often done that by pattern matching or something, something kind of structured with named cases. In the Lua code below it's mostly just if-elseing and checking stuff like:
 
@@ -28,7 +28,9 @@ A thing that comes up a fair amount is that in some function there's a lambda ca
 * If `<exp>.fun` then it must be a function application
 * And if `<exp>.var` then that means it's a variable reference
 
-Also stuff like `<exp>.var == <name>` combines checking if something is a variable reference with checking if it refers to the <name> I am interested in. And like sometimes I do or-and-Lua-isms instead of if-else. I dunno. Some times I do stuff that feels maybe more structured and disciplined than this, but I think doing it this way is kind of fun too. Oh well.
+Also stuff like `<exp>.var == <name>` combines checking if something is a variable reference with checking if it refers to the <name> I am interested in. And like sometimes I do or-and-Luaisms instead of if-else. I dunno. So like at other times I might do stuff that feels maybe more structured and disciplined than this, but I think doing it this way is kind of fun too.
+
+And also there's some helper/util stuff that I've done in the past but don't do here. Things like mapping over the result of parsing a string, or having a general "look for a sub-expression"-function that takes a predicate function as an argument. Some of it probably has something to do with Lua and how I do things there compared to in other languages, sometimes something to do with throwing more stateful and imperative stuff in there I think. Or I just haven't bothered: Lambda calculus isn't an enormous language with hundreds of syntax-cases to handle and there aren't that many different things I'm doing with it. Blah blah.
 
 ----
 
