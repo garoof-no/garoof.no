@@ -3,6 +3,12 @@
 
 Maybe I wanna do my lambda things with Lua instead of <previous thing>. This is kind of devbloggy I guess. Writing it down as I go.
 
+I want the thing to be able to:
+
+* Read and write lambda calculus expressions in the syntax I like
+* "Evaluate" a lambda expression one step at a time and mostly the way I would do it if I was doing it by hand
+* With a step being either a beta reduction or the renaming of a variable for capture avoidance reasons
+
 I've changed my mind a few times about how to do this. One large post vs. multiple smaller ones. I like small posts, but. I want a post to be self contained in the sense of having all the necessary code in the post, so eh. It's kind of split into parts at least:
 
 * ^#pub-Zl3LOZ Parsing^
