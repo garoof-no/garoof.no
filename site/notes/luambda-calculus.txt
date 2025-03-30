@@ -703,10 +703,13 @@ function eval(str, steps)
     return
   end
   local i = 0
-  while res ~= "normal" and (not steps or i < steps) do
-    print(unparse(exp))
+  res, exp = step(exp)
+  print(unparse(exp))
+  while not steps or i < steps do
     i = i + 1
     res, exp = step(exp)
+    if res == "normal" then return end
+    print(unparse(exp))
   end
 end
 ```
