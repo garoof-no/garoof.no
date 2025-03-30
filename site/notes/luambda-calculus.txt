@@ -879,7 +879,6 @@ function makerepl()
     execute = function(str)
       local name, rest = def(str)
       if name then
-        print(name, rest)
         if nothing(rest) then
           removedef(defs, name)
         else
@@ -922,4 +921,166 @@ makerepl().execute([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) ((λa.λb.�
 ```
 
 I think that's enough REPL. Maybe plug it into web page later.
+
+## Putting the lambdas onto the webpage
+:blurb Bunch of JS.
+:pub Zl3WJJ
+
+HTML and JS for getting a textarea with lambdas in it. A lot of it is oddly ^./webby-lua.txt "garoof dot nope Lua infrastructure"^ specific. I'll show the code like for completeness, but it's just gonna be a bunch of code with no explanation:
+
+```
+<textarea id="repl">
+2 ≜ λf.λx.f (f x)
++ ≜ λa.λb.λf.λx.a f (b f x)
+4 ≜ + 2 2
++ 2 4
+</textarea>
+<div class="toolbar">
+  <button id="execute" class="toolbar-button" title="Execute">Execute</button>
+  <button id="replacedefs" class="toolbar-button" title="Replace with definitions">Replacedefs</button>
+</div>
+<script>
+const luastr = (str) => {
+  let i = 1;
+  while (true) {
+    const eqs = "=".repeat(i);
+    const start = `[${eqs}[`
+    const stop = `]${eqs}]`
+    if (!str.includes(stop)) {
+      return `${start}${str}${stop}`;
+    }
+    i++;
+  }
+};
+const ta = document.querySelector("#repl");
+ta.setAttribute("style", `height: ${ta.clientHeight * 10}px;`);
+let pos;
+const selected = () => {
+  const str = ta.value;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  if (start !== end) {
+    pos = end;
+    return luastr(str.substring(start, end));
+  }
+  let lineStart = str.lastIndexOf("\n", start - 1) + 1;
+  if (lineStart < 0) { lineStart = 0; }
+  let lineEnd = str.indexOf("\n", start);
+  if (lineEnd < 0) { lineEnd = str.length; }
+  pos = lineEnd;
+  return luastr(str.substring(lineStart, lineEnd));
+};
+const print = (str) => {
+  ta.focus();
+  str = `\n${str}`;
+  ta.setRangeText(str, pos, pos, "end");
+  pos += str.length;
+};
+const handler = {
+  print: print,
+  error: print,
+  return: () => {}
+};
+const runner = `return web.run`;
+
+const replacedefs = () => {
+  luarun(runner, `if not repl then repl = makerepl() end ; repl.replacedefs(${selected()})`, handler);
+};
+const execute = () => {
+  luarun(runner, `if not repl then repl = makerepl() end; repl.execute(${selected()})`, handler);
+};
+ta.onkeyup = (e) => {
+  if ((e.ctrlKey || e.altKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    execute();
+  } else if ((e.ctrlKey || e.altKey || e.metaKey) && e.key.toLowerCase() === "r") {
+    e.preventDefault();
+    replacedefs();
+  }
+};
+document.querySelector("#execute").onclick = execute;
+document.querySelector("#replacedefs").onclick = replacedefs;
+</script>
+```
+
+Bleh. That gets us:
+
+``` html
+<textarea id="repl">
+2 ≜ λf.λx.f (f x)
++ ≜ λa.λb.λf.λx.a f (b f x)
+4 ≜ + 2 2
++ 2 4
+</textarea>
+<div class="toolbar">
+  <button id="execute" class="toolbar-button" title="Execute">Execute</button>
+  <button id="replacedefs" class="toolbar-button" title="Replace with definitions">Replacedefs</button>
+</div>
+<script>
+const luastr = (str) => {
+  let i = 1;
+  while (true) {
+    const eqs = "=".repeat(i);
+    const start = `[${eqs}[`
+    const stop = `]${eqs}]`
+    if (!str.includes(stop)) {
+      return `${start}${str}${stop}`;
+    }
+    i++;
+  }
+};
+const ta = document.querySelector("#repl");
+ta.setAttribute("style", `height: ${ta.clientHeight * 10}px;`);
+let pos;
+const selected = () => {
+  const str = ta.value;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  if (start !== end) {
+    pos = end;
+    return luastr(str.substring(start, end));
+  }
+  let lineStart = str.lastIndexOf("\n", start - 1) + 1;
+  if (lineStart < 0) { lineStart = 0; }
+  let lineEnd = str.indexOf("\n", start);
+  if (lineEnd < 0) { lineEnd = str.length; }
+  pos = lineEnd;
+  return luastr(str.substring(lineStart, lineEnd));
+};
+const print = (str) => {
+  ta.focus();
+  str = `\n${str}`;
+  ta.setRangeText(str, pos, pos, "end");
+  pos += str.length;
+};
+const handler = {
+  print: print,
+  error: print,
+  return: () => {}
+};
+const runner = `return web.run`;
+
+const replacedefs = () => {
+  luarun(runner, `if not repl then repl = makerepl() end ; repl.replacedefs(${selected()})`, handler);
+};
+const execute = () => {
+  luarun(runner, `if not repl then repl = makerepl() end; repl.execute(${selected()})`, handler);
+};
+ta.onkeyup = (e) => {
+  if ((e.ctrlKey || e.altKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    execute();
+  } else if ((e.ctrlKey || e.altKey || e.metaKey) && e.key.toLowerCase() === "r") {
+    e.preventDefault();
+    replacedefs();
+  }
+};
+document.querySelector("#execute").onclick = execute;
+document.querySelector("#replacedefs").onclick = replacedefs;
+</script>
+```
+
+Ctrl/Alt/Command(?) and Enter should execute the current line, or selection if there is any, and Ctrl/Alt/Command(?) and and R should to the replacedefs thing. I just threw some selection of modifier keys into the the check there. On my browser I can't get Ctrl+R to do the thing because it refreshes the page instead, although I _think_ I've gotten that to work previously? Alt+Enter/Alt+R seems to work though. But if no keys work it should be possible to use the buttons instead.
+
+So something like Alt+Enter on the three lines with the definitions, then Alt+R on the `+ 2 4` line, and then Alt+Enter again on the line you get from that. If that works then it works.
 
