@@ -18,6 +18,7 @@ I've changed my mind a few times about how to do this. One large post vs. multip
 * ^#pub-Zl3TKp Renaming a variable^
 * ^#pub-Zl3W0a Eval^
 * ^#pub-Zl3WFI REPL stuff^
+* ^#pub-Zl3WJJ Putting it onto webpage^
 
 ### Oh btw "cases"
 
