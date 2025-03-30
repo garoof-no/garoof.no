@@ -30,9 +30,11 @@ A thing that comes up a fair amount is that in some function there's a lambda ca
 
 Also stuff like `<exp>.var == <name>` combines checking if something is a variable reference with checking if it refers to the <name> I am interested in. And like sometimes I do or-and-Lua-isms instead of if-else. I dunno. Some times I do stuff that feels maybe more structured and disciplined than this, but I think doing it this way is kind of fun too. Oh well.
 
+----
+
 ## Parsing an lambdas
 :pub Zl3LOZ
-:blurb Luambda calculus.
+:blurb Strings to things.
 
 Hi hello we'll reserve these characters for _stuff:_
 
@@ -127,7 +129,7 @@ p(parens([[    foo (bar) baz buzz]]))
 p(parens([[)foo bar( baz buzz]]))
 ```
 
-## Nothing
+### Nothing
 
 We clearly also wanna parse nothing:
 
@@ -289,9 +291,11 @@ pl(parse([[λx x]]))
 
 Also good. Not great. But eh, "good."
 
+----
+
 ## Also unparsing the lambdas
 :pub Zl3MOZ
-:blurb String concatenation.
+:blurb Things to strings.
 
 Blargh blargh blargh. We're going to want our parentheses back:
 
@@ -356,6 +360,8 @@ pup([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) (λf.λx.f x)]])
 ```
 
 That's it I think.
+
+----
 
 ## Substituting stuff for variable references
 :pub Zl3PFE
@@ -443,6 +449,8 @@ The outer `y` that is the function argument is a free variable here, but it is "
 
 We'll deal with that later.
 
+----
+
 ## Free variables
 :blurb Function abstraction is a prison.
 :pub Zl3SLQ
@@ -517,6 +525,8 @@ pf([[λy.(λx.λy.z) a]])
 ```
 
 Is fine.
+
+----
 
 ## Renaming a variable
 :blurb A rose with any other name, renamed by a capture-avoiding substitution, would
@@ -657,6 +667,8 @@ pr([[(λx.λx.x) y]])
 
 Mlep.
 
+----
+
 ## Luambda eval
 :blurb Bla bla bla.
 :pub Zl3W0a
@@ -769,6 +781,8 @@ eval([[(λx.x x) (λx.x x)]], 100)
 ```
 
 Blap.
+
+----
 
 ## Lambda REPL stuff
 :blurb Practical.
@@ -922,6 +936,8 @@ makerepl().execute([[(λa.λb.λf.λx.a f (b f x)) (λf.λx.f (f x)) ((λa.λb.�
 ```
 
 I think that's enough REPL. Maybe plug it into web page later.
+
+----
 
 ## Putting the lambdas onto the webpage
 :blurb Bunch of JS.
