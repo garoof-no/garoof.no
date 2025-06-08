@@ -1,0 +1,18 @@
+# some notes
+
+## Functional middles
+
+I like pure functions and immutable data and that. I often care less about it when things get very implementation details. I'm usually fine with stuff like "this list is constructed by passing it to a few procedures that add stuff to it." I also think I tend to care less in the large. In my mind a very large function vs. a very large procedure isn't the most interesting consideration. A pure "world and input to new world" function has some of the regular FP advantages when compared to a stateful "take some input and make some changes to the world" procedure. But mostly I just don't want to think about the whole world. If I can dive into some piece of it and it makes sense to try to understand that without thinking too much about the rest of the world, that might be more important to me.
+
+And within such pieces, in these kinds of middles, I really like being able to make the FP assumptions. Being able to trust that when I pass something in as an argument somewhere, that argument is not going to get modified in the process. Trusting that the result of a computation is its result value without wondering if it has other effects on the system. Stuff like that's just extremely useful to me.
+
+## Gaps
+
+Something like: Choosing an approach that introduces a risk and then arguing about likelihoods instead of choosing a different approach.
+
+Something about network calls and treating them like we treat procedure calls vs. not doing that.
+
+Something about exceptions and treating them like how we treat return values vs. not doing that.
+
+Something about treating modifying state during a transition "one step at a time" vs. more atomically.
+
