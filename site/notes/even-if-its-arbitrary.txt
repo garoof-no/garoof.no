@@ -5,11 +5,7 @@ From The Reflective Practitioner, the architecture example thing. The studio mas
 
 > You should begin with a discipline, even if it is arbitrary, because the site is so screwy—you can always break it open later.
 
-Also there's stuff like:
+----
 
-> The familiar situation functions as a precedent, or a metaphor, or—in Thomas Kuhn’s phrase—an exemplar for the unfamiliar one.
-
-> Faced with some phenomenon that he finds unique, the inquirer nevertheless draws on some element of his familiar repertoire which he treats as exemplar or as generative metaphor for the new phenomenon.
-
-Blah blah.
+Anyway I think that there are a lot of organizing principles and rules and practices and stuff that are like _fine,_ but we mess up a little by treating them as either more or less than that.
 

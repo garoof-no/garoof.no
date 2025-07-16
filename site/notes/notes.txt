@@ -16,3 +16,40 @@ Something about exceptions and treating them like how we treat return values vs.
 
 Something about treating modifying state during a transition "one step at a time" vs. more atomically.
 
+## Stateful entity objects with immutable value objects inside
+
+I use "entity" to mean a thing that is the same thing despite having values that can change over time. It typically has a constant ID along with some data that can be mutated. Entity/value object is one place to draw a imperative-functional-line. The line can be pushed further outwards, and I've been happy with several different alternatives here.
+
+I probably mean roughly the same thing that the blue DDD book means by it. I think the explanation in the book is nice. Do I have a quote or two?
+
+### Mutation by replacing one value
+
+If I make an entity like this, it typically has:
+
+* An ID, possibly along with some metadata (maybe stuff like when was it created and last changed and by who)
+* One-ish field for an immutable value object
+
+The "ish" is more important than the "one" in "one-ish," but it's often one.
+
+## Returning results
+
+I generally prefer communicating the result of a computation with a return value. When I call something, I like knowing that as long as I'm not overly interested in implementation details, I only need to care about the return value.
+
+### Exceptions for panicky things that abort
+
+I like to use exceptions as the general "something bad happened" mechanism. Often stuff like, "I think and/or hope that such and such will always be the case, so I check and throw an exception if it isn't." Then and there I expect it to mean we cannot carry on with what we were doing. An exception will bubble up to an outer layer and be very generically handled there. Sometimes there will be some handlers along the way that will clean up a little, maybe free some resources or something.
+
+In Java, I think it's fine to stick to RuntimeException. Chossing between this or that exception seems useful only if you expect your caller to handle them differently. If you expect your caller to care about which specific exception you're throwing, then that bit of structure can be put in the return type instead.
+
+One problem with exceptions is that as far as callee-caller-communication goes it's kind of an open channel(?). If my caller catches a FooException, it's not straightforward for it to determmine that it was the FooException me and my caller really agreed upon. It could come from a method called _from_ my method:
+
+``` drawing
+`callee()`
+  `catch (FooException e)`<---.
+`myMetod()`                   |
+`otherMethod()`               |
+  `throw new FooException()` -'
+```
+
+There's some stuff you can kind of do about that. To me it mostly feels like mitigating something bad instead of just not introducing it. While `otherMethod` can _throw_ through `myMethod`, it cannot _return_ through it. `otherMethod` cannot like choose a return value and then force `myMethod` to like skip the rest of what it was going to do and return that value instead.
+
