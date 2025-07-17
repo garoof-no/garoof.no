@@ -1,0 +1,170 @@
+# Somewhat non-miserable feature toggling
+:pub Zl7JK3
+:blurb You'd think so but Church of Misery is not actually a Software Engineering team.
+
+Hi some times I'm working on some code that isn't ready for release but I still want to like save my work somewhere. Saving my work generally means committing and pushing it to main which means deploying it to production. If I commit it along with something that ^https://martinfowler.com/bliki/FeatureFlag.html toggles off actually running it^ then I'm good. (Alternatively I could save my work somewhere else where it could exist without being put into production. That usually seems like a bad idea.)
+
+## Patterns
+
+Here are two Good Praxis "Works For Me" Implementation Patterns for toggling stuff.
+
+### If false
+
+So, what Christian Johansen said: ^https://www.youtube.com/watch?v=hnETs-UVQec&t=1974s Feature flags is really just a fancy word for an if in your code.^ (Or in Norwegian: ^https://vimeo.com/1006253754#t=31m49s Feature flags kan veldig ofte bare være ifs.^)
+
+```
+if (false) {
+  newStuffWereNotUsingYet();
+} else {
+  oldStuffWereUsingForNow();
+}
+```
+
+The `if (false)` makes it so the new stuff will not be executed.
+
+Sometimes the new stuff should produce a value, same as the old stuff is doing:
+
+```
+var result = false
+  ? newStuffWereNotUsingYet() :
+  : oldStuffWereUsingForNow();
+```
+
+Often I just write the new code as fully dead code without any invocation code anywhere, until I'm ready to switch. That can be kind of ^https://martinfowler.com/bliki/KeystoneInterface.html keystoney^ and is usually fine. But if I've spent a little time figuring out where my new code should eventually be invoked from it can be nice to just write the invoking code there instead of like remembering it for later. Also if someone else is doing other work at the site of invocation, it might be easier to discover that you're breaking each others assumptions and creating conflicts and stuff if the code is actually there. It depends though.
+
+### Try throw
+
+Sometimes I wanna use the old stuff as a fallback for some time after I've started using the new stuff. I can `try` to do the new stuff, but then fall back to the old stuff if I `catch` something.
+
+So falling back is done by throwing something:
+
+```
+public static void fallback() {
+  throw new RuntimeException();
+}
+```
+
+When the new stuff is partiularly unfinished I can fall back before even attempting anything new.
+
+```
+try {
+  fallback();
+  newStuffWereNotUsingYet();
+} catch (RuntimeException e) {
+  oldStuffWereUsingForNow();
+}
+```
+
+And when I think the new stuff is like done but I'm maybe still a little uncertain, I can remove the `fallback();` line, and then it will only fall back if the new stuff fails. Maybe logging the exception in the catch block will be useful too, depending on circumstances.
+
+## Programming
+
+Okay those are the patterns I know. However _some_ times there's a need for something more sophisticated. Additional sophistication can be added by ^../notes/how-to-program-good.txt programming^.
+
+### Toggle off if such and such
+
+Let's say code is being executed in the production environment or in _some kind_ of test environment, and also let's say we have like an `Environment.isTest()` method we can use.
+
+It turns out that `false` in `if (false)` is a _boolean expression._ That particular expression tends to evaluate to `false`, but we can use a different one if we want something different. I sometimes do stuff like:
+
+```
+if (Environment.isTest()) {
+  newStuffWereNotUsingYet();
+} else {
+  oldStuffWereUsingForNow();
+}
+```
+
+That way the new stuff runs everywhere except in production. It's possible to write some very complicated and impressive boolean expressions. But "don't run it in prod" is usually enough for my needs.
+
+It's possible to do something similar with the try throw pattern:
+
+```
+try {
+  if (Environment.isTest()) { fallback(); }
+  newStuffWereNotUsingYet();
+} catch (RuntimeException e) {
+  oldStuffWereUsingForNow();
+}
+```
+
+### ^https://refactoring.com/catalog/extractFunction.html Extract function^
+
+If the "same" thing needs to be turned off or on in two places, the boolean expression can be extracted into a function. One time I had something like:
+
+```
+// over here:
+var payload = payloadFrom(stuff);
+if (false) {
+  payload.park();
+} else {
+  process(payload());
+}
+
+// over there, in a """handler""" or something:
+if (false) {
+  throw new RuntimeException("I don't think I'm ready yet");
+} else {
+  foo();
+}
+```
+
+In this case that particular type of payload would be "parked" immediately when received so that it would not be picked up by the job that processed received payloads. Since there was some GUI stuff somewhere for restarting and processing parked payloads and such we also threw an exception if we ever attempted to actually process any of them. We started receiving that type of payload when some other system released a new version, before we were ready to process them, and we wanted to receive and store all of them, and process them later when the code for that was finished.
+
+So when things were more ready I would need to change both the `false` literals to `true`. Changing one of them and forgetting the other one would be a little awkward. So I extracted `false` into a function:
+
+```
+public static boolean isFooReadyYet() {
+  return false;
+}
+```
+
+And then:
+
+``` diff
+ // over here:
+ var payload = payloadFrom(stuff);
+-if (false) {
++if (isFooReadyYet()) {
+   payload.park();
+ } else {
+   process(payload());
+ }
+
+ // over there, in a """handler""" or something:
+-if (false) {
++if (isFooReadyYet()) {
+   throw new RuntimeException("I don't think I'm ready yet");
+ } else {
+   foo();
+ }
+```
+
+So uh a pretty intense refactoring session.
+
+And then later I changed `isFooReadyYet`:
+
+``` diff
+ public static boolean isFooReadyYet() {
+-  return false
++  return Environment.isTest();
+ }
+```
+
+And later still I changed it again:
+
+``` diff
+ public static boolean isFooReadyYet() {
+-  return Environment.isTest();
++  return true;
+ }
+```
+
+And then I removed `isFooReadyYet` and the `if` stuff and the `else` stuff, and just kept the `then` stuff. Cool story.
+
+Anyway two is a big number but still kind of manageable. I'm not sure what to do if you need to toggle the same thing in _three_ places.
+
+## Or put it into a YAML file or some obscure feature flag part of the UI of your CI/CD tool or something
+
+Because it's not proper Software Engineering if "go to definition" is still of any use.
+
