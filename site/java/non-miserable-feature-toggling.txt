@@ -96,20 +96,20 @@ If the "same" thing needs to be turned off or on in two places, the boolean expr
 // over here:
 var payload = payloadFrom(stuff);
 if (false) {
-  payload.park();
+  receive(payload);
 } else {
-  process(payload());
+  park(payload);
 }
 
 // over there, in a """handler""" or something:
 if (false) {
-  throw new RuntimeException("I don't think I'm ready yet");
-} else {
   foo();
+} else {
+  throw new RuntimeException("But I don't think I'm ready yet");
 }
 ```
 
-In this case that particular type of payload would be "parked" immediately when received so that it would not be picked up by the job that processed received payloads. Since there was some GUI stuff somewhere for restarting and processing parked payloads and such we also threw an exception if we ever attempted to actually process any of them. We started receiving that type of payload when some other system released a new version, before we were ready to process them, and we wanted to receive and store all of them, and process them later when the code for that was finished.
+In this case that particular type of payload would be "parked" immediately when received so that it would not be picked up by the job that processed regularly received payloads. Since there was some GUI stuff somewhere for restarting and processing parked payloads and such we also threw an exception if we ever attempted to actually process any of them. We started receiving that type of payload when some other system released a new version, before we were ready to process them, and we wanted to receive and store all of them, and process them later when the code for that was finished.
 
 So when things were more ready I would need to change both the `false` literals to `true`. Changing one of them and forgetting the other one would be a little awkward. So I extracted `false` into a function:
 
@@ -126,17 +126,17 @@ And then:
  var payload = payloadFrom(stuff);
 -if (false) {
 +if (isFooReadyYet()) {
-   payload.park();
+   receive(payload);
  } else {
-   process(payload());
+   park(payload);
  }
 
  // over there, in a """handler""" or something:
 -if (false) {
 +if (isFooReadyYet()) {
-   throw new RuntimeException("I don't think I'm ready yet");
- } else {
    foo();
+ } else {
+   throw new RuntimeException("But I don't think I'm ready yet");
  }
 ```
 
