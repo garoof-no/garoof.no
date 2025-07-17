@@ -26,7 +26,7 @@ Sometimes the new stuff should produce a value, same as the old stuff is doing:
 
 ```
 var result = false
-  ? newStuffWereNotUsingYet() :
+  ? newStuffWereNotUsingYet()
   : oldStuffWereUsingForNow();
 ```
 
