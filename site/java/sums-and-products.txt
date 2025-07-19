@@ -1,14 +1,17 @@
-# Java: Products and sums
-:todo
+# Sums and products in Java
+:blurb Java is an up-and-coming functional programming language.
+:pub Zl7LGf
 
-* Products are "and"-types: In order to construct a product of A and B you need to supply an A _and_ a B.
+Hi.
+
 * Sums are "or"-types: In order to construct a sum of A or B you need to supply an A _or_ a B.
+* Products are "and"-types: In order to construct a product of A and B you need to supply an A _and_ a B.
 * Sums are tagged and you can have a sum of e.g. A or A: When you supply an A you're explicit about which summand you mean.
 * I mean, same goes for products, just: Something like "tagged vs. untagged pair" doesn't seem to be as much of a thing as "tagged vs. untagged union."
 
 ----
 
-Okay so Java. I think things are like less rotten and also less state than I'd maybe think. Or at least they can be.
+Okay so Java. I think things are like less rotten and also less state than I would maybe think. Or at least they can be.
 
 Sealed interfaces implemented by records make fine sum types:
 
@@ -19,14 +22,14 @@ public sealed interface BI {
 }
 ```
 
-If you want to define the summands in a different place you might need to use `permits`:
+If we want to define the summands in a different place we might need to use `permits`:
 
 ```
 public sealed interface BI permits B, I {}
 // define I and B elsewhere
 ```
 
-Anyway, we can make an `BI` value from a `boolean` or from an `int`:
+We can make a `BI` value from a `boolean` or from an `int`:
 
 ```
 public final static java.util.Random random  = new java.util.Random();
@@ -99,22 +102,5 @@ Okay.
 
 ----
 
-There are edges. They're mostly: The "sealed interface and records"-matching is kind of its own thing and currently it doesn't play that nice with other types.
-
-You can't e.g. do a match like `case BI.I(100)`. Matching on `int`s and stuff is coming later. And it's the different types of types that's the problem, not the nesting: If you have records with records in them, you can nest your patterns accordingly.
-
-And while you _can_ match on an enum and get the exhaustiveness checking and that, you can't combine it with record matching. Like if you have:
-
-```
-public enum En { A, B }
-record E(En e) {}
-```
-
-You _can_ do `case A` on an `En` value. And you can do `case E(var e)`. But you can't do `case E(En.A)` or something like that.
-
-You can do `case E(var e) when e == En.A`. The `when` part is basically just some boolean expression far as Java is concerned and like outside the domain of exhaustiveness checking, and so the whole case basically won't "count" as far as that's concerned. But it can be handy.
-
-As far as I'm aware the plan is to have all this stuff work more better together in later Java versions. Also some "functional update" stuff or records should be coming along at some point. So like, things will probably improve, but also what's there now can be pretty useful, really...
-
-(This is as of Java 23 or so.)
+As of Java 21 to 24 or so, there's some stuff you could expect to have that isn't there. Mostly what kinds of types can be used for the pattern matching stuff and what can and can't be nested. I think most of that stuff is on the roadmap and is being worked on. Anyway there are some annoyances to run into I guess, but IMO nothing too major.
 
