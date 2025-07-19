@@ -1,0 +1,15 @@
+# Entities and value objects
+:todo
+
+## Entities
+
+Blue book:
+
+> Many objects are not fundamentally defined by their attributes, but rather but a thread of continuity and identity.
+
+## Value objects
+
+Blue book:
+
+> Many objects have no conceptual identity. These objects describe some characteristic of a thing.
+
