@@ -1,0 +1,41 @@
+# Java, Optional, Pair, ...
+:todo
+
+^https://stackoverflow.com/questions/26327957/should-java-8-getters-return-optional-type/26328555#26328555 Brian Goetz on Stack Overflow:^
+
+> Of course, people will do what they want. But we did have a clear intention when adding this feature, and it was not to be a general purpose Maybe type, as much as many people would have liked us to do so. Our intention was to provide a limited mechanism for library method return types where there needed to be a clear way to represent "no result", and using `null` for such was overwhelmingly likely to cause errors.
+>
+> For example, you probably should never use it for something that returns an array of results, or a list of results; instead return an empty array or list. You should almost never use it as a field of something or a method parameter.
+
+----
+
+In my mind I've kind of put "don't use optionals that much" in the same category as "don't add pairs to the standard library." I don't know how correct that is, but uh, yeah, it's like that in my mind at least.
+
+^https://mail.openjdk.org/pipermail/core-libs-dev/2010-March/003995.html Kevin Bourrillion at the OpenJDK core-libs-dev mailing list:^
+
+> The problem is that classes like Pair simply go that much further to indulge the desire to never have to create any actual types of our own. When we're forced to create our own types, we begin to model our data more appropriately, which I believe leads us to create good abstractions at broader levels of granularity as well.
+
+----
+
+It's the kind of stuff where like I kind of agree with a lot of the reasons. Like yeah that's bad, yeah wouldn't want that, yeah I hate it when that happens. But also I'm like oh but I still _want_ it. I get kind of like ^https://www.youtube.com/watch?v=x_JCBmY9NGM&t=75s there's all sorts of problems with it, but it's better than what we had before.^
+
+* A method that takes five Optional-type parameters suck. But I think it's better than five optional parameters that _don't_ use the Optional type but just use nullability for that instead.
+* It's often better to group two fields with your own domainy type than with a generic pair type. But using the generic pair type is probably still better than _not_ grouping them.
+
+There's some stuff here that seems to me like an idea of "if we don't let you do the kind of okay thing, you'll do the good thing instead." Sometimes I think it just makes people leave the bad thing unchanged instead.
+
+I think it's valuable to have these really tiny and local improvements available:
+
+* This method is still bad but at least it the badness is communicated in its type signature now.
+* These two things belong together. I'm not exactly sure what to make of them, but at least I've grouped them.
+
+And stuff like that.
+
+(By the way I do think that the introduction of record types more or less makes up for not having a generic pair type these days. Making e.g. an inner record type for just those two things you want to group together is small and local enough that I can just do that now without having it become a whole thing or something.)
+
+----
+
+IntelliJ likes to draw squiggly yellow lines when you use an Optional in the wrong place. SonarQube also has some rules about it. The toolmaking surrounding code smell stuff seems wonderfully reductionist.
+
+(On that note, I read the Brian Goetz quote above as a lot more reasonable and a lot less prescriptive than, uh, any interpretation that would lead to a squiggly line. But I dunno. Might be wrong.)
+
