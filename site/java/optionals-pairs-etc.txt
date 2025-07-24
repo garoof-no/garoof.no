@@ -1,6 +1,10 @@
 # Java, Optional, Pair, ...
 :todo
 
+This is probably not about what it is about. And chances are it misses the mark with regards to what it _is_ about, particularly where the intentions and opinions of other people are kind of involved and certainly unknown. But it is something I think about and vaguely sort-of-kind-of associate with something like: Providing building blocks that are good to use in a good design vs. building blocks that might be more good for using as stepping stones when moving towards a better design.
+
+----
+
 ^https://stackoverflow.com/questions/26327957/should-java-8-getters-return-optional-type/26328555#26328555 Brian Goetz on Stack Overflow:^
 
 > Of course, people will do what they want. But we did have a clear intention when adding this feature, and it was not to be a general purpose Maybe type, as much as many people would have liked us to do so. Our intention was to provide a limited mechanism for library method return types where there needed to be a clear way to represent "no result", and using `null` for such was overwhelmingly likely to cause errors.
