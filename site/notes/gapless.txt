@@ -1,0 +1,77 @@
+# Gapless
+:template lua
+:todo
+
+There are ways of doing things where we kind of leave an opening for something to go wrong, or uh, an opportunity for putting such an opening in later, or something like that. 
+
+## Intermediate states
+
+Variations of stuff like this:
+
+``` repl
+local a = 5;
+local b = 10;
+
+local function move(n)
+  a = a - n
+  b = b + n
+end
+
+move(1)
+move(2)
+
+print(a, b)
+```
+
+Where you're like okay but what if something fails between the assignments. And blah blah functional programming I guess. But even if on this level of abstraction we really just wanna mutate, just do local variable assignments, we can still avoid the "and now we've mutated the first half" part of it.
+
+``` repl
+local ab = { a = 5, b = 10 }
+
+local function move(n)
+  local a = ab.a - n
+  local b = ab.b + n
+  ab = { a = a, b = b }
+end
+
+move(1)
+move(2)
+
+print(ab.a, ab.b)
+```
+
+(Or just have the entire function body be `ab = { a = ab.a - n, b = ab.b + n }`. Blah blah.)
+
+## Exceptions
+
+Sometimes exceptions are basically used for communicating a value from callee to caller. In stuff like Java this has traditionaly been done with checked exceptions. Stuff like an attempt at opening a file throwing a FileNotFoundException.
+
+So uh stuff like this:
+
+``` drawing
+`callee()`
+  `catch (FooException e)` <--.
+`myMethod()`                  |
+  `throw new FooException()` -'
+```
+
+But what if this happens instead:
+
+``` drawing
+`callee()`
+  `catch (FooException e)` <--.
+`myMethod()`                  |
+`otherMethod()`               |
+  `throw new FooException()` -'
+```
+
+Is that okay, or is it like the FooException was kind of thrown "past" myMethod and catching otherMethod's FooException doesn't _really_ have the same meaning as catching the myMethod one?
+
+It's debatable. It can be debated a lot. It's easy to argue that it's this unlikely and that little a deal. Using a return value is less debatable: No one can "return a value past you" so there's nothing of that kind to discuss. If there's something the caller should deal with, I just use the return value, just make a sum type or something.
+
+If it's something panicky that can't really be "dealt with" and should just bubble up and be error handled by general error handling in some outer layer, then that's what (unchecked) exceptions are like actually good for.
+
+## At ____ once delivery
+
+Something about ending up with the wrong kind.
+
