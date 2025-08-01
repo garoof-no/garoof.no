@@ -1,0 +1,105 @@
+# Smalltalk syntax is nice
+:blurb Bla bla blah.
+:pub ZlA1OC
+
+Hi okay so it has unary (no argument) methods like `asString`. This evaluates to `'1'`:
+
+```
+1 asString
+```
+
+And binary methods like `+`. This evaluates to `3`:
+
+```
+1 + 3
+```
+
+Those are all right but and then but also as well it has does have also *~*KEYWORD METHODS*~* and those are really cool.
+
+Like `to:by:`. This evaluates to an `Interval` object that's kind of a collection with `1`, `3`, `5`, `7` and `9`:
+
+```
+1 to: 10 by: 2
+```
+
+----
+
+The following evaluates to an `Array` with:
+
+* `'1'`
+* `'333'`
+* `'55555'`
+* `'7777777'`
+* `'999999999'`
+
+```
+(1 to: 10 by: 2)
+  collect: [:each | each asString repeat: each]
+```
+
+It kind of goes like:
+
+* `to:by:` is called on `1` with the arguments `10` and `2`, resulting in that Interval object.
+* `collect:` is called on that interval with a block/lambda function as its argument. (`collect:` is Smalltalk for `map`)
+* (The `[]`-block is a one-argument block/function. This one's argument is called `each`.)
+* `Interval`'s implementation of `collect:` calls the supplied block on each of its numbers and puts them in an `Array`.
+* So `asString` is called on every number, turning it into a `String`, and then `repeat:` is called on that string with the number as its argument. `String`'s implementation of `repeat:` returns a string with itself repated that number of times.
+
+The syntax _might_ take a little getting used to? I don't really remember, I'm very used to it.
+
+----
+
+When a method that takes multiple arguments is invoked, the method name is kind of spread out, with a little bit of method name before each argument. This is kind of keyword argument-like, since every argument gets a little bit of method name before it.
+
+In e.g. Java you sometimes have one part of a method name being about one argument and one being about the other, and then all the arguments come, and you can kind of manually map each argument to each part of the method name. Like:
+
+```
+map.getOrDefault("foo", Bar.default())
+```
+
+`"foo"` kind of goes with `get` and `Bar.default()` kind of goes wiht `OrDefault`. In Smalltalk it would be something like this `get:orDefault:`-method instead:
+
+```
+map get: 'foo' orDefault: Bar default
+```
+
+I like that.
+
+And like it's smelly and not a good thing when things get out of hand with very many arguments. But when I do find myself in a _situation,_ I do at least like that the arguments are keyworded like that where the method is called and not just named in the method declaration. "`foo` is the seventh argument" makes me more nervous and worried about messing up than "`foo` is the argument that comes after the `foo:` part of the method name."
+
+I also prefer it to most other keyword argument support I've seen. In other languages you typically already have some syntax for function/method calls and then keyword syntax is kind of added into that. So you have the parentheses and commas of function call and then you get something like `<keyword> = value` within that. I think that syntax gets a little noisy. In Smalltalk, since the keywordy thing is just how methods with multiple arguments are called, there's no need to also have like parentheses and commas between arguments. Not a terribly big deal, but it's like chill and I really do like it.
+
+----
+
+Also the lambda syntax is cute and nice and lightweight. And it's used for the traditional control flow stuff. An if-then-else typically goes like so:
+
+```
+<boolean expression>
+  ifTrue: [<then-stuff...>]
+  ifFalse: [<else-stuff...>]
+```
+
+When the arguments are block literals like that, it is usually compiled down to jumpy branchy stuff like if-then-else in other languages, without actual objects for the blocks and such. But there are regular implementations of `ifTrue:ifFalse:` as well, for when the then-stuff and else-stuff can't be compile-time determined.
+
+A try-catch might look like this:
+
+```
+[<stuff you wanna try...>]
+  on: Error
+  do: [:err | <exception handling...>]
+```
+
+And so on. So anyway that's nice and also your own control flow stuff will look similar to the built-in stuff. For feature-toggling stuff you might make a helper method so you can do like:
+
+```
+Env
+  ifProduction: [<boring, safe stuff...>]
+  ifTest: [<new and exciting doesn't-work-yet stuff...>]
+```
+
+I like that it has the same feel as a regular if-then-else, and uh. I think it makes it easier to get right and easier to spot if you do mess up the order or something. Like, production code coming after `ifTest:` is more locally wrong. Production code coming after `else` is more like oh I have to look over _there_ and check with the boolean expression I'm if-then-else-ing on.
+
+----
+
+Bleep bloop. It's not perfect or whatever. In particular I would like to have something nice for varargs. But I often wish that the syntax of whatever language I'm using was more along the Smalltalk lines...
+
