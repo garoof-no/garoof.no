@@ -1,0 +1,120 @@
+# Using Java types for keywordy args
+:blurb Bla bla blah blah.
+:pub ZlA27i
+
+Will use ^./non-miserable-feature-toggling.txt feature toggling^ as example. In that post I considered adding like "and then maybe make a helper function for running some code in production and some code in not production." Like we could have had something like this:
+
+```
+package garoof;
+import java.util.function.Supplier;
+
+public enum Env {
+  PROD, TEST;
+  
+  public static Env env() {
+    // ... stuff goes here I guess
+  }
+  
+  public static <T> T prodOrTest(Supplier<T> prod, Supplier<T> test) {
+    return switch (env()) {
+      case PROD -> prod.get();
+      case TEST -> test.get();
+    };
+  }
+}
+```
+
+And use it in stuff like this:
+
+```
+package garoof;
+import static garoof.Env.*;
+
+public class Test {
+
+  public static void main(String[] args) {
+    System.out.println(foo("BOOP", 5));;
+  }
+  
+  private static String foo(String s, int i) {
+    return prodOrTest(
+      () -> s + i,
+      () -> s.repeat(i));
+  }
+}
+```
+
+And then you'd get "BOOP5" in production and "BOOPBOOPBOOPBOOPBOOP" in test.
+
+Anyway what I don't like about that is that the production code and the test code are just two arguments to a function and I get kind of like well what if you accidentally switch them around or something? I mean, that's a problem with the then-part and the else-part of an if-then-else too. I'm not sure adding a helper function would make that _worse,_ but I dunno. In ^../notes/smalltalk-syntax.txt  Smalltalk^ it'd naturally get more keywordy. E.g.
+
+```
+Env
+  ifProd: [s , i asString]
+  ifTest: [s repeat: i]
+```
+
+Which is nice I think.
+
+Okay. If we had different types for the production code and the test code, we could kind of make ourselves write `prod` and `test` where used the toggly method:
+
+``` diff
+ package garoof;
+ import java.util.function.Supplier;
+
+ public enum Env {
+   PROD, TEST;
+
+   public static Env env() {
+     // ... stuff goes here I guess
+   }
+
++  public record Production<T>(Supplier<T> supplier) {}
++  public static <T> Production<T> prod(Supplier<T> supplier) {
++    return new Production<>(supplier);
++  }
++
++  public record Test<T>(Supplier<T> supplier) {}
++  public static <T> Test<T> test(Supplier<T> supplier) {
++    return new Test<>(supplier);
++  }
+
+-  public static <T> T prodOrTest(Supplier<T> prod, Supplier<T> test) {
+-    return switch (env()) {
+-      case PROD -> prod.get();
+-      case TEST -> test.get();
++  public static <T> T toggled(Production<T> prod, Test<T> test) {
++    return switch (env()) {
++      case PROD -> prod.supplier().get();
++      case TEST -> test.supplier().get();
+     };
+   }
+ }
+```
+
+An then use it like this:
+
+``` diff
+ package garoof;
+ import static garoof.Env.*;
+
+ public class Test {
+
+   public static void main(String[] args) {
+     System.out.println(foo("BOOP", 5));;
+   }
+  
+   private static String foo(String s, int i) {
+     return toggled(
+-      () -> s + i,
+-      () -> s.repeat(i));
++      prod(() -> s + i),
++      test(() -> s.repeat(i)));
+   }
+ }
+```
+
+I dunno. A little cute at least. When it's like this, it's also straightforward to overload `toggled` if we wanna. Like we could have one that had the arguments in the other order, like `toggled(Test<T> test, Production<T> prod)`, to mimic the Smalltalky thing where they have e.g. an `ifTrue:ifFalse:` method but also an `ifFalse:ifTrue:` method. You could still look at the code and be like "I guess it's the `test` code that is run in the test environment."
+
+And it'd be possible to lock things more down. Like we could turn `Production` and `Test` into classes that kept their `supplier` objects more private, and make it so there's no reasonable way to bypass the enironment check and grab the `suppier` from a `Test`/`Production` object and just run it. Bla blah. Like we could make it a lot more Software Engineery if we wanted to I guess :/
+

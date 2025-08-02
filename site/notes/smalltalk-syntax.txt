@@ -93,7 +93,7 @@ And so on. So anyway that's nice and also your own control flow stuff will look 
 
 ```
 Env
-  ifProduction: [<boring, safe stuff...>]
+  ifProd: [<boring, safe stuff...>]
   ifTest: [<new and exciting doesn't-work-yet stuff...>]
 ```
 
