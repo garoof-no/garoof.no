@@ -1,6 +1,17 @@
-local function point(x, y)
-  return { x = x, y = y, key = x .. "," .. y }
+vecs = setmetatable({}, { __mode = "v" })
+Vec = {}
+
+function vec(x, y)
+  local key = x .. "," .. y
+  local found = vecs[key]
+  if found then return found end
+  local v = setmetatable({ x = x, y = y}, Vec)
+  vecs[key] = v
+  return v
 end
+
+function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
+function Vec.__tostring(a) return a.x .. "," .. a.y end
 
 local function points(half)
   local other = half.other
@@ -38,7 +49,7 @@ local function samedir(a, b)
 end
 
 local function dir(from, to)
-  return point(to.x - from.x, to.y - from.y)
+  return vec(to.x - from.x, to.y - from.y)
 end
 
 local function newlines()
@@ -53,15 +64,15 @@ local function newlines()
     half.other = other
     meta.start = half
     table.insert(lines, meta)
-    extendible[from.key] = half
-    extendible[to.key] = other
+    extendible[from] = half
+    extendible[to] = other
   end
 
   local function extend(half, point)
     local i = #half
     local prev = half[i]
-    extendible[prev.key] = nil
-    extendible[point.key] = half
+    extendible[prev] = nil
+    extendible[point] = half
 
     local newdir = dir(prev, point)
     if not samedir(newdir, half.dir) then
@@ -72,7 +83,7 @@ local function newlines()
   end
 
   local function unstend(half)
-    extendible[half[#half].key] = nil
+    extendible[half[#half]] = nil
   end
 
   local function join(first, last)
@@ -99,9 +110,9 @@ local function newlines()
   end
 
   function lines.add(fromx, fromy, tox, toy)
-    local from, to = point(fromx, fromy), point(tox, toy)
-    local first = extendible[from.key]
-    local last = extendible[to.key]
+    local from, to = vec(fromx, fromy), vec(tox, toy)
+    local first = extendible[from]
+    local last = extendible[to]
     if first and last then
       join(first, last)
     elseif first then
@@ -153,13 +164,13 @@ function newmap()
           )
           text, textstart = nil, nil
         else
-          text, textstart = {}, point(x + 1, y)
+          text, textstart = {}, vec(x + 1, y)
         end
       elseif text then
         table.insert(text, code)
       elseif code ~= space then
         local key = x .. "," .. y
-        local value = point(x, y)
+        local value = vec(x, y)
         value.code = code
         map[key] = value
         table.insert(map, value)
