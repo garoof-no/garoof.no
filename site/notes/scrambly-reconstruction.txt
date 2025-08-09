@@ -1,0 +1,9 @@
+# The Best Practice Software Engineering Design Pattern where you just chuck away really useful information only to almost immediately need it again and then attempt to reconstruct it
+:todo
+
+This is often ^./bools-surfacing.txt a boolean thing^ but also often a whatever thing.
+
+There's also a way of ^./generalities.txt making things general^ that can go kind of like this.
+
+...
+
