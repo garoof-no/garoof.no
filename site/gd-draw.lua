@@ -169,10 +169,9 @@ function newmap()
       elseif text then
         table.insert(text, code)
       elseif code ~= space then
-        local key = x .. "," .. y
-        local value = vec(x, y)
-        value.code = code
-        map[key] = value
+        local pos = vec(x, y);
+        local value = { pos = pos, code = code }
+        map[pos] = value
         table.insert(map, value)
       end
     end
@@ -184,7 +183,7 @@ function newmap()
     map.w = math.max(map.w, x)
   end
   map.at = function(x, y)
-    local res = map[x .. "," .. y]
+    local res = map[vec(x, y)]
     return res and res.code
   end
   return map
@@ -219,8 +218,8 @@ local function render(map, out, size)
   local lines = newlines()
 
   for _, p in ipairs(map) do
-    local x = p.x
-    local y = p.y
+    local x = p.pos.x
+    local y = p.pos.y
     local code = p.code
     local bx = x * 4
     local by = y * 8
