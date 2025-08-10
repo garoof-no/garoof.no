@@ -11,7 +11,6 @@ function vec(x, y)
 end
 
 function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
-function Vec.__tostring(a) return a.x .. "," .. a.y end
 
 local function points(half)
   local other = half.other
@@ -126,24 +125,29 @@ local function newlines()
   return lines
 end
 
-local space, horiz, vert, bottom, top, lowhoriz = 32, 45, 124, 46, 39, 95
+
 local textmode = 96
+
+local space, hyphen, pipe, period, apostrophe = 32, 45, 124, 46, 39
 local fslash, bslash = 47, 92
 local plus = 43
-local arrl, arrr, arru, arrd = 60, 62, 94, 86
+local lt, gt, caret, V = 60, 62, 94, 86
 
-local function set(...)
-  local res = {}
+local function connectors(...)
+  local res = { [plus] = true }
   for _, v in ipairs({...}) do res[v] = true end
   return res
 end
 
-local verts = set(vert, plus, bottom)
-local vertsu = set(vert, plus, bottom, arru)
-local vertsd = set(vert, plus, top, arrd)
-local horis = set(horiz, plus, top, bottom)
-local horisl = set(horiz, plus, top, bottom, arrl)
-local horisr = set(horiz, plus, top, bottom, arrr)
+local to_u = connectors(pipe, period, caret)
+local to_d = connectors(pipe, apostrophe, V)
+local to_l = connectors(hyphen, apostrophe, period, lt)
+local to_r = connectors(hyphen, apostrophe, period, gt)
+local to_ul = connectors(period, bslash)
+local to_ur = connectors(period, fslash)
+local to_dl = connectors(apostrophe, fslash)
+local to_dr = connectors(apostrophe, bslash)
+
 
 function newmap()
   local map = { w = 0, h = 0, texts = {} }
@@ -226,71 +230,64 @@ local function render(map, out, size)
     local function add(x1, y1, x2, y2)
       lines.add(x1, y1, x2, y2)
     end
-    if code == horiz then add(bx, by + 4, bx + 4, by + 4)
-    elseif code == vert then add(bx + 2, by, bx + 2, by + 8)
-    elseif code == lowhoriz then add(bx, by + 8, bx + 4, by + 8)
+    if code == hyphen then add(bx, by + 4, bx + 4, by + 4)
+    elseif code == pipe then add(bx + 2, by, bx + 2, by + 8)
     elseif code == fslash then add(bx, by + 8, bx + 4, by)
     elseif code == bslash then add(bx, by, bx + 4, by + 8)
-    elseif code == bottom then
+    elseif code == period then
       local px, py = bx + 2, by + 6
       local l, r = map.at(x - 1, y), map.at(x + 1, y)
       local d = map.at(x, y + 1)
       local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
-      if horisl[l] then add(bx, by + 4, px, py) end
-      if dl == fslash or l == lowhoriz then
-        add(bx, by + 8, px, py)
-      end
-      if vertsd[d] then add(bx + 2, by + 8, px, py) end
-      if dr == bslash or r == lowhoriz then
-        add(px, py, bx + 4, by + 8)
-      end
-      if horisr[r] then add(px, py, bx + 4, by + 4) end
-    elseif code == top then
+      if to_l[l] then add(bx, by + 4, px, py) end
+      if to_dl[dl] then add(bx, by + 8, px, py) end
+      if to_d[d] then add(bx + 2, by + 8, px, py) end
+      if to_dr[dr] then add(px, py, bx + 4, by + 8) end
+      if to_r[r] then add(px, py, bx + 4, by + 4) end
+    elseif code == apostrophe then
       local px, py = bx + 2, by + 2
       local l, r = map.at(x - 1, y), map.at(x + 1, y)
       local u = map.at(x, y - 1)
       local ul, ur = map.at(x - 1, y - 1), map.at(x + 1, y - 1)
-      if horisl[l] then add(bx, by + 4, px, py) end
-      if ul == bslash then add(bx, by, px, py) end
-      if vertsu[u] then add(bx + 2, by, px, py) end
-      if ur == fslash then add(px, py, bx + 4, by) end
-      if horisr[r] then add(px, py, bx + 4, by + 4) end
+      if to_l[l] then add(bx, by + 4, px, py) end
+      if to_ul[ul] then add(bx, by, px, py) end
+      if to_u[u] then add(bx + 2, by, px, py) end
+      if to_ur[ur] then add(px, py, bx + 4, by) end
+      if to_r[r] then add(px, py, bx + 4, by + 4) end
     elseif code == plus then
       local px, py = bx + 2, by + 4
       local l, r = map.at(x - 1, y), map.at(x + 1, y)
       local u, d = map.at(x, y - 1), map.at(x, y + 1)
-      if horisl[l] then add(bx, by + 4, px, py) end
-      if vertsd[d] then add(bx + 2, by + 8, px, py) end
-      if horisr[r] then add(px, py, bx + 4, by + 4) end
-      if vertsu[u] then add(bx + 2, by, px, py) end
-    elseif code == arrl then
+      local ul, ur = map.at(x - 1, y - 1), map.at(x + 1, y - 1)
+      local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
+      if to_l[l] then add(bx, by + 4, px, py) end
+      if to_ul[ul] then add(bx, by, px, py) end
+      if to_dl[dl] then add(bx, by + 8, px, py) end
+      if to_u[u] then add(bx + 2, by, px, py) end
+      if to_d[d] then add(bx + 2, by + 8, px, py) end
+      if to_ur[ur] then add(px, py, bx + 4, by) end
+      if to_dr[dr] then add(px, py, bx + 4, by + 8) end
+      if to_r[r] then add(px, py, bx + 4, by + 4) end
+    elseif code == lt then
       local r = map.at(x + 1, y)
-      if horis[r] then
-        add(bx + 4, by + 4, bx, by + 4)
-        add(bx, by + 4, bx + 4, by + 2)
-        add(bx, by + 4, bx + 4, by + 6)
-      end
-    elseif code == arrr then
+      add(bx + 4, by + 4, bx, by + 4)
+      add(bx, by + 4, bx + 4, by + 2)
+      add(bx, by + 4, bx + 4, by + 6)
+    elseif code == gt then
       local l = map.at(x - 1, y)
-      if horis[l] then
-        add(bx, by + 4, bx + 4, by + 4)
-        add(bx + 4, by + 4, bx, by + 2)
-        add(bx + 4, by + 4, bx, by + 6)
-      end
-    elseif code == arru then
+      add(bx, by + 4, bx + 4, by + 4)
+      add(bx + 4, by + 4, bx, by + 2)
+      add(bx + 4, by + 4, bx, by + 6)
+    elseif code == caret then
       local d = map.at(x, y + 1)
-      if verts[d] then
-        add(bx + 2, by + 8, bx + 2, by)
-        add(bx + 2, by, bx, by + 4)
-        add(bx + 2, by, bx + 4, by + 4)
-      end
-    elseif code == arrd then
+      add(bx + 2, by + 8, bx + 2, by)
+      add(bx + 2, by, bx, by + 4)
+      add(bx + 2, by, bx + 4, by + 4)
+    elseif code == V then
       local u = map.at(x, y - 1)
-      if verts[u] then
-        add(bx + 2, by, bx + 2, by + 8)
-        add(bx + 2, by + 8, bx, by + 4)
-        add(bx + 2, by + 8, bx + 4, by + 4)
-      end
+      add(bx + 2, by, bx + 2, by + 8)
+      add(bx + 2, by + 8, bx, by + 4)
+      add(bx + 2, by + 8, bx + 4, by + 4)
     end
   end
 
