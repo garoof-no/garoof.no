@@ -167,7 +167,8 @@ function newmap()
       if code == textmode then
         if text then
           table.insert(
-            map.texts, { pos = textstart, str = utf8.char(table.unpack(text)) }
+            map.texts,
+            { pos = textstart, str = utf8.char(table.unpack(text)) }
           )
           text, textstart = nil, nil
         else
@@ -184,7 +185,8 @@ function newmap()
     end
     if text then
       table.insert(
-        map.texts, { pos = textstart, str = utf8.char(table.unpack(text)) }
+        map.texts,
+        { pos = textstart, str = utf8.char(table.unpack(text)) }
       )
     end
     map.w = math.max(map.w, x)
@@ -282,11 +284,11 @@ local function render(map, out, size)
     end
   end
 
-  local style = [[<style>svg { stroke: currentColor; fill: none; } ]]
-  style = style .. [[text { stroke: none; fill: currentColor; ]]
-  style = style .. [[font-family: monospace; ]]
-  style = style .. [[font-size: ]] .. size .. [[px; ]]
-  style = style .. [[dominant-baseline: hanging; text-anchor: start; }</style>]]
+  local style =
+    [[<style>svg { stroke: currentColor; fill: none; } ]] ..
+    [[text { stroke: none; fill: currentColor; font-family: monospace; ]] ..
+    [[font-size: ]] .. size .. [[px; ]] ..
+    [[dominant-baseline: hanging; text-anchor: start; }</style>]]
 
   local function lineSvg(meta)
     if not meta.start then
@@ -301,7 +303,10 @@ local function render(map, out, size)
   end
 
   local w, h = ((map.w + 2) * cellw), ((map.h + 2) * cellh)
-  out('<svg width="' .. w .. '" height="' .. h .. '" viewBox="0 0 ' .. w .. ' ' .. h .. '" xmlns="http://www.w3.org/2000/svg">')
+  out(
+    '<svg width="' .. w .. '" height="' .. h .. 
+    '" viewBox="0 0 ' .. w .. ' ' .. h ..
+    '" xmlns="http://www.w3.org/2000/svg">')
   out(style)
   for k, v in ipairs(lines) do
     out(lineSvg(v))
