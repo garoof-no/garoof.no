@@ -3,7 +3,53 @@
 
 This is often ^./bools-surfacing.txt a boolean thing^ but also often a whatever thing.
 
+``` drawing
+                                `could have used some of that information` 
+                               --------------------------------------------
+                              ^
+                              |
+                              |
+                              |`return false`
+                              |
+                              |
+ `using various information`  |
+------------------------------
+```
+
+The typical example being sort of outer more user interfacey code trying to construct a reasonable text for an error message out of the returned value false.
+
+----
+
 There's also a way of ^./generalities.txt making things general^ that can go kind of like this.
 
-...
+``` drawing
+`foo stuff`                 `foo stuff`                 `foo stuff`
+.---------.                 .---------.                 .---------+
+           \`general stuff`/           \`general stuff`/           \`general stuff`
+            +-------------+             +-------------+             +--------------
+           /               \           /               
+'---------'                 '---------'                 
+`bar stuff`                 `bar stuff`
+```
+
+And like:
+
+* foo stuff goes: foo -> general -> foo -> general -> foo -> general
+* bar stuff goes: bar -> general -> bar -> general -> general
+
+So foo and bar is decided to be more or less the same thing. Instead of having e.g. one foo function and one bar function and have them reuse the general stuff, there should be a one general function:
+
+* general stuff goes: foo or bar -> general -> foo or bar -> general -> maybe foo -> general
+
+----
+
+I dunno. Stuff. I think there are different reasons for different things.
+
+I think maybe there's a style of programming as well as or along with programming language design that leads to functions returning less useful values. Like there's a category of languages where making a suited data structures is cumbersome and ceremonial and feels like too much, and people end up returning booleans or _possibly_ enums even though the caller really needs something a little less enumerable. And like function signatures suffer from this in general, but return values tend to suffer a little more: You tend to get a little bit of extra structure on the argument side for free, since it is more common to let you call a function with multiple arguments than to let you return multiple values.
+
+With the foo-bar-general stuff I get the impression that programmers sometimes think things are cleaner and tidier if the differences have been smoothed over. I suppose sometimes it is. But often it isn't. Often the caller is really only dealing with foo stuff, and having a foo function would be more straightforward anyway. It can be like good that when you're uh in the world of foo, no bar stuff shows up. Like you don't have any if-elses where you might wonder if the bar stuff is relevant to you or have to check to make sure that the _your_ function calls will never touch the bar stuff.
+
+----
+
+Either way. Acting on the relevant information like directly, when and where you have it, is often preferable.
 
