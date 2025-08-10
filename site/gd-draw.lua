@@ -12,6 +12,9 @@ end
 
 function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
 
+local U, D, L, R = vec(0, -1), vec(0, 1), vec(-1, 0), vec(1, 0)
+local UL, DL, UR, DR = U + L, D + L, U + R, D + R
+
 local function points(half)
   local other = half.other
   local current
@@ -186,8 +189,9 @@ function newmap()
     end
     map.w = math.max(map.w, x)
   end
-  map.at = function(x, y)
-    local res = map[vec(x, y)]
+  function map.at(x, y)
+    local v = y and vec(x, y) or x
+    local res = map[v]
     return res and res.code
   end
   return map
@@ -222,8 +226,9 @@ local function render(map, out, size)
   local lines = newlines()
 
   for _, p in ipairs(map) do
-    local x = p.pos.x
-    local y = p.pos.y
+    local pos = p.pos
+    local x = pos.x
+    local y = pos.y
     local code = p.code
     local bx = x * 4
     local by = y * 8
@@ -236,55 +241,41 @@ local function render(map, out, size)
     elseif code == bslash then add(bx, by, bx + 4, by + 8)
     elseif code == period then
       local px, py = bx + 2, by + 6
-      local l, r = map.at(x - 1, y), map.at(x + 1, y)
-      local d = map.at(x, y + 1)
-      local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
-      if to_l[l] then add(bx, by + 4, px, py) end
-      if to_dl[dl] then add(bx, by + 8, px, py) end
-      if to_d[d] then add(bx + 2, by + 8, px, py) end
-      if to_dr[dr] then add(px, py, bx + 4, by + 8) end
-      if to_r[r] then add(px, py, bx + 4, by + 4) end
+      if to_l[map.at(pos + L)] then add(bx, by + 4, px, py) end
+      if to_dl[map.at(pos + DL)] then add(bx, by + 8, px, py) end
+      if to_d[map.at(pos + D)] then add(bx + 2, by + 8, px, py) end
+      if to_dr[map.at(pos + DR)] then add(px, py, bx + 4, by + 8) end
+      if to_r[map.at(pos + R)] then add(px, py, bx + 4, by + 4) end
     elseif code == apostrophe then
       local px, py = bx + 2, by + 2
-      local l, r = map.at(x - 1, y), map.at(x + 1, y)
-      local u = map.at(x, y - 1)
-      local ul, ur = map.at(x - 1, y - 1), map.at(x + 1, y - 1)
-      if to_l[l] then add(bx, by + 4, px, py) end
-      if to_ul[ul] then add(bx, by, px, py) end
-      if to_u[u] then add(bx + 2, by, px, py) end
-      if to_ur[ur] then add(px, py, bx + 4, by) end
-      if to_r[r] then add(px, py, bx + 4, by + 4) end
+      if to_l[map.at(pos + L)] then add(bx, by + 4, px, py) end
+      if to_ul[map.at(pos + UL)] then add(bx, by, px, py) end
+      if to_u[map.at(pos + U)] then add(bx + 2, by, px, py) end
+      if to_ur[map.at(pos + UR)] then add(px, py, bx + 4, by) end
+      if to_r[map.at(pos + R)] then add(px, py, bx + 4, by + 4) end
     elseif code == plus then
       local px, py = bx + 2, by + 4
-      local l, r = map.at(x - 1, y), map.at(x + 1, y)
-      local u, d = map.at(x, y - 1), map.at(x, y + 1)
-      local ul, ur = map.at(x - 1, y - 1), map.at(x + 1, y - 1)
-      local dl, dr = map.at(x - 1, y + 1), map.at(x + 1, y + 1)
-      if to_l[l] then add(bx, by + 4, px, py) end
-      if to_ul[ul] then add(bx, by, px, py) end
-      if to_dl[dl] then add(bx, by + 8, px, py) end
-      if to_u[u] then add(bx + 2, by, px, py) end
-      if to_d[d] then add(bx + 2, by + 8, px, py) end
-      if to_ur[ur] then add(px, py, bx + 4, by) end
-      if to_dr[dr] then add(px, py, bx + 4, by + 8) end
-      if to_r[r] then add(px, py, bx + 4, by + 4) end
+      if to_l[map.at(pos + L)] then add(bx, by + 4, px, py) end
+      if to_ul[map.at(pos + UL)] then add(bx, by, px, py) end
+      if to_dl[map.at(pos + DL)] then add(bx, by + 8, px, py) end
+      if to_u[map.at(pos + U)] then add(bx + 2, by, px, py) end
+      if to_d[map.at(pos + D)] then add(bx + 2, by + 8, px, py) end
+      if to_ur[map.at(pos + UR)] then add(px, py, bx + 4, by) end
+      if to_dr[map.at(pos + DR)] then add(px, py, bx + 4, by + 8) end
+      if to_r[map.at(pos + R)] then add(px, py, bx + 4, by + 4) end
     elseif code == lt then
-      local r = map.at(x + 1, y)
       add(bx + 4, by + 4, bx, by + 4)
       add(bx, by + 4, bx + 4, by + 2)
       add(bx, by + 4, bx + 4, by + 6)
     elseif code == gt then
-      local l = map.at(x - 1, y)
       add(bx, by + 4, bx + 4, by + 4)
       add(bx + 4, by + 4, bx, by + 2)
       add(bx + 4, by + 4, bx, by + 6)
     elseif code == caret then
-      local d = map.at(x, y + 1)
       add(bx + 2, by + 8, bx + 2, by)
       add(bx + 2, by, bx, by + 4)
       add(bx + 2, by, bx + 4, by + 4)
     elseif code == V then
-      local u = map.at(x, y - 1)
       add(bx + 2, by, bx + 2, by + 8)
       add(bx + 2, by + 8, bx, by + 4)
       add(bx + 2, by + 8, bx + 4, by + 4)
