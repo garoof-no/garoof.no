@@ -1,0 +1,25 @@
+# Two is a sensible number and can exist
+:todo
+
+There's this bit in The Gods Themselves by Isaac Asimov where Denison goes:
+
+> I do have an idea, a simple idea—perhaps too simple to work—based on the quite obvious fact that the number two is ridiculous and can’t exist.
+
+And Selene explains:
+
+> It could make sense to suppose that our own Universe is the only one that can exist or does exist, because it is the only one we live in and directly experience. Once, however, evidence arises that there is a second Universe as well, the one we call the para-Universe, then it becomes absolutely ridiculous to suppose that there are two and only two Universes. If a second Universe can exist, then an infinite number can. Between one and the infinite in cases such as these, there are no sensible numbers. Not only two, but any finite number, is ridiculous and can’t exist.
+
+Last time I searched for the quote I searched for "two is an impossible number" instead and got to ^https://wiki.c2.com/?TwoIsAnImpossibleNumber a WikiWikiWeb page^.
+
+Anyway it's a quote that comes to mind now and then. Lately it has come to mind in situations where I've been like eh, should have stuck with two.
+
+It might kind of look like I'm setting the quote and that up as something I wanna like engage with and argue against or something but it's just like a quote that comes to mind easily and it's a fun book and I wanted to put it here. I doubt there's "disagreement." Maybe just something like "here's one way of counting" or something.
+
+## Objects with outsides and insides
+
+## The production enironment and the test environment(s)
+
+## The thing and the not the thing
+
+
+
