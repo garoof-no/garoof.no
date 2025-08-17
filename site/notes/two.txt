@@ -17,7 +17,7 @@ It might kind of look like I'm setting the quote and that up as something I wann
 
 ## Objects with outsides and insides
 
-## The production enironment and the test environment(s)
+## The production environment and the test environment(s)
 
 ## The thing and the not the thing
 
