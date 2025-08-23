@@ -9,23 +9,25 @@ And Selene explains:
 
 > It could make sense to suppose that our own Universe is the only one that can exist or does exist, because it is the only one we live in and directly experience. Once, however, evidence arises that there is a second Universe as well, the one we call the para-Universe, then it becomes absolutely ridiculous to suppose that there are two and only two Universes. If a second Universe can exist, then an infinite number can. Between one and the infinite in cases such as these, there are no sensible numbers. Not only two, but any finite number, is ridiculous and can’t exist.
 
-It comes to mind every now and then and I like it.
-
-Anyway here are some cases of two being a sensible number that can exist.
+It comes to mind every now and then. I like it. Anyway here are some cases of two being a sensible number that can exist.
 
 ## Objects with outsides and insides
 
-Some languages have objecty things along with access modifiers like `public` and `private`. I like those two better than the "one or two thirds of public" ones. Like when you reach for those other ones I don't usually think it results in better design than e.g. moving the methods in question to a different objects and delegating a little. (A thing I've seen some is people using `protected` so that they can put tests in the same package and test those methods directly. I'd usually prefer to test the public interface of the delegate instead.)
+Some languages have objecty things along with access modifiers like `public` and `private`. I like those two better than the "two thirds of public" and "mostly private but a bit public" ones. Like when you reach for those other ones I don't _usually_ think it results in better design than e.g. moving the methods in question to a different objects and delegating a little. (A thing I've seen some people do is using `protected` or something so that they can put tests in the same package and test those methods directly. I'd usually prefer to test the public interface of a delegate instead.)
 
 ## Log levels
 
-Often the interesting thing is mostly just "is this like important yes/no?" Debug and trace and such might be useful for certain things, although I'm not convinced they're good things and not mostly overengineered libraries/frameworks that are so complex that the people _using_ them also needs to debug them. I dunno. Warnings I've mostly seen used as errors except no one pays attention to them. Pretending "error" means "alert" and using info or something for everything else often seems fine.
+Sometimes the interesting thing is mostly just "is this like important yes/no?" When stuck with a logging library or something it often seems fine to pretend that "error" means "alert" and use info or something for everything else.
 
 ## The production environment and the test environment(s)
 
-Having too many environments is one thing, though I kind of get that you might need more than two. Production, test and like "local" can make sense. Multiple variations of uh "deployed test" is often overkill I think. Also like even if you have more than two environments, there are contexts where it's probably better to just worry about like "prod or not" instead of "which particular not prod" or something. Like you can have n environments and decide on an order of importance and activate a feature for env < n and stuff but you can also like not. Not is often good.
+Having too many environments is one thing, though I kind of get that you might need more than two. Production, test and like "local" can make sense. Multiple variations of uh "deployed test" is often overkill I think. Also like even if you have more than two environments, there are contexts where it's probably better to just worry about like "prod or not" instead of "which particular kind of not prod" or something. Like you can have n environments and decide on an order of importance and activate a feature for env < n and stuff but you can also like not.
 
 ## Generally like the thing and the not the thing
 
 I dunno a lot of the time it seems like, like yeah, you do kind of have some number of things, or like you can count them like that, sure. But if one thing in particular sticks out as particularly important, then emphasizing that can be more useful.
+
+And in some cases it's like you're given these categories and then we kind of try to build something around that. Like we get 5 log levels from a library and then go through that list and try and put some stuff in each one (and if we get an even spread we've probably engineered good). Like if you discuss "what should go in debug?" in a meeting you're more likely to put something in debug than if you address your logging needs as they appear, maybe?
+
+Which isn't to say that category 3 or 4 or whatever is never useful or something. But more like sometimess it's there because it's useful for someone else, in a different context, and then _we_ use it in our because it's there.
 
