@@ -14,9 +14,9 @@ You get stuff like this, from ^https://thorben-janssen.com/hibernate-logging-gui
 
 > You only need to add your preferred framework to the classpath, and the JBoss Logging library will pick it up. If multiple frameworks are available, it picks the one with the highest priority.
 
-So uh, Hibernate knows about one logging ""bridge"" and then transitively about like 5 different logging frameworks I guess? One of which is a ""facade"" for indirectly using one of multiple possible logging frameworks. Which logging frameworks is considered higher and lower priority by the JBoss Logging library is part of your application if you use Hibernate. Etc.
+So uh, Hibernate knows about one logging ""bridge"" and then transitively about like 5 different logging frameworks I guess? One of which is a ""facade"" for indirectly using one of multiple possible logging frameworks. Which logging frameworks are considered higher and lower priority by the JBoss Logging library is part of your application if you use Hibernate. Etc.
 
-(I know what you're thinking: Can the facade be set up to use the bridge again? Sure it can! And I have it on high authority that ^https://github.com/jboss-logging/slf4j-jboss-logging "to redirect log messages from one logging facade to another [is] useful in some cases."^)
+(I know what you're thinking: Can the facade be set up to use the bridge again? Sure it can! And I have it on good authority that ^https://github.com/jboss-logging/slf4j-jboss-logging "to redirect log messages from one logging facade to another [is] useful in some cases."^)
 
 ----
 
