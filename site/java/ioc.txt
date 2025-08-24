@@ -1,0 +1,81 @@
+# What if dependencies were injected?
+:blurb Wnnie-the-Pooh tuxedo meme: Ball of mud/container of mud.
+:pub ZlAQEi
+
+I'm not sure about this but I think the Java community is morally opposed to calling methods and passing in arguments. Either way it's a strange landscape. Inversion of control is reasonable and makes sense and is often a fine thing and is not a popular idea. That's not surprising, but I think it's a little funny that inversion of control _containers_ are used so much. I suppose it makes sense. In my experience inversion of control containers are not very good for doing inversion of control.
+
+----
+
+Take logging libraries. A logging library will include _various stuff._ Seemingly a superset of the logging-related stuff needed or wanted by some set of applications. You get these different logging libraries with these different supersets, so someone decides to make Zeno's logging ""facade"" with something like a superset of the supersets. New supersets appear. Someone else will make a different facade. So it goes.
+
+You get stuff like this, from ^https://thorben-janssen.com/hibernate-logging-guide/ this Hibernate logging guide^:
+
+> Hibernate uses the JBoss Logging library to write messages to a log file. This library is a logging bridge that integrates different log frameworks.
+
+> You only need to add your preferred framework to the classpath, and the JBoss Logging library will pick it up. If multiple frameworks are available, it picks the one with the highest priority.
+
+So uh, Hibernate knows about one logging ""bridge"" and then transitively about like 5 different logging frameworks I guess? One of which is a ""facade"" for indirectly using one of multiple possible logging frameworks. Which logging frameworks is considered higher and lower priority by the JBoss Logging library is part of your application if you use Hibernate. Etc.
+
+(I know what you're thinking: Can the facade be set up to use the bridge again? Sure it can! And I have it on high authority that ^https://github.com/jboss-logging/slf4j-jboss-logging "to redirect log messages from one logging facade to another [is] useful in some cases."^)
+
+----
+
+Okay we _could_ imagine that passing arguments to a method or constructor was an option. We could imagine that Hibernate had some set of actual logging needs and, say, put those requirements into an interface or something. It could like very clearly communicate things like which log levels it was concerned with and how much structure it was willing to provide along with each log message.
+
+Like one library could require an instance of an interface like:
+
+```
+interface FooLogging {
+    void error(String message);
+    void warning(String message);
+    void info(String message);
+    void debug(String message);
+    void trace(String message);
+}
+```
+
+Another one might do something like:
+
+```
+record BarLogData(Class<?> cls, Map<String, String> properties) {}
+interface BarLogging {
+    void alert(String message, BarLogData data);
+    void info(String message, BarLogData data);
+}
+```
+
+And a third maybe something like:
+
+```
+enum QuuxLogLevel { ALERT, INFO, DEBUG }
+interface QuuxLogging {
+    void error(String message, QuuxLogLevel level);
+}
+```
+
+Like we _could imagine,_ like in our `main` method or whatever, initializing e.g. a Hibernate and passing in the configuration it needs:
+
+```
+var hibernate = new Hibernate(
+  ...,
+  new HibernateLogging() {
+    void error(...) { ... }
+    void warning(...) { ... }
+    ...
+  },
+  ...
+);
+```
+
+And just route the stuff to the logging library we're using, or just stdout/stderr/nothing, in the implementation we provide.
+
+----
+
+Like I'm not sure. I'm open to the idea that such and such. Personally I'm not fond of my dependencies picking up other dependencies by looking for them on the classpath. Others appear to be. It's okay and we don't have to like the same stuff and so on.
+
+So just like, personally, like _super-subjectively speaking,_ I don't think stuff like a common interface for logging is something that _must_ be agreed upon across the community and ecosystem. That's maybe a problem you can choose to have and solve(?) in order to deal with a "problematic situation" or something, but it's not the only one that can be chosen. It would be possible for libraries to instead declare their requirements and for users of the libraries to meet those requirements by injecting/passing in as arguments what is needed. To me that seems like more explicit and like making less assumptions about the contexts the libraries are used in and stuff like that.
+
+In the case of logging it also makes it very clear whether stuff potentially being lost in translation is a thing to be concerned about: As a user of a library you know in which terms the library thinks about logging and you provide the translation from that to what you're using. There's no "facade to facade to library" stuff happening behind the scenes. Questions like "is anything dropped along the line?" or "would I get additional stuff through if I used this instead of that library at the end?" isn't really stuff that can come up.
+
+I don't know.
+
