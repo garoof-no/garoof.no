@@ -1,0 +1,62 @@
+# Fluent interfaces are cute tricks
+:template lua
+:todo
+
+In Smalltalk, instead of e.g. using semicolons or linebreaks after statements, dots are used as statement separators. Like the body of a method could look like:
+
+```
+foo := self makeList.
+foo add: 3.
+foo add: 4.
+foo add: 5
+```
+
+Here we mostly call methods on `foo`. If we don't wanna write foo that many times, we can use semicolons instead of dots, for method cascading:
+
+```
+(foo := self makeList)
+  add: 3;
+  add: 4;
+  add: 5
+```
+
+Okay.
+
+----
+
+``` run
+vec = setmetatable(
+  {
+    __index = { add = function(a, b) return vec(a.x + b.x, a.y + b.y) end },
+    __tostring = function(v) return v.x .. ", " .. v.y end
+  },
+  { __call = function(_, x, y) return setmetatable({ x = x, y = y }, vec) end })
+```
+
+``` repl
+local a, b = vec(1, 2), vec(3, 4)
+print(a)
+print(b)
+print(a:add(b))
+print(a:add(b):add(a))
+```
+
+----
+
+``` run
+fvec = setmetatable(
+  {
+    __index = { add = function(a, b) a.x = a.x + b.x ; a.y = a.y + b.y ; return a end },
+    __tostring = function(v) return v.x .. ", " .. v.y end
+  },
+  { __call = function(_, x, y) return setmetatable({ x = x, y = y }, fvec) end })
+```
+
+``` repl
+local a, b = fvec(1, 2), fvec(3, 4)
+print(a)
+print(b)
+print(a:add(b))
+print(a:add(b):add(a))
+```
+
