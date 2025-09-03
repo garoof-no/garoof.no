@@ -1,0 +1,25 @@
+# AI then
+:blurb I hate this.
+:pub ZlB3JH
+
+Not gonna write a lot about AI. Usually I just wait these things out. But eh. People have been shouting at me that I should get aboard the AI train for a couple of years now and I haven't and the train never leaves the station and _also_ the people don't stop shouting. So uh, something.
+
+Anyway it sucks and the people involved are bad and they suck. That's really it. But also a couple of recurring thoughts:
+
+## If they actually believed in it they would act differently
+
+* They wouldn't be so aggressive about it
+* They wouldn't like blog about how people who don't embrace AI should leave the business
+* They certainly wouldn't fire people for not using AI
+* Like if they thought it was genuinely interesting stuff they'd allow for it to catch different people's interest at different times because that aligns with how actual human interest actually works when it comes to actually interesting things that can catch actual human interest
+
+## Programmers hating programming, as per usual
+
+Like even if this was like good and honest tech, like say it was green and anti-fascist and wealth-redistributing and useful tech, or something like that: It still seems like, fucking boring if you actually enjoy programming. The target audience seems to be people who don't, and like it remains funny that so many of those people are professional programmers.
+
+## Sam Altman is stupid in a different way than the way that he pretends to be stupid
+
+> There are moments in the history of science, where you have a group of scientists look at their creation and just say, you know: "What have we done?"
+
+This is the kind of thing you say for comedic effect. This is the setup for a product launch punchline.
+
