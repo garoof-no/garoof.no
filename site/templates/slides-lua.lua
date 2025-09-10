@@ -10,7 +10,7 @@ local function create()
           .. [[<style>]] .. templates.css("30rem") .. slides.slidecss
           .. templates.replcss .. [[</style>]]
           .. lua.scripttags(url) .. slides.scripttag
-          .. [[</head><body>]]
+          .. [[</head>\n<body>\n]]
           .. sl.first
           .. templates.nav(url, token)
     end,

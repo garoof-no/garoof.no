@@ -333,7 +333,7 @@ local function prewriterf(class, linef)
           res = res .. "<figcaption>"
             .. strhtml(caption, url) .. "</figcaption>"
         end
-        return res .. "</figure>"
+        return res .. "</figure>\n"
       else
         error("unreachable: " .. line.type)
       end
@@ -350,7 +350,7 @@ local function img(url)
     elseif line.type == "prebr" then
       return ""
     elseif line.type == "pre>" then
-      local res = "</figure>" 
+      local res = "</figure>\n" 
       if not line.empty then
         local caption = escape(line.rest)
         res = "<figcaption>" .. caption .. "</figcaption>" .. res
@@ -366,7 +366,7 @@ local function newdrawing(url)
   local map = draw.newmap()
   return function(line)
     if line.type == "<pre" then
-      return "<figure>"
+      return "<figure>\n"
     elseif line.type == "pre" then
       map.addline(line.rest)
       return ""
@@ -379,9 +379,9 @@ local function newdrawing(url)
       if not line.empty then
         table.insert(res, "<figcaption>")
         table.insert(res, strhtml(line.rest, url))
-        table.insert(res, "</figcaption>")
+        table.insert(res, "</figcaption>\n")
       end
-      table.insert(res, "</figure>")
+      table.insert(res, "</figure>\n")
       return table.concat(res)
     else
       error("unreachable: " .. line.type)
@@ -466,7 +466,7 @@ local function basekvtable()
         and (' title="' .. strhtml(meta.blurb, nil, true) .. '"')
         or ""
       return '<time datetime="' .. t.iso() .. '"' .. b .. '>'
-        .. escape(str) .. '</time>'
+        .. escape(str) .. '</time>\n'
     end,
     time = function(str, meta, usedids)
       local t = dt.fromb60(str)
@@ -478,7 +478,7 @@ local function basekvtable()
         id = ' id="' .. id .. '"'
         usedids[id] = true
       end
-      return '<time' .. id ..  ' datetime="' .. t.iso() .. '">' .. escape(str) .. '</time>'
+      return '<time' .. id ..  ' datetime="' .. t.iso() .. '">' .. escape(str) .. '</time>\n'
     end,
     html = function(str) return str end
   }
@@ -524,22 +524,16 @@ local function html(url, pretable, kvtable)
       end
     end
     local inner = strhtml(line.rest, url)
-    local res = { "<", tag, pubstr, ">", inner, "</", tag, ">" }
+    local res = { "<", tag, pubstr, ">", inner, "</", tag, ">\n" }
     rendermeta(line.meta, res)
     return table.concat(res)
-  end
-
-  local function renderLine(line)
-    if line.type == "text" or line.type == "quote" then
-      return strhtml(line.rest, url)
-    end
   end
   
   return function(token)
     if token.type == "<p" then return "<p>"
-    elseif token.type == "p>" then return "</p>"
-    elseif token.type == "<quote" then return "<blockquote>"
-    elseif token.type == "quote>" then return "</blockquote>"
+    elseif token.type == "p>" then return "</p>\n"
+    elseif token.type == "<quote" then return "<blockquote>\n"
+    elseif token.type == "quote>" then return "</blockquote>\n"
     elseif token.type == "<pre" then
       local f = pretable[token.rest]
       pre = f and f(url) or prewriter
@@ -550,16 +544,16 @@ local function html(url, pretable, kvtable)
       local res = pre(token, url)
       pre = nil
       return res
-    elseif token.type == "<list" then return "<ul>"
+    elseif token.type == "<list" then return "<ul>\n"
     elseif token.type == "list" then return tagged("li", token)
-    elseif token.type == "list>" then return "</ul>"
+    elseif token.type == "list>" then return "</ul>\n"
     elseif token.type == "text" or token.type == "quote" then
-      return renderLine(token)
-    elseif token.type == "br" or token.type == "quotebr" then return "<br>"
+      return strhtml(token.rest, url)
+    elseif token.type == "br" or token.type == "quotebr" then return "\n<br>"
     elseif token.type == "h1" then return tagged("h1", token)
     elseif token.type == "h2" then return tagged("h2", token)
     elseif token.type == "h3" then return tagged("h3", token)
-    elseif token.type == "hr" then return "<hr>"
+    elseif token.type == "hr" then return "<hr>\n"
     elseif token.type == "meta" then
       local res = {}
       rendermeta(token.meta, res)

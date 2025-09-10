@@ -9,11 +9,10 @@ pretable.prelude = gd.prewriterf("js prelude run")
 local template = {
   before = function(url, token)
     return templates.beforetitle(url, token) .. templates.title(token)
-      .. '<script src="' .. url("/js.js") .. '" defer></script>'
-      .. '<style>'
+      .. '<script src="' .. url("/js.js") .. '" defer></script>\n'
+      .. '<style>\n'
       .. templates.colorcss .. templates.css() .. templates.replcss
-      .. '</style>'
-      .. '</head><body>'
+      .. '</style>\n</head>\n<body>\n'
       .. templates.nav(url, token)
   end,
   after = function() return templates.aftercontent end,

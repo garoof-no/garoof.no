@@ -3,11 +3,10 @@ local gd = require("gd")
 local function beforetitle(url, token)
   return [[<!DOCTYPE html>
 <html lang="]] .. (token.meta and token.meta.lang or "en") .. [[">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="]] .. url("/gfx/frog.svg") .. [[" sizes="any" type="image/svg+xml">
-    ]]
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+]]
 end
 
 local aftercontent = [[</body>
@@ -28,8 +27,7 @@ nav a { color: var(--text); }
 
 local function css(width)
   width = width or "50rem"
-  return [[
-body { font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, "Noto Sans", "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif; padding-left: 0.5rem; padding-right: 0.5rem; max-width: ]] .. width ..[[; margin: 1rem auto 0 auto; }
+  return [[body { font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, "Noto Sans", "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif; padding-left: 0.5rem; padding-right: 0.5rem; max-width: ]] .. width ..[[; margin: 1rem auto 0 auto; }
 p, pre, ul, hr, figure { margin: 1rem 0 1rem 0; padding: 0; }
 h1, h2, h3 { margin: 2rem 0 0rem 0; padding: 0; }
 h1 { font-size: 2.2rem; } h2 { font-size: 1.4rem; }  h3 { font-size: 1.1rem; }
@@ -48,8 +46,7 @@ ins { text-decoration: none; background-color: #d4fcbc; color: #000000; }
 ]]
 end
 
-local replcss = [[
-.row, .toolbar { display: flex; flex-direction: row; }
+local replcss = [[.row, .toolbar { display: flex; flex-direction: row; }
 .toolbar-button { align-self: flex-start; }
 .error { text-decoration: underline; text-decoration-color: red; }
 .output { margin: 0 0 0 0.3rem; }
@@ -58,11 +55,11 @@ button { font-size: 1rem; min-width: 2rem; }
 
 local function nav(url, token)
   local nonav = (token.meta or {}).nonav and ''
-  return nonav or '<nav><p><a href="' .. url("/index.html") .. '">index</a></p></nav>'
+  return nonav or '<nav><p><a href="' .. url("/index.html") .. '">index</a></p></nav>\n'
 end
 
 local function title(token)
-  return '<title>' .. gd.strhtml(gd.titlefrom(token), nil, true) .. '</title>'
+  return '<title>' .. gd.strhtml(gd.titlefrom(token), nil, true) .. '</title>\n'
 end
 
 return {
@@ -71,7 +68,7 @@ return {
     colorcss = colorcss,
     css = css,
     replcss = replcss,
-    style = '<style>' .. colorcss .. css() .. '</style>',
+    style = '<style>\n' .. colorcss .. css() .. '</style>\n',
     nav = nav,
     title = title
 }

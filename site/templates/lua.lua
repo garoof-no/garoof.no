@@ -7,18 +7,17 @@ pretable.run = gd.prewriterf("lua run")
 pretable.prelude = gd.prewriterf("lua prelude run")
 
 local function scripttags(url)
-  return '<script src="' .. url("/lua-wasm.js") .. '" defer></script>'
-    .. '<script src="' .. url("/lua.js") .. '" defer></script>'
+  return '<script src="' .. url("/lua-wasm.js") .. '" defer></script>\n'
+    .. '<script src="' .. url("/lua.js") .. '" defer></script>\n'
 end
 
 local template = {
   before = function(url,token)
     return templates.beforetitle(url, token) .. templates.title(token)
       .. scripttags(url)
-      .. '<style>'
+      .. '<style>\n'
       .. templates.colorcss .. templates.css() .. templates.replcss
-    .. '</style>'
-    .. '</head><body>'
+    .. '</style>\n</head>\n<body>\n'
     .. templates.nav(url, token)
  end,
  after = function() return templates.aftercontent end,

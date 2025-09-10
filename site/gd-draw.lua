@@ -299,14 +299,14 @@ local function render(map, out, size)
       table.insert(strs, p.x * xscale .. "," .. p.y * yscale)
     end
     local type = meta.closed and '<polygon points="' or '<polyline points="'
-    return type .. table.concat(strs, " ") .. '" />'
+    return type .. table.concat(strs, " ") .. '" />\n'
   end
 
   local w, h = ((map.w + 2) * cellw), ((map.h + 2) * cellh)
   out(
     '<svg width="' .. w .. '" height="' .. h .. 
     '" viewBox="0 0 ' .. w .. ' ' .. h ..
-    '" xmlns="http://www.w3.org/2000/svg">')
+    '" xmlns="http://www.w3.org/2000/svg">\n')
   out(style)
   for k, v in ipairs(lines) do
     out(lineSvg(v))
@@ -315,10 +315,10 @@ local function render(map, out, size)
   for _, t in ipairs(map.texts) do
     local x = t.pos.x * 4 * xscale
     local y = t.pos.y * 8 * yscale
-    out('<text x="' .. x ..'" y="' .. y .. '">' .. escape(t.str) .. '</text>')
+    out('<text x="' .. x ..'" y="' .. y .. '">' .. escape(t.str) .. '</text>\n')
   end
 
-  out("</svg>")
+  out("</svg>\n")
   if res then return table.concat(res) end
 end
 
