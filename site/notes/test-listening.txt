@@ -1,0 +1,114 @@
+# bla bla bla
+:todo
+:template lua
+
+
+``` run
+
+local function textcontent(t)
+  local function halp(t, res)
+    for _, v in ipairs(t) do
+      if type(v) == "string" then
+        table.insert(res, v)
+      else
+        table.insert(res, "<" .. v.name .. ">")
+        halp(v, res)
+        table.insert(res, "</" .. v.name .. ">")
+      end
+    end
+  end
+  local res = {}
+  halp(t, res)
+  return table.concat(res)
+end
+
+local function elements(t, named)
+  local it, st, start = ipairs(t)
+  local function halp(t, k)
+    local v
+    repeat k, v = it(t, k)
+    until v == nil or (type(v) == "table" and ((not named) or named == v.name))
+    return k, v
+  end
+  return halp, st, start
+end
+
+local function element(t, named)
+  local res = {}
+  for k, v in elements(t, named) do
+    table.insert(res, v)
+  end
+  assert(#res == 1, "found " .. #res .. " elements named " .. tostring(named))
+  return res[1]
+end
+
+xml = setmetatable(
+  {
+    __index = {
+      textcontent = textcontent,
+      elements = elements,
+      element = element
+    }
+  },
+  { __call = function(_, t) return setmetatable(t, xml) end })
+
+local content
+
+local function element(str, i)
+  local startname, i2 = str:match("^<([^<>]+)>()", i)
+  assert(startname and startname ~= "", 'SYNTAX ERROR: "' .. str:sub(i) .. '"')
+  local res, i3 = content(str, i2)
+  local endname, i4 = str:match("^</([^<>]+)>()", i3)
+  assert(endname, 'SYNTAX ERROR: "' .. str:sub(i3) .. '"')
+  assert(startname == endname, endname .. " does not match " .. startname)
+  res.name = startname
+  return res, i4
+end
+
+function content(str, i)
+  local res = {}
+  local x, a, b
+  while true do
+    x, i, a, b = str:match("^([^<>]*)()(.?)(.?)", i)
+    if x ~= "" then table.insert(res, x) end
+    if a == "<" and b ~= "/" then
+      x, i = element(str, i)
+      table.insert(res, x)
+    else
+      return xml(res), i
+    end
+  end
+end
+
+function parse(str)
+  local res, i = content(str, 1)
+  if i <= #str then
+    error("unexpected: " .. str:sub(i))
+  end
+  return res
+end
+
+local xml = parse([[
+<beep>boop bap</beep>
+<thing>
+  <name>foo1</name>
+  <value>bar1</value>
+</thing>
+<thing>
+  <name>foo2</name>
+  <value>bar2</value>
+</thing>
+<thing>
+  <name>foo3</name>
+  <value>bar3</value>
+</thing>
+]])
+
+print(xml:element("beep"):textcontent())
+
+for _, v in xml:elements("thing") do
+  local a = v:element("name"):textcontent()
+  local b = v:element("value"):textcontent()
+  print(a, b)
+end
+```
