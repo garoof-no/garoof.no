@@ -2,6 +2,41 @@
 :todo
 :template lua
 
+``` repl
+local xml = parse([[
+<root>
+  <header>blep</header>
+  <thing>
+    <name>foo</name>
+    <value>bar</value>
+  </thing>
+  <thing>
+    <name>beep</name>
+    <value>boop</value>
+  </thing>
+</root>
+]])
+
+runtests(
+  function()
+    assertEq("blep", xml:element("header"):textcontent())
+  end,
+  function()
+    local l = xml:elementlist("thing")
+    assertEq(2, #l)
+    assertEq("foo", l[1]:element("name"):textcontent())
+    assertEq("bar", l[1]:element("value"):textcontent())
+    assertEq("beep", l[2]:element("name"):textcontent())
+    assertEq("boop", l[2]:element("value"):textcontent())
+  end
+)
+
+```
+
+----
+
+XML framework:
+
 ``` run
 local function textcontent(t)
   local function halp(t, res)
@@ -31,22 +66,27 @@ local function elements(t, named)
   return halp, st, start
 end
 
-local function element(t, named)
+local function elementlist(t, named)
   local res = {}
-  for k, v in elements(t, named) do
-    table.insert(res, v)
-  end
+  for k, v in elements(t, named) do table.insert(res, v) end
+  return res
+end
+
+local function element(t, named)
+  local res = elementlist(t, named)
   assert(
     #res == 1,
     "found " .. #res .. " elements" .. (named and " named " .. named or ""))
   return res[1]
 end
 
+local xml
 xml = setmetatable(
   {
     __index = {
       textcontent = textcontent,
       elements = elements,
+      elementlist = elementlist,
       element = element
     }
   },
@@ -83,7 +123,7 @@ end
 function parse(str)
   local res, i = content(str, 1)
   if i <= #str then
-    error("unexpected: " .. str:sub(i))
+    error('SYNTAX ERROR: "' .. str:sub(i) .. '"')
   end
   local element
   for _, v in ipairs(res) do
@@ -99,31 +139,52 @@ function parse(str)
 end
 ```
 
-``` repl
-local xml = parse([[
-<foo>
-  <beep>boop bap</beep>
-  <thing>
-    <name>foo1</name>
-    <value>bar1</value>
-  </thing>
-  <thing>
-    <name>foo2</name>
-    <value>bar2</value>
-  </thing>
-  <thing>
-    <name>foo3</name>
-    <value>bar3</value>
-  </thing>
-</foo>
-]])
+----
 
-print(xml:element("beep"):textcontent())
+Testing framework:
 
-for _, v in xml:elements("thing") do
-  local a = v:element("name"):textcontent()
-  local b = v:element("value"):textcontent()
-  print(a, b)
+``` run
+local escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+local function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+function runtests(...)
+  local str = { '<p>' }
+  local passes, failures = 0, 0
+  for i, f in ipairs({...}) do
+    local success, res = pcall(f)
+    if success then
+      passes = passes + 1
+    else
+      failures = failures + 1
+      table.insert(str, 'test ' .. i .. ' failed: ')
+      table.insert(str, escape(tostring(res)) .. '<br>')
+    end
+  end
+  table.insert(str, '<span style="background-color:')
+  if failures == 0 then
+    table.insert(str, 'green;">this is a green bar ')
+  else
+    table.insert(str, 'red;">this is a red bar ')
+  end
+  table.insert(str,  '(' .. passes .. ' tests passed. ')
+  table.insert(str,  failures .. ' tests failed)</span></p>')
+  web.html(table.concat(str))
+end
+
+function assertEq(e, a)
+  if e ~= a then
+    error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
+  end
 end
 ```
 
