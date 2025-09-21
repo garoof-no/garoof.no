@@ -2,9 +2,7 @@
 :todo
 :template lua
 
-
 ``` run
-
 local function textcontent(t)
   local function halp(t, res)
     for _, v in ipairs(t) do
@@ -38,7 +36,9 @@ local function element(t, named)
   for k, v in elements(t, named) do
     table.insert(res, v)
   end
-  assert(#res == 1, "found " .. #res .. " elements named " .. tostring(named))
+  assert(
+    #res == 1,
+    "found " .. #res .. " elements" .. (named and " named " .. named or ""))
   return res[1]
 end
 
@@ -85,23 +85,37 @@ function parse(str)
   if i <= #str then
     error("unexpected: " .. str:sub(i))
   end
-  return res
+  local element
+  for _, v in ipairs(res) do
+    if type(v) == "string" then
+      assert(v:match("^%s*$"), 'top-level text! >:( "' .. v .. '"')
+    else
+      assert(not element, "more than one top-level element :(")
+      element = v
+    end
+  end
+  assert(element, "no top-level element :(")
+  return element
 end
+```
 
+``` repl
 local xml = parse([[
-<beep>boop bap</beep>
-<thing>
-  <name>foo1</name>
-  <value>bar1</value>
-</thing>
-<thing>
-  <name>foo2</name>
-  <value>bar2</value>
-</thing>
-<thing>
-  <name>foo3</name>
-  <value>bar3</value>
-</thing>
+<foo>
+  <beep>boop bap</beep>
+  <thing>
+    <name>foo1</name>
+    <value>bar1</value>
+  </thing>
+  <thing>
+    <name>foo2</name>
+    <value>bar2</value>
+  </thing>
+  <thing>
+    <name>foo3</name>
+    <value>bar3</value>
+  </thing>
+</foo>
 ]])
 
 print(xml:element("beep"):textcontent())
@@ -112,3 +126,4 @@ for _, v in xml:elements("thing") do
   print(a, b)
 end
 ```
+
