@@ -92,16 +92,22 @@ xml = setmetatable(
   },
   { __call = function(_, t) return setmetatable(t, xml) end })
 
+local unescapes = { ["&lt;"] = "<", ["&gt;"] = ">", ["&amp;"] = "&" }
+function unescape(s)
+  local res = s:gsub("&%a?%a?%a?;", unescapes)
+  return res
+end
+
 local content
 
 local function element(str, i)
   local startname, i2 = str:match("^<([^<>]+)>()", i)
-  assert(startname and startname ~= "", 'SYNTAX ERROR: "' .. str:sub(i) .. '"')
+  assert(startname, 'SYNTAX ERROR: "' .. str:sub(i) .. '"')
   local res, i3 = content(str, i2)
   local endname, i4 = str:match("^</([^<>]+)>()", i3)
   assert(endname, 'SYNTAX ERROR: "' .. str:sub(i3) .. '"')
   assert(startname == endname, endname .. " does not match " .. startname)
-  res.name = startname
+  res.name = unescape(startname)
   return res, i4
 end
 
@@ -110,7 +116,7 @@ function content(str, i)
   local x, a, b
   while true do
     x, i, a, b = str:match("^([^<>]*)()(.?)(.?)", i)
-    if x ~= "" then table.insert(res, x) end
+    if x ~= "" then table.insert(res, unescape(x)) end
     if a == "<" and b ~= "/" then
       x, i = element(str, i)
       table.insert(res, x)
