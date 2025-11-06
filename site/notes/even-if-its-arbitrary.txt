@@ -5,16 +5,37 @@ From The Reflective Practitioner, the architecture example thing. The studio mas
 
 > You should begin with a discipline, even if it is arbitrary, because the site is so screwy—you can always break it open later.
 
-It's one of those quotes that has stayed with me.
+It's a quote that comes to mind every now and then.
 
 Also there's there's stuff about "back-talk" in the book. Like:
 
 > He shapes the situation, in accordance with his initial appreciation of it, the situation “talks back,” and he responds to the situation’s back-talk.
 
-Reminds me of some stuff.
+## Streetlight modelling
 
-----
+One of the things I've used to get annoyed about is when programmers kind of shy away from really engaging with the actual problem that they have and instead solve a different but in some sense similar problem that they're more comfortable with. It has reminded me of the ^https://en.wikipedia.org/wiki/Streetlight_effect streetlight effect^.
 
-## Wrong good advice
+## Bad advice being good if you know it's bad
 
+I've probably seen variations of this here and there. This one's from Implementation Patterns by Kent Beck:
+
+> A final principle is to put logic or data that changes at the same rate together and separate logic or data that changes at different rates. These rates of change are a form of temporal symmetry.
+
+I've done something like that pretty often. Like I've ran into class with ten instance variables, and I've "tidied" by:
+
+* Grouping the variables them into "stuff that changes" and "stuff that stays the same"
+* Making inner classes or something for those categories, like `Constant` and `Changing`
+* Making the original class have two instance variables of those two types instead of the ten it started out with
+
+I'm likely to get some immediate benefits. Might become easier to make my functional update methods list fewer unchanging things. ...
+
+It's also likely to be "wrong." I'm likely to eventually end up with some better grouping that is informed by uh deeper domain insight or something. Two things that really belong together can end up in different groups because of some rate of change-techincality. ...
+
+It's also also way of familiarizing myself with the code by doing something. Those two things that really belong together, it might be easier to discover that group by seeing how the rate of change-groups get it wrong than by staring at the ten original variables. ...
+
+## Anyway
+
+We have some rules and principles and disciplines and stuff. They're often "bad" in the sense that they don't get you to where you want to be. I think my streelight annoyances has to do with that: Applying some rule and then being happy with the result because it is now in accordance with that rule. The rule becomes the goal, the end.
+
+And then I like that quote from Practitioner because it's about being aware of how a rule can be more about beginning and less about ending. It can get you started, it can get you into the situation, it can get you feedback.
 
