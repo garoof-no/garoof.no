@@ -1,5 +1,6 @@
 # Pixels
-:todo
+:pub ZlDBHH
+:blurb Art.
 :template js
 
 ``` html
@@ -11,7 +12,7 @@
     font-family: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1.05em;;
   }
 </style>
-<canvas id="canvas"></canvas>
+<p><canvas id="canvas"></canvas></p>
 <ul>
   <li><label>Palette: <input id="palette" style="width: 3rem;"></label></li>
   <li><label>Sprite: <input id="sprite" style="width: 19rem;"></label></li>
@@ -22,10 +23,11 @@
 
 It's a bad pixel art thing:
 
+* This uses JavaScript so doesn't work if that's disabled here
 * It uses the mouse and one (1) mouse button
 * You can make an 8 by 8 pixels large sprite with it
 * The sprite uses a palette of 4 colours
-* The 4-colour palette uses colours from a larger 16-colour one (those 16 colours is from the ^https://www.lexaloffle.com/pico-8.php PICO-8^ palette)
+* The 4-colour palette uses colours from a larger 16-colour one (those 16 colours are from the ^https://www.lexaloffle.com/pico-8.php PICO-8^ palette)
 * The palette and sprite graphics are put into the input fields below the editor as hexadecimal strings
 * The sprite uses 2 bits for each pixel, so 4 pixels in a byte or 2 pixels in a hexadecimal digit
 * The palette uses 4 bits for each color, so 2 colors in a byte or 1 color in a hexadecimal digit
