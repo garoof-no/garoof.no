@@ -130,10 +130,8 @@ const rendercanvas = () => {
     }
   }
   pal.forEach((c, i) => {
-    ctx.fillStyle = fullpal[i === color ? 7 : 0];
-    ctx.fillRect(10 + i, 0, 1, 1);
     ctx.fillStyle = fullpal[c];
-    ctx.fillRect(10 + i, 1, 1, 1);
+    ctx.fillRect(10 + i, 0, 1, 2);
   });
   ctx.fillStyle = fullpal[pal[color]];
   ctx.fillRect(10, 2, 4, 2);
