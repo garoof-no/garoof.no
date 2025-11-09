@@ -135,10 +135,8 @@ const rendercanvas = () => {
     ctx.fillStyle = fullpal[c];
     ctx.fillRect(10 + i, 1, 1, 1);
   });
-  if (!transparent) {
-    ctx.fillStyle = fullpal[0];
-    ctx.fillRect(10, 2, 4, 2);
-  }
+  ctx.fillStyle = fullpal[pal[color]];
+  ctx.fillRect(10, 2, 4, 2);
   fullpal.forEach((c, i) => {
     ctx.fillStyle = c;
     const x = i % 4;
@@ -168,11 +166,11 @@ const onmouse = (e) => {
     if (x < 8) {
       data[y][x] = color;
     } else if (x < 10) {
-      return;
+      transparent = !transparent;
     } else if (y < 2) {
       color = x - 10;
     } else if (y < 4) {
-      transparent = !transparent;
+      return;
     } else {
       pal[color] = ((y - 4) * 4) + (x - 10)
     }
