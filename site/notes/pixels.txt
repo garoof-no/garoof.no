@@ -104,7 +104,7 @@ const datafromhex = (str) => {
   return res;
 };
 
-const hexdata = () => {
+const hexdata = (data) => {
   const res = new Uint8Array(8 * 8 / 4);
   let i = 0;
   data.forEach((row) => {
@@ -129,7 +129,7 @@ const palfromhex = (str) => {
   return res;
 };
 
-const hexpal = () => {
+const hexpal = (pal) => {
   const res = new Uint8Array(4 / 2);
   let i = 0;
   for (let x = 0; x < pal.length; x += 2) {
@@ -188,8 +188,8 @@ const rendercanvas = () => {
 };
 
 const render = () => {
-  sprite.value = hexdata();
-  palette.value = hexpal();
+  sprite.value = hexdata(data);
+  palette.value = hexpal(pal);
   rendercanvas();
 };
 render();
