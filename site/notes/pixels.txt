@@ -1,0 +1,194 @@
+# Pixels
+:todo
+:template js
+
+``` html
+<style>
+  canvas {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGHaVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49J++7vycgaWQ9J1c1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCc/Pg0KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyI+PHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj48cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0idXVpZDpmYWY1YmRkNS1iYTNkLTExZGEtYWQzMS1kMzNkNzUxODJmMWIiIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIj48dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPjwvcmRmOkRlc2NyaXB0aW9uPjwvcmRmOlJERj48L3g6eG1wbWV0YT4NCjw/eHBhY2tldCBlbmQ9J3cnPz4slJgLAAAANklEQVQ4T2N89uzZfwY8QFJSEl0IBTChC5AKRg0YDAYw/v//H286eP78OboQCqDYBaMGDAYDAJKtCsyb8AQCAAAAAElFTkSuQmCC);
+  }
+  input {
+    font-family: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1.05em;;
+  }
+</style>
+<canvas id="canvas"></canvas>
+<ul>
+  <li><label>Palette: <input id="palette" style="width: 3rem;"></label></li>
+  <li><label>Sprite: <input id="sprite" style="width: 19rem;"></label></li>
+</ul>
+```
+
+----
+
+``` run
+const canvas = document.querySelector("#canvas");
+const scale = 32;
+const width = 8 + 2 + 4;
+const height = 8;
+canvas.width = width  * scale;
+canvas.height = height * scale;
+const ctx = canvas.getContext("2d");
+ctx.scale(scale, scale);
+ctx.imageSmoothingEnabled = false;
+canvas.oncontextmenu = (e) => e.preventDefault();
+
+const palette = document.querySelector("#palette");
+const sprite = document.querySelector("#sprite");
+```
+
+``` run
+const hexstr = (str) => str.length % 2 == 0 ? str : `${str}0`;
+
+const datafromhex = (str) => {
+  const a = Uint8Array.fromHex(hexstr(str));
+  const res = [];
+  let i = 0;
+  for (let y = 0; y < 8; y++) {
+    const row = [];
+    for (let x = 0; x < 8; x += 4) {
+      const v = a[i] || 0;
+      row.push(v >> 6);
+      row.push((v >> 4) & 0b00000011);
+      row.push((v >> 2) & 0b00000011);
+      row.push(v & 0b00000011);
+      i++;
+    }
+    res.push(row);
+  }
+  return res;
+};
+
+const hexdata = () => {
+  const res = new Uint8Array(8 * 8 / 4);
+  let i = 0;
+  data.forEach((row) => {
+    for (let x = 0; x < row.length; x += 4) {
+       res[i] = (row[x] << 6) | (row[x + 1] << 4) | (row[x + 2] << 2) | row[x + 3];
+       i++;
+    }
+  });
+  return res.toHex();
+};
+
+const palfromhex = (str) => {
+  const a = Uint8Array.fromHex(hexstr(str));
+  const res = [];
+  let i = 0;
+  for (let x = 0; x < 8; x++) {
+    const v = a[i] || 0;
+    res.push(v >> 4);
+    res.push(v & 0b00001111);
+    i++;
+  }
+  return res;
+};
+
+const hexpal = () => {
+  const res = new Uint8Array(4 / 2);
+  let i = 0;
+  for (let x = 0; x < pal.length; x += 2) {
+     res[i] = (pal[x] << 4) | pal[x + 1];
+     i++;
+  }
+  return res.toHex();
+};
+```
+
+``` run
+let data = datafromhex("00410455106610551554155415541004");
+const fullpal =
+  [
+    "#000000", "#1D2B53", "#7E2553", "#008751",
+    "#AB5236", "#5F574F", "#C2C3C7", "#FFF1E8",
+    "#FF004D", "#FFA300", "#FFEC27", "#00E436",
+    "#29ADFF", "#83769C", "#FF77A8", "#FFCCAA"];
+let pal = palfromhex("01c5");
+
+let color = 1;
+let transparent = true;
+
+const rendercanvas = () => {
+  ctx.clearRect(0, 0, width, height);
+  data.forEach(
+    (row, y) => row.forEach(
+        (i, x) => {
+          if (i > 0 || !transparent) {
+            ctx.fillStyle = fullpal[pal[i]];
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }));
+  if (transparent) {
+    const unused = [];
+    fullpal.forEach((_, i) => {
+      if (!pal.includes(i)) {
+        unused.push(i);
+      }
+    });
+    for (let y = 0; y < 8; y++) {
+      ctx.fillStyle = fullpal[unused[y % 2 === 0 ? 0 : 1]];
+      ctx.fillRect(8, y, 1, 1);
+    }
+  }
+  pal.forEach((c, i) => {
+    ctx.fillStyle = fullpal[i === color ? 7 : 0];
+    ctx.fillRect(10 + i, 0, 1, 1);
+    ctx.fillStyle = fullpal[c];
+    ctx.fillRect(10 + i, 1, 1, 1);
+  });
+  if (!transparent) {
+    ctx.fillStyle = fullpal[0];
+    ctx.fillRect(10, 2, 4, 2);
+  }
+  fullpal.forEach((c, i) => {
+    ctx.fillStyle = c;
+    const x = i % 4;
+    const y = Math.trunc(i / 4);
+    ctx.fillRect(10 + x, 4 + y, 1, 1);
+  });
+};
+
+const render = () => {
+  sprite.value = hexdata();
+  palette.value = hexpal();
+  rendercanvas();
+};
+render();
+
+const bound = (i, limit) => {
+  const res = Math.trunc(i / scale);
+  if (res < 0) return 0;
+  if (res >= limit) return limit - 1;
+  return res;
+};
+
+const onmouse = (e) => {
+  const x = bound(e.offsetX);
+  const y = bound(e.offsetY);
+  if (e.buttons === 1) {
+    if (x < 8) {
+      data[y][x] = color;
+    } else if (x < 10) {
+      return;
+    } else if (y < 2) {
+      color = x - 10;
+    } else if (y < 4) {
+      transparent = !transparent;
+    } else {
+      pal[color] = ((y - 4) * 4) + (x - 10)
+    }
+    render();
+  }
+};
+
+canvas.onmousedown = onmouse;
+canvas.onmousemove = onmouse;
+
+palette.oninput = () => {
+  pal = palfromhex(palette.value);
+  rendercanvas();
+}
+sprite.oninput = () => {
+  data = datafromhex(sprite.value);
+  rendercanvas();
+}
+```
