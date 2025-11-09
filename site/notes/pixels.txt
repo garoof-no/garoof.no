@@ -18,7 +18,53 @@
 </ul>
 ```
 
+## wth
+
+It's a bad pixel art thing:
+
+* It uses the mouse and one (1) mouse button
+* You can make an 8 by 8 pixels large sprite with it
+* The sprite uses a palette of 4 colours
+* The 4-colour palette uses colours from a larger 16-colour one (those 16 colours is from the ^https://www.lexaloffle.com/pico-8.php PICO-8^ palette)
+* The palette and sprite graphics are put into the input fields below the editor as hexadecimal strings
+* The sprite uses 2 bits for each pixel, so 4 pixels in a byte or 2 pixels in a hexadecimal digit
+* The palette uses 4 bits for each color, so 2 colors in a byte or 1 color in a hexadecimal digit
+* Using the editor updates the content of the input fields, and writing in the input fields updates the contents of the editor
+
+The editor is like an 14 by 8 large grid:
+
+``` drawing
+     `1`   `2`   `3`   `4`   `5`   `6`   `7`   `8`   `9`   `10`  `11`  `12`  `13`  `14`
+   +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+`1`|     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+   |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+   +-                                              |           |                       |
+`2`|                                               |           |       `palette`       |
+   |                                               |           |                       |
+   +-                                              |           +-----------------------+
+`3`|                                               |           |                       |
+   |                                               |           |                       |
+   +-                                              |           |   `selected colour`   |
+`4`|                                               |           |                       |
+   |                                               | `toggle`  |                       |
+   +-               `drawing area`                 | `transp-` +-----------------------+
+`5`|                                               | `arency`  |                       |
+   |                                               |           |                       |
+   +-                                              |           |                       |
+`6`|                                               |           |                       |
+   |                                               |           |                       |
+   +-                                              |           |     `full palette`    |
+`7`|                                               |           |                       |
+   |                                               |           |                       |
+   +-                                              |           |                       |
+`8`|                                               |           |                       |
+   |                                               |           |                       |
+   +-----------------------------------------------+-----------+-----------------------+
+```
+
 ----
+
+Code:
 
 ``` run
 const canvas = document.querySelector("#canvas");
@@ -34,9 +80,7 @@ canvas.oncontextmenu = (e) => e.preventDefault();
 
 const palette = document.querySelector("#palette");
 const sprite = document.querySelector("#sprite");
-```
 
-``` run
 const hexstr = (str) => str.length % 2 == 0 ? str : `${str}0`;
 
 const datafromhex = (str) => {
@@ -92,9 +136,7 @@ const hexpal = () => {
   }
   return res.toHex();
 };
-```
 
-``` run
 let data = datafromhex("00410455106610551554155415541004");
 const fullpal =
   [
@@ -188,3 +230,4 @@ sprite.oninput = () => {
   rendercanvas();
 }
 ```
+
