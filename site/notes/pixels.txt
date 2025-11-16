@@ -34,7 +34,7 @@ It's a bad pixel art thing:
 * The palette uses 4 bits for each color, so 2 colors in a byte or 1 color in a hexadecimal digit
 * Using the editor updates the content of the input fields, and writing in the input fields updates the contents of the editor
 
-The editor is like an 14 by 8 large grid:
+The editor is like a 14 by 8 large grid:
 
 ``` drawing
      `1`   `2`   `3`   `4`   `5`   `6`   `7`   `8`   `9`   `10`  `11`  `12`  `13`  `14`
