@@ -28,6 +28,7 @@ It's a bad pixel art thing:
 * You can make an 8 by 8 pixels large sprite with it
 * The sprite uses a palette of 4 colours
 * The 4-colour palette uses colours from a larger 16-colour one (those 16 colours are from the ^https://www.lexaloffle.com/pico-8.php PICO-8^ palette)
+* If the first 2 colours of the 4-colour palette are the same, the first one is treated as transparent
 * The palette and sprite graphics are put into the input fields below the editor as hexadecimal strings
 * The sprite uses 2 bits for each pixel, so 4 pixels in a byte or 2 pixels in a hexadecimal digit
 * The palette uses 4 bits for each color, so 2 colors in a byte or 1 color in a hexadecimal digit
@@ -48,9 +49,9 @@ The editor is like an 14 by 8 large grid:
    |                                               |           |                       |
    +-                                              |           |   `selected colour`   |
 `4`|                                               |           |                       |
-   |                                               | `toggle`  |                       |
-   +-               `drawing area`                 | `transp-` +-----------------------+
-`5`|                                               | `arency`  |                       |
+   |                                               |           |                       |
+   +-               `drawing area`                 |           +-----------------------+
+`5`|                                               |           |                       |
    |                                               |           |                       |
    +-                                              |           |                       |
 `6`|                                               |           |                       |
@@ -146,12 +147,12 @@ const fullpal =
     "#AB5236", "#5F574F", "#C2C3C7", "#FFF1E8",
     "#FF004D", "#FFA300", "#FFEC27", "#00E436",
     "#29ADFF", "#83769C", "#FF77A8", "#FFCCAA"];
-let pal = palfromhex("01c5");
+let pal = palfromhex("11c5");
 
 let color = 1;
-let transparent = true;
 
 const rendercanvas = () => {
+  const transparent = pal[0] === pal[1];
   ctx.clearRect(0, 0, width, height);
   data.forEach(
     (row, y) => row.forEach(
@@ -208,7 +209,7 @@ const onmouse = (e) => {
     if (x < 8) {
       data[y][x] = color;
     } else if (x < 10) {
-      transparent = !transparent;
+      return;
     } else if (y < 2) {
       color = x - 10;
     } else if (y < 4) {
