@@ -1,0 +1,40 @@
+# Emotiotechnical similarities between hypermedia and purely functional data structures
+
+On one level it's like, and I don't think this is anything like the main thing and I'm not even sure I'm correctly identifying any corresponding feelings here, but like.
+
+On one level it's like, with hypermedia it goes like:
+
+* User hypers through the media with their hypermedia client
+* Use a hypermedia control in order to make the client send a request to the server
+* Server receives
+* Server does the stuf
+* Server responds with some complete hypermedia representation of the relevant state
+* Client renders the new hypermedia for the user
+
+And with a purely functional """object""" it sometimes goes like:
+
+* Method is called
+* Method call is received
+* The callee calculates the stuf
+* The callee returns a new complete object
+* The caller receives the object and like uses that from then on I guess
+
+So uh with certain kinds of functional updates and certain kinds of hypermedia exchanges, there's something. Something about the way state transitions are emphasized I think.
+
+I think both things suggest a way of doing things that lead to a kind of consistency. This "here's the complete new state" thing. You kind of have to go out of your way if you want to risk inconsistent states or inconsistent views of state or something.
+
+The new object is constructed in its new and valid state: If it fails, it fails to exist. You don't end up with an object between states, with two out of three instance variables updated, if it fails during. Similarly you get a full page back from the server after a POST or something. It can fail so you don't get the full state back from the server, but it can't like fail in a way that makes the hypermedia client show most of the new state but some of the old state because something failed for those bits. You typically have to throw mutability at the object or a specific kind of state-managing JS at the hypermedia in order to fail like that.
+
+----
+
+Anyway for me a very similar thing has been um, some feeling. There's this thing when I kind of want to design it using mostly these tools, but I worry that it'll get inconvenient and that I'll need to add some mutability or JS or something to the design. And like so far my experience has been:
+
+* If I give in and do the """pragmatic""" thing I end up regretting it
+* If I stick to the thing I wanted to do it tends to lead to a design that seems better to me than what I had in mind to begin with and also avoids the inconveniences I was worried about
+
+Smol things:
+
+I think I might need to update e.g. a row in a table without doing a full page refresh. But then I end up putting links in the table rows and have a page where I do stuff with that thing. There's some work to de with each thing: There's a bunch of information needed to do it and it doesn't really fit in the table. If you did the work directly in the list you'd end up having other pages open at the same time, but if each thing has its own page the relevant information can be put there. And then each thing gets its own URL so when someone working on it is in doubt and wanna ask someone else for help, they can share a link.
+
+And just like, a lot of modern web design stuff is about "engagement." 
+
