@@ -19,3 +19,7 @@ Similarly, no "mostly the new hypermedia document but with some of the old that 
 
 I don't think good design falls out of following a specific practice or anything, ^./single-trick.txt there is no trick to it^, etc. But I do think the distinctness of old and new state emphasizes the state transitions in a way that is useful for me.
 
+----
+
+Also just something about liking something and also worrying that maybe I can't get away with it and I'll have to be more ""pragmatic"". Is it okay if I don't provide mutating setters? Will it be all right if proper state transition stuff always goes request-response-full-page-refresh and never goes JS-shenanigans-request-response-update-bits-and-pieces-of-the-page?
+
