@@ -2,6 +2,10 @@
 :pub Zl1MNp
 :blurb Mostly eh.
 
+## Me
+
+I'm Jonas.
+
 I sometimes think that my site could have an "about" section. Something like:
 
 > Sir, what if the writer is attempting to create a story where nothing much happens? Where people don't change, they don't have any epiphanies, they struggle and are frustrated and nothing is resolved. More a reflection of the real world.
@@ -23,4 +27,32 @@ It's possible to like, write a thing and put it on the site and not commit to do
 ## Blog?
 
 Is blog? Not sure. I sometimes wonder if I should inform people that posts are not final and immutable things that are necessarily mostly written in advance of the publishing timestamp or something like that, or if it's just eh whatever. Probably mostly eh.
+
+## Some contexts
+
+### Functional programming
+:id fp
+
+I like programming and I like functions. I guess I like ""FP."" But I don't really like liking FP.
+
+Professionally or career wise or something I kind of grew up in the 2010s. During those years at least, the FP communities tended to be kind of bad. Lots of good stuff, many good people, but it was also just shit.
+
+Like people were doing a fair amount of EWD cosplay. But they went like right for the stupid. Like you know the Dijkstra quotes where Dijkstra's just a fucking idiot?
+
+> The use of COBOL cripples the mind; its teaching should, therefore, be regarded as a criminal offense.
+
+> It is practically impossible to teach good programming to students that have had a prior exposure to BASIC: as potential programmers they are mentally mutilated beyond hope of regeneration.
+
+Like they sure took that kind of stuff to heart, and they sure avoided the ^../notes/single-trick.txt not terribly dogmatic^ bits. They were very proud of not knowing other things. Like I don't understand why Uncle Bob wasn't more _on that._ Could have sold so many bracelets to those fuckers.
+
+And more importantly shitlords like the LambdaConf ones and all the racism.
+
+So I dunno I'm kind of wary of "FP people." But like yeah, woo functions, lambdas. Sums and products are pretty cool. I sometimes enjoy not assigning to a mutable variable. It can be fun to do more programming in the type system I guess.
+
+### Domainy enterprise software engineering
+:id enterprise-software-engineering
+
+My work stuff is typically pretty enterprisey, dealing with what I think is called domainy domains: Not incredibly complex or intensive computationally speaking, but things are pretty business rules. Bunch of rules and regulations and things that do not always appear to be consistent, and then those are surrounded by various interpretations and perspectives and opinions that can also be misaligned. Different minds are made up and changed at different times. Stuff.
+
+When people introduce DDD they often talk about certain kinds of software development misunderstandings and ways of talking past each other and stuff, and I'm like yeah that happens all the time. I spend a lot of time in contexts where many of the things DDD attempts to address are real things and a lot of the blue book DDD stuff has been valuable to me.
 

@@ -1,15 +1,13 @@
-# purely functional objects in a javalike or sth
+# Purely functional objects in Java
 :todo
 
-So one thing that's been happening in my professional life in recent times is that I've been doing relatively modern Java with a team that has been kind of I dunno, FP-curious I guess? Like not super familiar with all the things, but generally like open to the idea having more methods return stuff and fewer methods perform stuff. ^./sums-and-products.txt Relatively modern Java is less bad than relatively old Java at that stuff^ and overall I think it's been a pretty good experience.
+So one thing that's been happening in my professional life in recent times is that I've been doing relatively modern Java with a team that has been kind of I dunno, FP-curious I guess? Like not super familiar with all the things, but generally open to the idea having more methods return stuff and fewer methods perform stuff. ^./sums-and-products.txt Relatively modern Java is less bad than relatively old Java at that stuff^ and overall I think it's been a pretty good experience.
 
-My work stuff is typically pretty enterprisey, dealing with what I think is called domainy domains: Not incredibly complex or intesive or anything computationally speaking, but things are pretty business rules. Bunch of rules and regulations and things that do not always appear to be consistent, and then those are surrounded by various interpretations and perspectives and opinions that can also be misaligned. Different minds are made up and changed at different times. Stuff.
+This stuff also takes place in the ^../notes/about.txt#id-enterprise-software-engineering domainy enterprise software engineering context^, for what's that worth. Anyway here's _a kind of thing_ that has happened some times:
 
-So that's some context. It uh, it has a lot of things in it that are things that DDD typically tries to address. Stuf liek that.
+## A data structure
 
-----
-
-Let's say a person is this in some domain:
+An example. Let's say a person is this in some domain:
 
 * a first name
 * maybe a middle name
@@ -30,6 +28,8 @@ record Person(
   Optional<String> idNumber) { ... }
 ```
 
+## Maybe an inconvenience
+
 One thing that sometimes happen is that people start making "wither" methods for the records:
 
 ```
@@ -44,15 +44,14 @@ One thing that sometimes happen is that people start making "wither" methods for
   }
 ```
 
-And so on. This has come up as an annoyance. Some times I have been kind of apologetic and been like "yeah there's ^https://openjdk.org/jeps/468 a JEP for that^ but for now I suggest we just muddle through and hope that things get a little better as we get more of a handle on things and like discover which fields should be extracted into their own records and stuff like that."
+And so on. This has come up as an annoyance. Some times I have been kind of apologetic and been like "yeah there's ^https://openjdk.org/jeps/468 a JEP for that^ but for now I suggest we just muddle through and hope that things get a little better as we get more of a handle on things and discover which fields should be extracted into their own records and stuff like that."
 
-Extracting fields that belonged together tended to work out:
+## Refactoring, tidying, ...
+
+Extracting fields that belong together has often worked out:
 
 ```
-record Person(
-  Name name,
-  Life life,
-  Optional<IDNumber> id) { ... }
+record Person(Name name,Life life, Optional<IDNumber> id) { ... }
 
 record Name(String first, Optional<String> middle, String last) { ... }
 
@@ -81,10 +80,7 @@ And so on.
 Anyway that's one thing. Another is that we end up mostly not wanting the withers anyway. We mostly want methods that correspond to state transitions that are valid in the domain. We might end up with something more like this:
 
 ```
-record Person(
-  Name name,
-  Life life,
-  Optional<IDNumber> id) {
+record Person(Name name, Life life, Optional<IDNumber> id) {
 
   static Person citizen(Name name, LocalDate born, IDNumber id) {
     new Person(name, new Life.Alive(born), Optional.of(id));
@@ -99,7 +95,7 @@ record Person(
   Person dead(LocalDate died) {
     return new Person(name, life.end(died), idNumber);
   }
-  Person getID(IDNumber newId) {
+  Person gainCitizenship(IDNumber newId) {
     id.ifPresent(x ->
       throw new IllegalStateException("can't change existing ID number"));
     id = newId;
@@ -126,17 +122,23 @@ sealed interface Life {
 record IDNumber(String number) {}
 ```
 
-You know, assuming things kind of work like that in this domain.
+You know, assuming things kind of work like that in this domain. We could imagine methods like that corresponding to things that the system we're working on is really very concerned with.
 
-And I dunno, at that point I'm not really wishing for derived record creation syntax. The objects tend to have fewer fields but we also just don't have this one-to-one correspondence between fields and wither. And really the withers aren't _really_ withers, they're like proper domainy methods (sometimes accidentally functionally equivalent to withers).
+And I dunno, at that point I'm not really wishing for derived record creation syntax. The objects tend to have fewer fields and that but we also just don't have this one-to-one correspondence between fields and withers. And really, the withers aren't _really_ withers, they're like proper domainy methods (sometimes accidentally functionally equivalent to withers).
 
-----
-
-Blah blah. Some things:
+## Blah blah blah
 
 Extracting all the "name" fields into one record and the birth and death fields into another might seem obvious. A domainy domain has things in it that are murkier and less familiar when starting out, but you know.
 
-Also I think this is pretty OOP. Like kind of DDD blue book value object stuff. I also think stuff like "if you have the same prefix/suffix in several field names maybe make a separate object for those" is common OOP advice. I mean withers are basically setters and "getters and setters blah blah data structure," as the saying goes.
+Also I think this is pretty OOP. Kind of DDD blue book value object stuff. I also think stuff like "if you have the same prefix/suffix in several field names maybe make a separate object for those" is common OOP advice. I mean withers are basically setters and "getters and setters blah blah data structure," as the saying goes.
 
 I think having shallowly immutable types in the form of records has been useful here. At least in my team it has been pretty easy to establish them as the default when we're talking about decomposition and extracting fields into new objects. And then by default decomposition never introduce new mutable things and new shared mutable state problems into the world. It's very safe and kind of nice. (I think decomposition like this sometimes goes sideways or gets awkward just because mutability is _such a default_ in a lot of code.)
+
+## Conclusion?
+
+I think the point kind of is: Doing stuff differently can bring up some concerns/annoyances/inconveniences and it can do that pretty early on. Those things can be real problems but it can also turn out that they mostly go away if you just stick with the different approach for a while and kind of go all the way, or at least you know, further. I've seen this with a bunch of data structure stuff like this and I've also seen it with very different kinds changes.
+
+People are used to doing things certain ways. Those ways are probably locally optimal ways for some values of local. Moving out of that is likely to bring with it stuff: All the related things don't change at the same instant, some things that used to be convenient and unproblematic become problematic because we're changing this other stuff, and it might not be clear, or it might be a matter of perspective, if making the change caused a problem or if not following through and making other related changes causes the problem. And it might not be that clear what things are related and how. And so on and so forth and what have you.
+
+At least I think there's a real risk of e.g. concluding early that this causes too much inconvenience, and that concluding later is sometimes useful.
 

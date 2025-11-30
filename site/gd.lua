@@ -496,6 +496,12 @@ local function pubid(meta)
   return meta and meta.pub and "pub-" .. meta.pub:gsub("%W", "") or nil
 end
 
+local function idfrom(meta)
+  return pubid(meta)
+    or (meta and meta.id and "id-" .. meta.id:gsub("[^-%w]", ""))
+    or nil
+end
+
 local function html(url, pretable, kvtable)
   url = url or function(str) return str end
   pretable = pretable or basepre()
@@ -513,18 +519,18 @@ local function html(url, pretable, kvtable)
     end
   end
   local function tagged(tag, line)
-    local pubid = pubid(line.meta)
-    local pubstr = ''
-    if pubid then
-      if usedids[pubid] then
-        print('duplicate pub-ids. ignoring this "' .. pubid .. '"')
+    local id = idfrom(line.meta)
+    local idstr = ''
+    if id then
+      if usedids[id] then
+        print('duplicate ids. ignoring this "' .. id .. '"')
       else
-        usedids[pubid] = true
-        pubstr = ' id="' .. pubid .. '"'
+        usedids[id] = true
+        idstr = ' id="' .. id .. '"'
       end
     end
     local inner = strhtml(line.rest, url)
-    local res = { "<", tag, pubstr, ">", inner, "</", tag, ">\n" }
+    local res = { "<", tag, idstr, ">", inner, "</", tag, ">\n" }
     rendermeta(line.meta, res)
     return table.concat(res)
   end
