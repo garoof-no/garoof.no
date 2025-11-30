@@ -20,7 +20,7 @@ Or:
 
 ```
 record Person(
-  String firsName,
+  String firstName,
   Optional<String> middleName,
   String lastName,
   LocalDate dateOfBirth,
