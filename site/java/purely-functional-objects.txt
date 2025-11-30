@@ -1,0 +1,142 @@
+# purely functional objects in a javalike or sth
+:todo
+
+So one thing that's been happening in my professional life in recent times is that I've been doing relatively modern Java with a team that has been kind of I dunno, FP-curious I guess? Like not super familiar with all the things, but generally like open to the idea having more methods return stuff and fewer methods perform stuff. ^./sums-and-products.txt Relatively modern Java is less bad than relatively old Java at that stuff^ and overall I think it's been a pretty good experience.
+
+My work stuff is typically pretty enterprisey, dealing with what I think is called domainy domains: Not incredibly complex or intesive or anything computationally speaking, but things are pretty business rules. Bunch of rules and regulations and things that do not always appear to be consistent, and then those are surrounded by various interpretations and perspectives and opinions that can also be misaligned. Different minds are made up and changed at different times. Stuff.
+
+So that's some context. It uh, it has a lot of things in it that are things that DDD typically tries to address. Stuf liek that.
+
+----
+
+Let's say a person is this in some domain:
+
+* a first name
+* maybe a middle name
+* a last name
+* a date of birth
+* maybe a date of death
+* maybe an ID number
+
+Or:
+
+```
+record Person(
+  String firsName,
+  Optional<String> middleName,
+  String lastName,
+  LocalDate dateOfBirth,
+  Optional<LocalDate> dateOfDeath,
+  Optional<String> idNumber) { ... }
+```
+
+One thing that sometimes happen is that people start making "wither" methods for the records:
+
+```
+  public Person withFirstName(String newFirstName) {
+    return new Person(
+      newFirstName,
+      middleName,
+      lastName,
+      dateOfBirth,
+      dateOfDeath,
+      idNumber);
+  }
+```
+
+And so on. This has come up as an annoyance. Some times I have been kind of apologetic and been like "yeah there's ^https://openjdk.org/jeps/468 a JEP for that^ but for now I suggest we just muddle through and hope that things get a little better as we get more of a handle on things and like discover which fields should be extracted into their own records and stuff like that."
+
+Extracting fields that belonged together tended to work out:
+
+```
+record Person(
+  Name name,
+  Life life,
+  Optional<IDNumber> id) { ... }
+
+record Name(String first, Optional<String> middle, String last) { ... }
+
+sealed interface Life {
+  record Alive(LocalDate born) implements Life { ... }
+  record Dead(LocalDate born, LocalDate died) implements Life { ... }
+}
+
+record IDNumber(String number) { ... }
+```
+
+Or something along those lines.
+
+(For two datastructurally very similar things, we might choose to model one of them with a sealed interface with records and the other with a record with an optional field, usually depending on how meaningful the difference between presence and absence there is in the domain.)
+
+So we get fewer fields per record, so fewer withers per record and fewer arguments per wither, and the bodies of the withers become oneliners:
+
+```
+  Person withName(Name newName) {
+    return new Person(newName, life, idNumber);
+  }
+```
+
+And so on.
+
+Anyway that's one thing. Another is that we end up mostly not wanting the withers anyway. We mostly want methods that correspond to state transitions that are valid in the domain. We might end up with something more like this:
+
+```
+record Person(
+  Name name,
+  Life life,
+  Optional<IDNumber> id) {
+
+  static Person citizen(Name name, LocalDate born, IDNumber id) {
+    new Person(name, new Life.Alive(born), Optional.of(id));
+  }
+  static Person noncitizen(Name name, LocalDate born) {
+    new Person(name, new Life.Alive(born), Optional.empty());
+  }
+  
+  Person changeName(Name newName) {
+    return new Person(newName, life, idNumber);
+  }
+  Person dead(LocalDate died) {
+    return new Person(name, life.end(died), idNumber);
+  }
+  Person getID(IDNumber newId) {
+    id.ifPresent(x ->
+      throw new IllegalStateException("can't change existing ID number"));
+    id = newId;
+  }
+  ...
+}
+
+record Name(String first, Optional<String> middle, String last) { ... }
+
+sealed interface Life {
+  record Alive(LocalDate born) implements Life {
+    Life end(LocalDate died) {
+      return new Dead(born, died);
+    }
+  }
+  record Dead(LocalDate born, LocalDate died) implements Life {
+    Life end(LocalDate died) {
+      throw new IllegalStateException("I'm already dead! >:(");
+    }
+  }
+  ...
+}
+
+record IDNumber(String number) {}
+```
+
+You know, assuming things kind of work like that in this domain.
+
+And I dunno, at that point I'm not really wishing for derived record creation syntax. The objects tend to have fewer fields but we also just don't have this one-to-one correspondence between fields and wither. And really the withers aren't _really_ withers, they're like proper domainy methods (sometimes accidentally functionally equivalent to withers).
+
+----
+
+Blah blah. Some things:
+
+Extracting all the "name" fields into one record and the birth and death fields into another might seem obvious. A domainy domain has things in it that are murkier and less familiar when starting out, but you know.
+
+Also I think this is pretty OOP. Like kind of DDD blue book value object stuff. I also think stuff like "if you have the same prefix/suffix in several field names maybe make a separate object for those" is common OOP advice. I mean withers are basically setters and "getters and setters blah blah data structure," as the saying goes.
+
+I think having shallowly immutable types in the form of records has been useful here. At least in my team it has been pretty easy to establish them as the default when we're talking about decomposition and extracting fields into new objects. And then by default decomposition never introduce new mutable things and new shared mutable state problems into the world. It's very safe and kind of nice. (I think decomposition like this sometimes goes sideways or gets awkward just because mutability is _such a default_ in a lot of code.)
+
