@@ -33,6 +33,8 @@ It's a bad pixel art thing:
 * The sprite uses 2 bits for each pixel, so 4 pixels in a byte or 2 pixels in a hexadecimal digit
 * The palette uses 4 bits for each color, so 2 colors in a byte or 1 color in a hexadecimal digit
 * Using the editor updates the content of the input fields, and writing in the input fields updates the contents of the editor
+* Hex strings for sprite and palette can be passed in as query parameters "sprite" and "palette" in the URL
+* For converting from other images, see ^./pixels-from-images.txt Pixels from images^
 
 The editor is like a 14 by 8 large grid:
 
