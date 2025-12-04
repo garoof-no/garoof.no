@@ -1,0 +1,114 @@
+# Pixels from images
+:blurb Hi, hello and welcome to the core uncommon util helper blog.
+:pub ZlE4PQ
+:template js
+
+JS required. Should be able to copy-paste an image or upload a file to change the image below. Dragging and dropping onto the file input thing appears to work...
+
+``` html
+<p><input type="file" id="file"></p>
+<ul><li id="lastli">...</li></ul>
+<canvas id="canvas"></canvas>
+```
+
+With a function from rgba to a palette index (4 colours), we can create ^./pixels.txt pixels hex strings^ from the image. Can turn a piece of the image into a link (`"0812"` being the palette we will use):
+
+``` repl
+link(hex((r, g, b, a) => r === 0 ? 0 : 1, 24, 0), "0812");
+```
+
+Can also create a bunch of pixel-hexes from an image:
+
+``` repl
+(() => {
+  const gfx = (f) => {
+    const rows = Math.trunc(img.height / 8);
+    const columns = Math.trunc(img.width / 8);
+    const res = [];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < columns; x++) {
+        res.push('"' + hex(f, x * 8, y * 8) + '"')
+      }
+    }
+    return res;
+  };
+  console.log(gfx((r, g, b, a) => r === 0 ? 0 : 1).join(",\n"));
+})();
+```
+
+----
+
+``` run
+const canvas = document.querySelector("#canvas");
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
+ctx.imageSmoothingEnabled = false
+const img = new Image();
+img.onload = function(){
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.drawImage(img,0,0);
+};
+
+img.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAABAAQAAAADdJpQTAAAFhUlEQVR4nIWUUWgc1xWGvxkNI7lM5cUV4qpZHCG2sJgULtWyHsLWWoQe3OI6eliFIJqyCWbaBxGWFpahiG2sgDGhGBOEsBdRBA2iJPsgjB4ENeq4WjaKuQlDmxqB92FthDQEEzZhkUfLeKcPkqhjCv5fzr3n/Jzzn5/L1ajwzcfpnXasxYmf9uVv/25h+PLIP/4pIABAp+/qR+kpIFcPz3V2t4pWil//hFQKIUmJWCfVZOpuWgTnHgxgJd8RchL+w+QkHelNptBpplhoTKWazdR7fLv7qelVWclQrfLdX7g9+SedXL1SYQHgjQdANw8rVBycwXf57dVNnWbq7t2dSjOVatLMGzOB71RRbLJp+Rc2acLVOJFIJIhzW6rS3nv4vp5zXlEVIQTHqFTAtomJXdHyBAhwiU/KGjJH3bfTGxdXAMzy+kU+buXq81xHBEVhcLHDpaXVjvCd+z6Yv+wUqNfTfoENCPxlHfhoylRFGTwAsAa8fF7axTyAjIK8wYaPtfKbfJGtZ0ZkiASvURx6YtUMn5uGZYGkZ8kmRZGTQPFAFq2epaSyoIiQOj7vPcm28cU5JLLYZs4b9ABLSj8Svo4Eu/gJgaz6gLekZO1MrUbtLQgMKXkeRf7PdV5GubDXyyn37F670bAjN3IjpRoN1XM9N4HWuPMN5gGGc6U5270RXus6VScQdDG7VTZGt3VRYLZrmrOASSIxCyzOA6s08MmgwzAkEkiwIGCYYR9IqNqfCZhFR34N7fagj9fRd9rsJtoBkGbjx3R4Hf2xz6rZDW8BXaMdrrLcXYdaO0OGLoCrolzYa19QrrvXazTsdnLPdSPZaLg9V3d5KWIkLZLYtKTVKh1nE0chKVplkBSxmKMIxRNfj6MUspnQAxcXt1O2SpaJCt1muTl/SalGQ0VAKq0Hi8lCqXDzzR94mPzsq8KHb1an1iGxyvJa8ISMTunrzrQs0QbrqHN7A0grbk2LIWZ1prGoswZehx0YXusuGtTIrGWOFZWbbtltW3uu2nMbyi1a7VCU5VzDipKiRe9k3xCOXGmf/V8GAJdkRbUkFdVS862GTHLBBRe2lLBVOIhSbIFkC2hgS5hTqqVaSiDmlHpF8/JuPQfUc4TbdrQYffCrI3W5m3f2hgqXNAWvm7C+6nAlEEt3gtp3f4QCVJ2OtHqTRq0g7QuAkAC2WfvDl4UT5SV/qWmsFOrpaagFdYDt7OLcUXHtAZvXhv+NZv2++9kE3JA5qOcum/KDNz4BkxtWcWU3s3TmeHvsFx9CCAL5WYmkDUQ5W8LWloCxmYdCiCxks2SzAn13O5kMDZnxoa+PceXMLH+vk+6WdncHFEgwzWC8Wv30CrQg9Oh5tNAXPVeFo/9SMorOnBbOF87Mj2AURhMMJBiFeamUisDzrPHzwnHGZh6KMDzohQfZg14vDI3pdaBV6Vkdxk89+uL22Ngyo5zl8Vny90FolS7mZTK411F9vwgYG7/2c44I3AehPSf4dOcZXB+bOvc8ASEQCJHNkiVLVmQhKyArBDHt07H+ooMv4pjQjzZxL9bie/vE0P8q7H+fcMjht6e0Q+2UhgaHhzByQujfj/vj/X7tdH/8tD9+Gn8ex6f6+yc+32+9Sgya/kgbOdRGDuN7sTYRaxOaNnL+3qPDp+dHBg6fH/FSkS9BBES2ncS0XWRRDAqJDafdEui4Uc/HKWcymSHMdCHCFz+Ecgaedf4GRrngr3QqgaNfplZhEiNKXvw7fu0mgEjVdee1Dv4suYLNlbfftokywn9GlFICkKA/+er4y9lenYZtDGQARnkb0UKAMZTcZo5hah34K4/nIsNHeG85Hwa8v0gOvboN8tYuG2qhtvB4ByOKIiAF+FAHPACPiJMziBIASYD/AurbXEd5GPy2AAAAAElFTkSuQmCC";
+
+const input = document.querySelector("#file");
+
+
+document.onpaste = e => {
+  for (const item of e.clipboardData.items) {
+    if (item.kind === 'file') {
+      const blob = item.getAsFile();
+      const fr = new FileReader();
+      fr.onload = ev => img.src = ev.target.result;
+      fr.readAsDataURL(blob);
+    }
+  }
+};
+
+input.onchange = () => {
+  for (const file of input.files) {
+    const fr = new FileReader();
+    fr.onload = () => img.src = fr.result;
+    fr.readAsDataURL(file);
+  }
+};
+
+const px = (f, x, y) => {
+  const a = ctx.getImageData(x, y, 1, 1).data;
+  return f(a[0], a[1], a[2], a[3]);
+};
+
+const hexdata = (data) => {
+  const res = new Uint8Array(8 * 8 / 4);
+  let i = 0;
+  data.forEach((row) => {
+    for (let x = 0; x < row.length; x += 4) {
+       res[i] = (row[x] << 6) | (row[x + 1] << 4) | (row[x + 2] << 2) | row[x + 3];
+       i++;
+    }
+  });
+  return res.toHex();
+};
+
+const hex = (f, startx, starty) => {
+  const res = [];
+  for (let y = starty; y < starty + 8; y++) {
+    const row = [];
+    res.push(row);
+    for (let x = startx; x < startx + 8; x++) {
+      row.push(px(f, x, y));
+    }
+  }
+  return hexdata(res);
+};
+
+const link = (sprite, pal) => {
+  const li = document.createElement("p");
+  const a = li.appendChild(document.createElement("a"));
+  const q = `?sprite=${sprite}&palette=${pal}`;
+  a.innerText = q;
+  a.href = `./pixels.html${q}`
+  lastli.before(li);
+};
+```
+

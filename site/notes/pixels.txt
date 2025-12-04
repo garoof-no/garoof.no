@@ -140,14 +140,15 @@ const hexpal = (pal) => {
   return res.toHex();
 };
 
-let data = datafromhex("00410455106610551554155415541004");
+const params = new URLSearchParams(window.location.search);
+let data = datafromhex(params.has("sprite") ? params.get("sprite") : "00410455106610551554155415541004");
 const fullpal =
   [
     "#000000", "#1D2B53", "#7E2553", "#008751",
     "#AB5236", "#5F574F", "#C2C3C7", "#FFF1E8",
     "#FF004D", "#FFA300", "#FFEC27", "#00E436",
     "#29ADFF", "#83769C", "#FF77A8", "#FFCCAA"];
-let pal = palfromhex("11c5");
+let pal = palfromhex(params.has("palette") ? params.get("palette") : "11c5");
 
 let color = 1;
 
