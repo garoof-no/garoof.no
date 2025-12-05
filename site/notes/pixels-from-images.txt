@@ -14,7 +14,11 @@ JS required. Should be able to copy-paste an image or upload a file to change th
 With a function from rgba to a palette index (4 colours), we can create ^./pixels.txt pixels hex strings^ from the image. Can turn a piece of the image into a link (`"0812"` being the palette we will use):
 
 ``` repl
-link(hex((r, g, b, a) => r === 0 ? 0 : 1, 24, 0), "0812");
+(() => {
+  const x = 3;
+  const y = 0;
+  link(hex((r, g, b, a) => r === 0 ? 0 : 1, x * 8, y * 8), "0812");
+})();
 ```
 
 Can also create a bunch of pixel-hexes from an image:
