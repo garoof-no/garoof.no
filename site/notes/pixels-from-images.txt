@@ -109,9 +109,9 @@ const hex = (f, startx, starty) => {
 const link = (sprite, pal) => {
   const li = document.createElement("p");
   const a = li.appendChild(document.createElement("a"));
-  const q = `?sprite=${sprite}&palette=${pal}`;
-  a.innerText = q;
-  a.href = `./pixels.html${q}`
+  const href = `./pixels.html?sprite=${sprite}&palette=${pal}`;
+  a.innerText = href;
+  a.href = href;
   lastli.before(li);
 };
 ```
