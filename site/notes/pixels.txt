@@ -25,6 +25,7 @@ It's a bad pixel art thing:
 
 * This uses JavaScript so doesn't work if that's disabled here
 * It uses the mouse and one (1) mouse button
+* Can also change color with the 1-4 keys on the keyboard
 * You can make an 8 by 8 pixels large sprite with it
 * The sprite uses a palette of 4 colours
 * The 4-colour palette uses colours from a larger 16-colour one (those 16 colours are from the ^https://www.lexaloffle.com/pico-8.php PICO-8^ palette)
@@ -86,7 +87,12 @@ canvas.oncontextmenu = (e) => e.preventDefault();
 const palette = document.querySelector("#palette");
 const sprite = document.querySelector("#sprite");
 
-const hexstr = (str) => str.length % 2 == 0 ? str : `${str}0`;
+const hexchars = new Set("0123456789abcdefABCDEF");
+
+const hexstr = (str) => {
+  const res = str.split("").filter(c => hexchars.has(c)).join("");
+  return res.length % 2 == 0 ? res : `${res}0`;
+}
 
 const datafromhex = (str) => {
   const a = Uint8Array.fromHex(hexstr(str));
@@ -178,16 +184,22 @@ const rendercanvas = () => {
     }
   }
   pal.forEach((c, i) => {
-    ctx.fillStyle = fullpal[c];
-    ctx.fillRect(10 + i, 0, 1, 2);
+    if (i > 0 || !transparent) {
+      ctx.fillStyle = fullpal[c];
+      ctx.fillRect(10 + i, 0, 1, 2);
+    }
   });
-  ctx.fillStyle = fullpal[pal[color]];
-  ctx.fillRect(10, 2, 4, 2);
+  if (color > 0 || !transparent) {
+    ctx.fillStyle = fullpal[pal[color]];
+    ctx.fillRect(10, 2, 4, 2);
+  }
   fullpal.forEach((c, i) => {
-    ctx.fillStyle = c;
-    const x = i % 4;
-    const y = Math.trunc(i / 4);
-    ctx.fillRect(10 + x, 4 + y, 1, 1);
+    if (color > 0 || i !== pal[1]) {
+      ctx.fillStyle = c;
+      const x = i % 4;
+      const y = Math.trunc(i / 4);
+      ctx.fillRect(10 + x, 4 + y, 1, 1);
+    }
   });
 };
 
@@ -226,6 +238,15 @@ const onmouse = (e) => {
 
 canvas.onmousedown = onmouse;
 canvas.onmousemove = onmouse;
+
+document.onkeypress = (e) => {
+  if (document.activeElement.tagName === "INPUT") return;
+  const idx = ['1', '2', '3', '4'].indexOf(e.key);
+  if (idx >= 0) {
+    color = idx;
+    render();
+  }
+};
 
 palette.oninput = () => {
   pal = palfromhex(palette.value);
