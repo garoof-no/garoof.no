@@ -1,0 +1,49 @@
+# Clean Code, Bob, Enterprise Software Enginering, ...
+:todo
+
+Hi I'm sorry.
+
+## Uncle Bob and stuf
+
+I should maybe post most of this somewhere else. I dunno.
+
+I kind of met Uncle Bob at a conference in like 2012 I think. It was early in my career, the first conference I went to, and I wasn't very on top of things wrt the Enterprise Software Engineering landscape. I didn't know who he was, but the people who I was with recognized him and a few words were exchanged. I remember he pointed at a copy of The Little Schemer and said that it was a good book or something. That left me with a good impression of him. I then saw the talk he was giving at the conference and I thought it was really bad. I don't remember what he was supposed to talk about but _the way I remember it_ there was a raise of hands pretty early on and then because not enough people in the audience did TDD he just ranted about that for the rest of the talk instead. I'm not sure how good my memory is here though. I also got annoyed by the fucking green armbands and the "commandments" or whatever it was. And then I got really annoyed when I talked to other people at the conference and they were like that was really inspiring I got one of the armbands and now whenever I'm going about to write some unclean code the armband will remind me that I should write clean code instead and just oh my fucking god the state of things I don't think I was really aware of how bad things were in the industry before that.
+
+At the time I had what I guess is a pretty regular CS degree and I did fairly traditional Enterprise Software Engineering at work, but outside of that my interests tended to take me to FP and FP-adjacent stuff. There was this mush of mainstream software engineering and modern agile and stuff that seemed very uninteresting. Early on at work I did read and enjoy Smalltalk Best Practice Patterns by Kent Beck, but other than that I mostly avoided that sphere. Later on I've gotten more interested in like early agile and its surroundings, _probably_ through some Brian Marick stuff and the Eric Evans DDD book. And like I've read some more books and such from that neighbourhood.
+
+I don't always know what to think of the stuff. With some of the books I've read I've been motivated by particularly stupid things being done at work or in the industry. Like "this is too stupid, the literature can't be _this_ stupid?" and then deciding to find out for myself. And for the most part the books have been way less stupid. Sometimes it's useful and sometimes it's less so, but it's mostly stuff someone's actually put some thought into. It's usually ideas you can agree with or disagree with, while the industry noise is usually parroting and words disconnected from any understanding of any ideas.
+
+Like I think this is very telling: Kent Beck coined the term TDD and is considered the inventor or discoverer of it. If you go on Stack Overflow you'll find some dude telling him he's doing ^https://stackoverflow.com/a/153565 Kent Beck being told he's doing TDD wrong:
+
+Kent goes:
+
+> I get paid for code that works, not for tests, so my philosophy is to test as little as possible to reach a given level of confidence
+
+Ricardo goes:
+
+> Actually disagree, because the code a developer produces is not his own, and next sprint someone else will change it and commit errors that you "know you don't". Also TDD you think about the tests first. So if you do TDD assuming to test part of the code, you're doing it wrong
+
+Literally "you're doing it wrong." The industry is a farce.
+
+Okay so at this point my impression is that a lot of the stupid nonsense in the industry is kind of different from the literature being referenced by it. There's a lot of dishonesty in the industry but there's also just a lot of general stupidity and failing to engage with and meaningfully understand ideas. Someone championing or defending an idea is about as likely to get it completely wrong as someone attacking it.
+
+I'm still avoiding Uncle Bob stuff in particular, but at this point it's _mostly_ because he seems like a really bad person. Programming wise I expect his work to be less bad than like what I hear from Clean Code enthusiasts and so on.
+
+Anyway very recently I decided to pick up the second edition of Clean Code. He's not a person whose work I want to engage with, but I dunno, this stuff is very present in my work life and seemed like a good opportunity to get a handle of which parts are actual Clean Code ideas and which ones are just words and bad misunderstandings. Also Bob had been mostly off my radar recently and his later appearances had been like less bad than some of the stuff in the past. I forgot to check out his twitter though. Seems he's completely off the rails and even worse than I remember him being earlier. What an asshole.
+
+## Clean Code, other introductory stuff
+
+Two reasons for me for reading Clean Code were:
+
+* A lot of the Clean Code championing leaves me with a "that can't be right" feeling
+* A lot of the attacks on Clean Code leaves me with a "that can't be right" feeling
+
+With the attacks in particular I'm often wondering if things are being exaggerated or misrepresented in order to make them easier to attack. I've also seen people claim that Uncle Bob isn't really a programmer at this point or something like that.
+
+Anyway I'm making a couple assumptions:
+
+* He is an at least reasonably competent programmer with at least reasonably varied experience
+* The book does mostly consist of stuff that does actually work for him. If and when that's not the case it's more likely to be because of e.g. misidentifying what works or what about something makes it work, and less likely to just be bullshitting or something.
+
+Okay that's a bunch of context. The rest is like notes I guess...
+
