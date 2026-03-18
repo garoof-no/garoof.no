@@ -8,7 +8,7 @@ Kind of a companion post for a Code Mesh talk we did:
 ^https://github.com/Glorp/lambs/tree/mesh17 The code we used for the talk^
 ^https://github.com/Glorp/lambs/blob/mesh17/lambs/mesh.txt The file we ended up with in the talk (it is what it is)^
 
-`./lambs.txt Also there are some lambdas over here^
+^../lambs/lambs.txt Also there are some lambdas over here^
 
 ----
 
