@@ -1,0 +1,182 @@
+# Abstraction
+:template lua
+:todo
+
+## Abstractions have holes in them
+
+There's a Quora question about abstraction that has ^https://www.quora.com/What-is-the-difference-between-simplification-and-abstraction/answer/Panicz-Godek an answer by Panicz Godek that I really like^.
+
+After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer, but like, in case Quora is dead or too enshittified by now and this post is somehow still alive: The first example there uses a pair of "find the differences" pictures. And then a third picture is an "abstraction" that is the same where the two pictures are the same but has "holes" where the two pictures are different. So the abstraction is something we can use to create either of the first to pictures (as well as other pictures) by filling in the holes. It's a very visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up.
+
+## Functions
+
+In something like ^../lambs/lambs.txt lambda calculus^, we can think of bound variables as holes that can be filled in. If we have, say, a function with a function in it:
+
+```
+λa.λb.a b a
+```
+
+Then with a couple of function applications:
+
+```
+(λa.λb.a b a) foo bar
+```
+
+We can like fill in those holes/variables:
+
+```
+foo bar foo
+```
+
+In many programming languages, we can think of some of the function calls in the same way, and that can be a useful mental model (^https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-10.html#%_sec_1.1.5 SICP: The Substitution Model for Procedure Application^).
+
+Let's pretend we only have the number zero and successor and predecessor functions in Lua:
+
+``` run
+function s(n) return n + 1 end
+function p(n) return n - 1 end
+function positive(n) return n > 0 end
+```
+
+We could make some numbers:
+
+``` run
+four = s(s(s(s(0))))
+six = s(s(four))
+five = p(six)
+```
+
+``` repl
+print(four, five, six)
+```
+
+And let's say we wanna add two of them together, like maybe four and six. We'll start at four and then like count up from there while counting down from six:
+
+``` repl
+local result, additional = four, six
+while positive(additional) do
+  result = s(result)
+  additional = p(additional)
+  print(result, additional)
+end
+print(result);
+```
+
+If we want to add together _five_ and six instead, we can go like this:
+
+``` repl
+local result, additional = five, six
+while positive(additional) do
+  result = s(result)
+  additional = p(additional)
+  print(result, additional)
+end
+print(result);
+```
+
+Those two pieces of code are similar and we can make an abstraction that kind of works for both by turning the differences into holes. We'll make a function that takes the addends as parameters.
+
+``` run
+function foo(a, b)
+  local result, additional = a, b
+  while positive(additional) do
+    result = s(result)
+    additional = p(additional)
+    print(result, additional)
+  end
+  print(result);
+end
+```
+
+``` repl
+foo(four, six)
+foo(five, six)
+```
+
+Let's clean it up and make it return the result:
+
+``` run
+function add(a, b)
+  while positive(b) do
+    a = s(a)
+    b = p(b)
+  end
+  return a
+end
+```
+
+``` repl
+print(add(four, six))
+print(add(five, six))
+```
+
+We can get our original "addition results" by putting in the appropriate arguments. So that's cool. We can also use other arguments:
+
+``` repl
+print(add(four, five))
+print(add(add(four, five), six))
+```
+
+So that's an abstraction. It's not concrete: It's not _the result of adding two specific numbers together._ It has holes in it, and we can put many different numbers in those holes. In this particular case, since numbers go in the whole, and we also get a number back when we fill in the holes, we can put the result of one addition into the hole of another. It's pretty cool tbh.
+
+In a typical programming language we have have "the same hole" multiple times:
+
+``` run
+function triple(n)
+  return add(n, add(n, n))
+end
+```
+
+``` repl
+print(triple(four))
+```
+
+Anyway I think it's reasonably clear how we can think of function abstractions as "things with holes in them" like this. It can be kind of visual, like with the "find the differences" images: We can look at it and go, oh right we have this "incomplete expression" that goes `add(__, add(__, __)`, and we can "complete" it by choosing a number that will go in all the `__`-holes.
+
+A few things about these functions, functional "impurity," and the substitution model and stuff:
+
+* The `triple` function is a very functional function. We can look at its code and use the substitution model: Replace the references to `n` with the number passed in and get our result.
+* The `foo` function is less satisfying. Doing the substitution thing works. But it prints its result as a side effect, so you cannot easily get the result back and use it for other stuff.
+* I like that, kind of on a techincality, the substitution model kind of doesn't work for the `add` function. Since we're assigning to the arguments in the while look, it doesn't make sense to like substitute e.g. `four` for `a` and in `a = s(a)` and get `four = s(four)`. In practice it behaves pretty functionally though. The way Lua works, parameters are basically local variables and these assignments cannot be observed from outside the function.
+
+## Inversion of control
+
+If the `add` function "depends on" two numbers then we can say that it has its dependencies "injected." We can "inject" numbers like four and five by passing them in as arguments, and the function body of `add` isn't concerned with how those numbers got there. It doesn't need to construct those numbers and it doesn't need to go find them somewhere.
+
+We could imagine an addition function that does not have its dependencies injected but instead looks for them itself, in a specific place. We'll have the place be a "container:"
+
+``` run
+local Container = {
+  getBean = function(t, k) return t[k] end,
+  setBean = function(t, k, v) t[k] = v end
+}
+applicationContext = setmetatable({}, { __index = Container })
+```
+
+And then we can make an addition function that does not use dependency injection:
+
+``` run
+function addBean()
+  local a = applicationContext:getBean("a")
+  local b = applicationContext:getBean("b")
+  while positive(b) do
+    a = s(a)
+    b = p(b)
+  end
+  return a
+end
+```
+
+Now we can call the function with different inputs by putting different numbers in the container.
+
+``` repl
+applicationContext:setBean("a", four)
+applicationContext:setBean("b", five)
+print(addBean())
+
+applicationContext:setBean("a", six)
+print(addBean())
+```
+
+It's not exactly a way to live but like it's something you could do. Building a "container" would be a very strange thing to do if you wanted to encourage dependency injection.
+
