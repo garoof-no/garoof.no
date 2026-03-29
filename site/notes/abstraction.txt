@@ -1,6 +1,6 @@
 # Abstraction
 :template lua
-:todo
+:todo "general"
 
 I felt like writing an amount of words. Maybe gather some thoughts. I don't know.
 
