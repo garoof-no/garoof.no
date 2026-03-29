@@ -2,6 +2,8 @@
 :template lua
 :todo
 
+I felt like writing an amount of words. Maybe gather some thoughts. I don't know.
+
 ## Abstractions have holes in them
 
 There's a Quora question about abstraction that has ^https://www.quora.com/What-is-the-difference-between-simplification-and-abstraction/answer/Panicz-Godek an answer by Panicz Godek that I really like^.
