@@ -1,14 +1,19 @@
 # Abstraction
 :template lua
-:todo "general"
+:todo
 
 I felt like writing an amount of words. Maybe gather some thoughts. I don't know.
 
-## Abstractions have holes in them
+Two of the things going into this are:
+
+* I really like that example with the "find the difference" pictures.
+* Talk about things being "too abstract" and "too general" is sometimes interesting to me. This is often said about stuff I don't like. But I can also like making things very abstract and general. Hopefully in a different way.
+
+## Abstractions as things with holes in them
 
 There's a Quora question about abstraction that has ^https://www.quora.com/What-is-the-difference-between-simplification-and-abstraction/answer/Panicz-Godek an answer by Panicz Godek that I really like^.
 
-After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer, but like, in case Quora is dead or too enshittified by now and this post is somehow still alive: The first example there uses a pair of "find the differences" pictures. And then a third picture is an "abstraction" that is the same where the two pictures are the same but has "holes" where the two pictures are different. So the abstraction is something we can use to create either of the first to pictures (as well as other pictures) by filling in the holes. It's a very visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up.
+After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer, but like, in case Quora is dead or too enshittified by now and this post is somehow still alive: The first example there uses a pair of "find the differences" pictures. And then a third picture is an "abstraction" that is the same as the two others where those two pictures are equal but has "holes" where the two pictures are different. So the abstraction is something we can use to create either of the first to pictures (as well as other pictures) by filling in the holes. It's a very visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up.
 
 ## Functions
 
@@ -133,13 +138,67 @@ end
 print(triple(four))
 ```
 
-Anyway I think it's reasonably clear how we can think of function abstractions as "things with holes in them" like this. It can be kind of visual, like with the "find the differences" images: We can look at it and go, oh right we have this "incomplete expression" that goes `add(__, add(__, __)`, and we can "complete" it by choosing a number that will go in all the `__`-holes.
+Anyway I think it's reasonably clear how we can think of function abstractions as "things with holes in them" like this. It can be kind of visual, like with the "find the differences" pictures: We can look at it and go, oh right we have this "incomplete expression" that goes `add(__, add(__, __)`, and we can "complete" it by choosing a number that will go in all the `__`-holes.
 
 A few things about these functions, functional "impurity," and the substitution model and stuff:
 
 * The `triple` function is a very functional function. We can look at its code and use the substitution model: Replace the references to `n` with the number passed in and get our result.
 * The `foo` function is less satisfying. Doing the substitution thing works. But it prints its result as a side effect, so we cannot easily get the result back and use it for other stuff.
 * I like that, kind of on a techincality, the substitution model kind of doesn't work for the `add` function. Since we're assigning to the arguments in the while look, it doesn't make sense to like substitute e.g. `four` for `a` and in `a = s(a)` and get `four = s(four)`. In practice it behaves pretty functionally though. The way Lua works, parameters are basically local variables and these assignments cannot be observed from outside the function.
+
+## Generalities, flags, ...
+
+I think it's fair to say that addition is ^./generalities.txt more general^ than one number that happens to be the sum of two numbers, and so on.
+
+Thinking of functions as "things with holes in them" might suggest one way boolean flags can feel a little "wrong." There's something direct about "find the differences" picture with holes in it. If we think of it as a function it makes sense to think that we should apply it to a number of tiny pictures that will go in the holes. We could imagine a similar abstraction that took a number of boolean values instead, with true meaning that we should use that part from the first of the two different pictures and false meaning we should use that part from the second. I do think the visual picture with the visible holes suggests "tiny pictures as arguments" and that that feels more direct or something.
+
+Functions are sometimes a little like this:
+
+``` run
+function square_(x, y, size, yellow)
+  return
+    '<svg width="' .. (x + size + 8) .. '" height="' .. (y + size + 8) .. '">'
+    .. '<rect x="' .. x .. '" y="' .. y .. '"'
+    .. ' width="' .. size .. '" height="' .. size .. '"'
+    .. ' stroke="' .. (yellow and "yellow" or "white") .. '" />'
+    .. '</svg>'
+end
+```
+
+You know, it makes squares:
+
+``` repl
+web.html(square_(30, 40, 50, true))
+web.html(square_(10, 20, 80, false))
+```
+
+And like okay it has a hole that can be filled with true or false, but we're like, yeah and by true we mean yellow and by false we mean white. Like that hole feels more properly filled with the actual thing once we have kind of evaluated the `(yellow and "yellow" or "white")` bit in our head for the boolean value we're passing in. When we consider a function call with its arguments, something like `true` feels more indirect than something like `50`.
+
+We could do this instead:
+
+``` run
+function square(x, y, size, colour)
+  return
+    '<svg width="' .. (x + size + 8) .. '" height="' .. (y + size + 8) .. '">'
+    .. '<rect x="' .. x .. '" y="' .. y .. '"'
+    .. ' width="' .. size .. '" height="' .. size .. '"'
+    .. ' stroke="' .. colour .. '" />'
+    .. '</svg>'
+end
+```
+
+I think the meaning of those arguments become a little more obvious when seeing a function call:
+
+``` repl
+web.html(square(30, 40, 50, "yellow"))
+web.html(square(10, 20, 80, "white"))
+```
+
+I think talk about abstractions, particularly "too much abstraction" and "too general" stuff, can sometimes give the impression that we're turning a knob. Like how abstract _and_ general _and_ indirect do we want it to be? But like there are different ways to go about things. I think going from booleans to colours makes it more general but also less indirect. More general in that you can make squares with outlines in many more different colours, and more direct in that uh, you directly refer to the color, not to some value that will be used by the function to choose a colour.
+
+A traditional `map` function is more general by a similar function that takes a boolean or another other enumerated type that is used to decide which operation should be performed on all the elements. Passing in the operation you want makes it more general and it also makes it more direct: You don't have to open up the implementation of `map` to which operation it chooses if you pass in `true`, or `5` or `"GCD"` or something. The operation is referred to right there, and you can either see it there as a lambda function or you can find it with very regular "go to definition" stuff that is not concerned with how it will be used in the `map` function.
+
+And so on. I think "general and direct" is often good for doing reusability without making a _complete_ mess of things.
 
 ## Inversion of control
 
@@ -197,7 +256,13 @@ In other languages there can be a little more to it than that. Either way, in ma
 
 ## Larger things
 
-When we're dealing with immutable value/data objects, constructing the object by passing arguments to its constructor, is an abstraction in this sense. Romeu Moura talks about it as similar to currying or partial application. We get back something _kind of like_ a set of functions that already have some of their arguments passed in. If we're building value objects in a "compisition over inheritance" kind of way, some of those already passed in arguments will objects with their own methods (and with their own already passed in arguments).
+When we're dealing with immutable value/data objects, constructing the object by passing arguments to its constructor, is an abstraction in this sense. ^https://mastodon.social/@romeu/116319147937559106 Christian Queinnec/Romeu Moura says^:
+
+> It was Christian Queinnec’s quote that "passing arguments to a constructor is partial application"
+> 
+> The unstated assumption (and humor) of the quote is that for that to be true you need immutable objects with no side effects
+
+The constructed object is _kind of like_ a set of functions that already have some of their arguments passed in. If we're building value objects in a "composition over inheritance" kind of way, some of those already passed in arguments will be objects with their own methods (and with their own already passed in arguments).
 
 Abstract class definitions are kind of class definitions with holes left in them for some of the method bodies. Incomplete classes that can be completed by filling the holes.
 
@@ -216,11 +281,17 @@ Here's ^https://lists.squeakfoundation.org/pipermail/squeak-dev/1998-April/00926
 > `    Foo subClass: #Bar`
 > a difficult line of code to understand -- even if you really understand Foo, it is not at all clear what Bar will be like. It could be very much like Foo or not at all. Inheritance is a weak notion in most OOP languages.
 
-I think it's easy to kind of accidentally come up with classes that are like, when we view them as "things with holes in them" abstractions, it's not really like spelled out like "and these are the holes where that should be filled." Sometimes it's like if we think of one set of methods as holes but the rest as the unchanging part of the abstraction, then that works as one abstraction, but if we choose a different set of methods it works as another abstraction. It might not be obvious which sets of methods it makes sense to override at the same time, like if overriding one typically leads to inconsistency unless we also override this other one.
+I think it's easy to kind of accidentally come up with classes that are like, when we view them as "things with holes in them" abstractions, it's not really like spelled out like "and these are the holes that should be filled." Sometimes it's like if we think of one set of methods as holes but the rest as the unchanging part of the abstraction, then that works as one abstraction, but if we choose a different set of methods it works as another abstraction. It might not be obvious which sets of methods it makes sense to override at the same time, like if overriding one typically leads to inconsistency unless we also override this other one.
 
 A library will typically consist of like functions, classes, objects and methods and stuff. Some of them will make more sense as "things with holes in them" abstractions, while others might be less like that.
 
 Frameworks are weirder, obvs. I guess some frameworks are kind like, incomplete applications that can be completed by putting like "the application business domain stuff" into the holes.
+
+## Purity, atomicity, ...
+
+I think it's easiest to think about a thing as a "thing with holes in it" abstraction when it's like: At first you don't have a concrete thing, but if you uh _in one fell swoop_ fill all the holes of an abstract thing you then have a completed and concrete thing. A thing is also probably more clearly "a completed thing" in this way if "completed" has a sense of finality and immutability to it.
+
+And like it's easier if we have programming language constructs that work like that, or at least aren't too far off. Sometimes when we don't we can maybe make do with conventions and stuff. Can be okay.
 
 ## Blah blah
 
