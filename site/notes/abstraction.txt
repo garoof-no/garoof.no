@@ -308,3 +308,7 @@ I guess like, there's something about in what way it does and/or does not make s
 
 That might have something to do with _some kind of_ simplicity. With an "entity object," or a fairly large and classical "OO class," or a framework, it might be less straightforward to consider it an abstraction _in that sense._ I'm not sure an "X is simpler than Y" take makes sense here, but I dunno, maybe like those other things are less simple in that particular way. Something along those lines...
 
+Anyway, I like to decide: If something seems to be useful as _that kind of abstraction,_ then I wanna kind of emphasize that. Make it a function, make if pure and functional, make the data immutable. But if not then maybe don't. If what I want is an entitiy object, with methods that change its state, then I won't make those methods return stuff. Making e.g. a "fluent interface" for that kind of stuff tends to muddy the waters for a very tiny amount of syntactical conveniece. Stuff like that.
+
+Blep.
+
