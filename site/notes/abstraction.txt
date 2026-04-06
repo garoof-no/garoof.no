@@ -312,3 +312,65 @@ Anyway, I like to decide: If something seems to be useful as _that kind of abstr
 
 Blep.
 
+----
+
+``` run
+function svg(w, h, ...)
+  local res = {
+    '<svg width="', w, '" height="', h, '">'
+  }
+  for _, s in ipairs({...}) do
+    res[#res + 1] = s
+  end
+  res[#res + 1] = '</svg>'
+  return table.concat(res)
+end
+
+function svg_g(x, y, w, h, ...)
+  local res = {
+    '<g transform="translate(', x, ' ', y, ') ',
+    'scale(', w, ' ', h, ')">'
+  }
+  for _, s in ipairs({...}) do
+    res[#res + 1] = s
+  end
+  res[#res + 1] = '</g>'
+  return table.concat(res)  
+end
+
+svg_triangle1 = '<polygon fill="currentColor" points="0,0 1,0 0,1" />'
+svg_triangle2 = '<polygon fill="currentColor" points="0,1 0.5,0 1,1" />'
+svg_star =
+  '<polygon fill="currentColor" points=' ..
+  '"0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" />'
+svg_square = '<rect fill="currentColor" x="0" y="0" width="1" height="1" />'
+svg_wrect = '<rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" />'
+svg_hrect = '<rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" />'
+svg_circle = '<circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" />'
+
+svg_hole =
+  '<rect fill="none" stroke="currentColor" '
+  .. 'stroke-dasharray="4 4" vector-effect="non-scaling-stroke"'
+  .. 'x="0" y="0" width="1" height="1" />'
+
+function svg_abstraction(a, b)
+  return svg(
+    100, 100,
+    svg_g(5, 5, 40, 40, svg_wrect),
+    svg_g(55, 5, 40, 40, a),
+    svg_g(5, 55, 40, 40, b),
+    svg_g(55, 55, 40, 40, svg_hrect))
+end
+
+local function mlep(x)
+  print(x)
+  web.html(x)
+end
+
+mlep(svg_abstraction(triangle1, triangle2))
+mlep(svg_abstraction(svg_circle, svg_star))
+mlep(svg_abstraction(svg_hole, svg_hole))
+```
+
+
+
