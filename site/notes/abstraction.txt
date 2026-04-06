@@ -367,7 +367,7 @@ local function mlep(x)
   web.html(x)
 end
 
-mlep(svg_abstraction(triangle1, triangle2))
+mlep(svg_abstraction(svg_triangle1, svg_triangle2))
 mlep(svg_abstraction(svg_circle, svg_star))
 mlep(svg_abstraction(svg_hole, svg_hole))
 ```
