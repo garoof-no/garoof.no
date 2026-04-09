@@ -13,7 +13,27 @@ Two of the things going into this are:
 
 There's a Quora question about abstraction that has ^https://www.quora.com/What-is-the-difference-between-simplification-and-abstraction/answer/Panicz-Godek an answer by Panicz Godek that I really like^.
 
-After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer, but like, in case Quora is dead or too enshittified by now and this post is somehow still alive: The first example there uses a pair of "find the differences" pictures. And then a third picture is an "abstraction" that is the same as the two others where those two pictures are equal but has "holes" where the two pictures are different. So the abstraction is something we can use to create either of the first to pictures (as well as other pictures) by filling in the holes. It's a very visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up.
+After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer, but like, in case Quora is dead or too enshittified by now and this post is somehow still alive: The first example there uses a pair of "find the differences" pictures. And then a third picture is an "abstraction" that is the same as the two others where those two pictures are equal but has "holes" where the two pictures are different.
+
+Here's a couple of example pictures. They're bad but simple:
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><polygon fill="currentColor" points="0,0 1,0 0,1" /></g><g transform="translate(5 105) scale(90 90)"><polygon fill="currentColor" points="0,1 0.5,0 1,1" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, right-angled triangle, pointy triangle, tall rectangle.
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" /></g><g transform="translate(5 105) scale(90 90)"><polygon fill="currentColor" points="0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, circle, star, tall rectangle.
+
+Each of the pictures has like four shapes arranged in a two by two grid. The upper left and lower right shapes are the same in both pictures, but the other two are different. Here's a thid picture that's the same as the two previous ones but with "holes" where those two have different shapes:
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><rect fill="none" stroke="currentColor" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"x="0" y="0" width="1" height="1" /></g><g transform="translate(5 105) scale(90 90)"><rect fill="none" stroke="currentColor" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"x="0" y="0" width="1" height="1" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, hole, hole, tall rectangle.
+
+So we can think of this last one as an abstraction that we can use to create either of the first to pictures (as well as other pictures) by filling in the holes.
+
+Anyway it's a pretty visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up.
 
 ## Functions
 
@@ -142,6 +162,79 @@ print(triple(four))
 
 So yeah.
 
+## The pictures
+
+So like, assuming we have some shapes:
+
+``` run
+right_triangle = '<polygon fill="currentColor" points="0,0 1,0 0,1" />'
+pointy_triangle = '<polygon fill="currentColor" points="0,1 0.5,0 1,1" />'
+star =
+  '<polygon fill="currentColor" points=' ..
+  '"0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" />'
+wrect = '<rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" />'
+hrect = '<rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" />'
+circle = '<circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" />'
+hole =
+  '<rect fill="none" stroke="currentColor" '
+  .. 'stroke-dasharray="4 4" vector-effect="non-scaling-stroke"'
+  .. 'x="0" y="0" width="1" height="1" />'
+```
+
+And also a couple of helper functions for SVG stuff:
+
+``` run
+function svg(w, h, ...)
+  local res = { '<svg width="', w, '" height="', h, '">' }
+  for _, s in ipairs({...}) do res[#res + 1] = s end
+  res[#res + 1] = '</svg>'
+  return table.concat(res)
+end
+
+function g(x, y, w, h, ...)
+  local res = {
+    '<g transform="translate(', x, ' ', y, ') ',
+    'scale(', w, ' ', h, ')">'
+  }
+  for _, s in ipairs({...}) do res[#res + 1] = s end
+  res[#res + 1] = '</g>'
+  return table.concat(res)
+end
+```
+
+We can implement the find the differences picture abstraction as a function:
+
+``` run
+function picture_abstraction(a, b)
+  return svg(
+    200, 200,
+    g(5, 5, 90, 90, wrect),
+    g(105, 5, 90, 90, a),
+    g(5, 105, 90, 90, b),
+    g(105, 105, 90, 90, hrect))
+end
+```
+
+And make the first picture:
+
+``` repl
+web.html(picture_abstraction(right_triangle, pointy_triangle))
+```
+
+And the second picture:
+
+``` repl
+web.html(picture_abstraction(circle, star))
+```
+
+And also other pictures:
+
+``` repl
+web.html(picture_abstraction(star, right_triangle))
+print("...")
+web.html(picture_abstraction(hole, hole))
+```
+
 ## It is possible to think about some things
 
 I think it's reasonably clear how we can think of function abstractions as "things with holes in them" like this, particularly if they are very functional functions. It can be kind of visual, like with the "find the differences" pictures: We can look at the `triple` function and go, oh right we have this "incomplete expression" that goes `add(__, add(__, __)`, and we can "complete" it by choosing a number that will go in all the `__`-holes.
@@ -158,7 +251,7 @@ There are some ways functions can be and not be that can make more easy or less 
 
 I think it's fair to say that addition is ^./generalities.txt more general^ than one number that happens to be the sum of two numbers, and so on.
 
-Thinking of functions as "things with holes in them" might suggest one way boolean flags can feel a little "wrong." There's something direct about "find the differences" picture with holes in it. If we think of it as a function it makes sense to think that we should apply it to a number of tiny pictures that will go in the holes. We could imagine a similar abstraction that took a number of boolean values instead, with true meaning that we should use that part from the first of the two different pictures and false meaning we should use that part from the second. I do think the visual picture with the visible holes suggests "tiny pictures as arguments" and that that feels more direct or something.
+Thinking of functions as "things with holes in them" might suggest one way boolean flags can feel a little "wrong." There's something direct about "find the differences" abstraction. We could imagine a similar abstraction that took a number of boolean values instead, with true meaning that we should use that part from the first of the two different pictures and false meaning we should use that part from the second. I do think the visual picture with the visible holes suggests "tiny pictures as arguments" and that that feels more direct or something.
 
 Functions are sometimes a little like this:
 
@@ -311,66 +404,3 @@ That might have something to do with _some kind of_ simplicity. With an "entity 
 Anyway, I like to decide: If something seems to be useful as _that kind of abstraction,_ then I wanna kind of emphasize that. Make it a function, make if pure and functional, make the data immutable. But if not then I maybe won't. If what I want is an entitiy object, with a "life cycle" and with methods that change its state, then I won't make those methods return stuff. E.g I wouldn't make a "fluent interface" for that kind of stuff: That would muddy the waters and I'd only get a very tiny amount of syntactical conveniece in return. Stuff like that.
 
 Blep.
-
-----
-
-``` run
-function svg(w, h, ...)
-  local res = {
-    '<svg width="', w, '" height="', h, '">'
-  }
-  for _, s in ipairs({...}) do
-    res[#res + 1] = s
-  end
-  res[#res + 1] = '</svg>'
-  return table.concat(res)
-end
-
-function svg_g(x, y, w, h, ...)
-  local res = {
-    '<g transform="translate(', x, ' ', y, ') ',
-    'scale(', w, ' ', h, ')">'
-  }
-  for _, s in ipairs({...}) do
-    res[#res + 1] = s
-  end
-  res[#res + 1] = '</g>'
-  return table.concat(res)  
-end
-
-svg_triangle1 = '<polygon fill="currentColor" points="0,0 1,0 0,1" />'
-svg_triangle2 = '<polygon fill="currentColor" points="0,1 0.5,0 1,1" />'
-svg_star =
-  '<polygon fill="currentColor" points=' ..
-  '"0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" />'
-svg_square = '<rect fill="currentColor" x="0" y="0" width="1" height="1" />'
-svg_wrect = '<rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" />'
-svg_hrect = '<rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" />'
-svg_circle = '<circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" />'
-
-svg_hole =
-  '<rect fill="none" stroke="currentColor" '
-  .. 'stroke-dasharray="4 4" vector-effect="non-scaling-stroke"'
-  .. 'x="0" y="0" width="1" height="1" />'
-
-function svg_abstraction(a, b)
-  return svg(
-    100, 100,
-    svg_g(5, 5, 40, 40, svg_wrect),
-    svg_g(55, 5, 40, 40, a),
-    svg_g(5, 55, 40, 40, b),
-    svg_g(55, 55, 40, 40, svg_hrect))
-end
-
-local function mlep(x)
-  print(x)
-  web.html(x)
-end
-
-mlep(svg_abstraction(svg_triangle1, svg_triangle2))
-mlep(svg_abstraction(svg_circle, svg_star))
-mlep(svg_abstraction(svg_hole, svg_hole))
-```
-
-
-
