@@ -315,30 +315,44 @@ local function strhtml(str, url, plain)
   end
 end
 
+local function figurewriterf(f)
+  return function(url)
+    local lf = f(url)
+    return function (line)
+      local res = lf(line)
+      if line.type == "<pre" then
+        res = "<figure>" .. res
+      elseif line.type == "pre>" then
+        if not line.empty then
+          local caption = strhtml(escape(line.rest), url)
+          res = res .. "<figcaption>" .. caption .. "</figcaption>"
+        end
+        res = res .. "</figure>\n"
+      end
+      return res
+    end
+  end
+end
+
 local function prewriterf(class, linef)
   class = class and (' class="' .. class .. '"') or ""
   linef = linef or escape
-  return function(url)
+  local f = function(url)
     return function (line)
       if line.type == "<pre" then
-        return "<figure><pre" .. class .. "><code>"
+        return "<pre" .. class .. "><code>"
       elseif line.type == "pre" then
         return linef(line.rest)
       elseif line.type == "prebr" then
         return "\n"
       elseif line.type == "pre>" then
-        local res = "</code></pre>"
-        if not line.empty then
-          local caption = escape(line.rest)
-          res = res .. "<figcaption>"
-            .. strhtml(caption, url) .. "</figcaption>"
-        end
-        return res .. "</figure>\n"
+        return "</code></pre>"
       else
         error("unreachable: " .. line.type)
       end
     end
   end
+  return figurewriterf(f)
 end
 
 local function img(url)
@@ -439,21 +453,24 @@ local function diff(line)
   return rest
 end
 
+local function prehtml(url)
+  return function(line)
+    if line.type == "<pre" then return ""
+    elseif line.type == "pre" then return line.rest
+    elseif line.type == "prebr" then return "\n"
+    elseif line.type == "pre>" then return ""
+    else error("unreachable: " .. line.type)
+    end
+  end
+end
+
 local function basepre()
   return {
     diff = prewriterf(nil, diff),
     drawing = newdrawing,
     img = img,
-    html = function(url)
-      return function(line)
-        if line.type == "<pre" then return ""
-        elseif line.type == "pre" then return line.rest
-        elseif line.type == "prebr" then return "\n"
-        elseif line.type == "pre>" then return ""
-        else error("unreachable: " .. line.type)
-        end
-      end
-    end
+    html = prehtml,
+    htmlfig = figurewriterf(prehtml)
   }
 end
 
