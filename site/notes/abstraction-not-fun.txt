@@ -1,0 +1,63 @@
+## Abstraction, not functions
+:todo
+
+Method calls tend to be kind of like function calls. In some languages they are exactly that. E.g. in Lua, if we take a string method like `gsub`, it's just a function, but when we call it "like a method" the "receiver of the method call," like the "this" or "self" object, is passed in as a first argument. These two `gsub` calls are pretty equivalent:
+
+``` repl
+local str = "ababa"
+print(str:gsub("a", "-"))
+local f = str.gsub
+print(f(str, "a", "-"))
+```
+
+In other languages there can be a little more to it than that. Either way, in many cases methods are similar to functions in how they work or don't work as "things with holes in them abstractions."
+
+## Objects
+
+In blue book DDD terms I think it's usually more useful to think about value object methods as abstractions like this and less useful to think about methods on entity objects that way. When we're dealing with immutable value/data objects, it makes sense to think of passing arguments to a constructor as filling the holes of that abstract thing.
+
+^https://mastodon.social/@romeu/116319147937559106 Christian Queinnec/Romeu Moura says^:
+
+> It was Christian Queinnec’s quote that "passing arguments to a constructor is partial application"
+> 
+> The unstated assumption (and humor) of the quote is that for that to be true you need immutable objects with no side effects
+
+The constructed object is _kind of like_ a set of functions that already have some of their arguments passed in. If we're building value objects in a "composition over inheritance" kind of way, some of those already passed in arguments will be objects with their own methods (and with their own already passed in arguments).
+
+## Classes
+
+Abstract class definitions are kind of class definitions with holes left in them for some of the method bodies. Incomplete classes that can be completed by filling the holes.
+
+Classes with virtual methods in general are like, every implemented and virtual method is:
+
+* Like a hole, in that we can put in a method implementation by overriding it.
+* And like not a hole, in that nothing's missing. We don't have to put in a method implementation but can use it as it is.
+
+Here's ^https://lists.squeakfoundation.org/pipermail/squeak-dev/1998-April/009261.html a comment from Alan Kay on inheritance^. I've seen others. A couple of quotes:
+
+> confusions of Taxonomy and Parentage, of Specialization and Refinement, of Parts and Wholes, of Semantics and Pragmatics.
+
+...
+
+> All this makes
+> `    Foo subClass: #Bar`
+> a difficult line of code to understand -- even if you really understand Foo, it is not at all clear what Bar will be like. It could be very much like Foo or not at all. Inheritance is a weak notion in most OOP languages.
+
+I think it's easy to kind of accidentally come up with classes that are like, when we view them as "things with holes in them" abstractions, it's not really spelled out like "and these are the holes that should be filled." Sometimes it's like if we think of one set of methods as holes then that works as one abstraction, but if we choose a different set of methods it works as another abstraction. It might not be obvious which sets of methods it makes sense to override at the same time, like if overriding one typically leads to inconsistency unless we also override this other one.
+
+## Larger things
+
+A library will typically consist of like functions, classes, objects and methods and stuff. Some of them will make more sense as "things with holes in them" abstractions, while others might be less like that. Frameworks are weirder, obvs. I guess some frameworks are kind like, incomplete software that can be completed by putting like "the application business domain stuff" into the holes. In practice I think they usually make it very unclear which holes exist, where they are and what they're shaped like, and how they're filled.
+
+## Blah blah
+
+I guess like, there's something about in what way it does and/or does not make sense, or is or is not easy, to think of something as a "thing with holes in it" abstraction. Like that says something, about something. Like viewing a pure and functional function that way is fairly straightforward:
+
+* It is clear where the holes are and how they are filled.
+* By applying the function to arguments we fill all the holes _in one go_ and get a completed thing back, and that completed thing is a final and immutable thing.
+
+That might have something to do with _some kind of_ simplicity. With an "entity object," or a fairly large and classical "OO class," or a framework, it might be less straightforward to consider it an abstraction _in that sense._ I'm not sure an "X is simpler than Y" take makes sense here, but I dunno, maybe like those other things are less simple in that particular way. Something along those lines...
+
+Anyway, I like to decide: If something seems to be useful as _that kind of abstraction,_ then I wanna kind of emphasize that. Make it a function, make if pure and functional, make the data immutable. But if not then I maybe won't. If what I want is an entitiy object, with a "life cycle" and with methods that change its state, then I won't make those methods return stuff. E.g I wouldn't make a "fluent interface" for that kind of stuff: That would muddy the waters and I'd only get a very tiny amount of syntactical conveniece in return. Stuff like that.
+
+Blep.
