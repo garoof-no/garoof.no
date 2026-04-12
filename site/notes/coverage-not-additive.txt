@@ -1,0 +1,21 @@
+# increasing test coverage is not "naturally additive" wrt loc
+:blurb Unmeasured approach.
+:pub Zm4ECQ
+
+So ^https://github.com/yt-project/yt/pull/5426 here's some LLM-person being a terrible person^. It's nothing new.
+
+It's funny in a few dimensions. For one thing, _the state of things._ And it's funny that the terrible person tries to "disagree" with the maintainer about what is and is not important to the maintainer. And also the relation between "TDD and making very small steps" and this +3,233 diff commit is kind of funny. That's funny because 3,233 is a large number, but another funny thing is that it's the only number. The are no changed or removed lines in the pull request:
+
+> Test-only diffs are also naturally additive. Expanding unit test coverage usually means adding tests, not removing code.
+
+That's also something that's been on my mind a little recently: I've been going like, _actually,_ "test coverage" can be a useful tool _actually._ Like, absolutely not as a number or anything, but if you have a piece of code and you have to add very much test code to cover things, it can make sense to think of that as a code smell. Like if you have a combinatorial explosion of cases it can make sense to consider refactoring it so it's possible test smaller pieces in isolation. If you have several tests testing a small part of some larger thing and you have a lot of setup on account of the larger thing being large, then maybe the small part can be extracted and tested on its own so that there's less setup for every test. Stuff like that.
+
+And just, the idea that increasing test coverage "naturally" results in only adding code certainly comes from a very different school of... uh. A different school of stuff.
+
+Related, I think: ^https://www.geepawhill.org/2020/07/24/microtest-tdd-is-gray-box/ Microtest TDD is Gray-Box^.
+
+I think we have a tendency to write tests that express requirements on a higher level than we have to. _Particularly_ when we perform activites like "write tests" and "increase test coverage" on their own, and not as part of the "writing the actual code" process.
+
+Btw I sometimes wonder if the emphasis on "test first" has caused some misunderstandings. Not that I think that there necessarily exists a very good way to communicate an idea like this to people unwilling to engage with ideas or anything, but I've seen stuff like: Okay, instead of working on this feature for a week and then writing tests for a day, I'll write tests for a day first and then work on the feature for a week. I dunno. I have at least found myself pointing people in the direction of stuff like ^https://www.geepawhill.org/2021/10/26/mmmss-a-closer-look-at-steps/ Many More Much Smaller Steps^ instead of red-green-refactor stuff. (Although ^./on-green.txt I do think the TDD by Example book has good stuff on making steps and refactoring on green and so on^.)
+
+PS and like yeah there's clearly more nuance to this. Not saying that a change that increases test coverage by only adding lines of code is always a bad idea or anything.
