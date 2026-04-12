@@ -1,0 +1,342 @@
+# Abstraction, functions
+:template lua
+:todo
+
+I felt like writing an amount of words. Maybe gather some thoughts that should or should not be gathered...
+
+## Abstractions as things with holes in them
+
+There's a Quora question about abstraction that has ^https://www.quora.com/What-is-the-difference-between-simplification-and-abstraction/answer/Panicz-Godek an answer by Panicz Godek that I really like^.
+
+After reading that I've thought that "an abstraction is a thing with holes in it" is often a useful way to think about it. Should read the Quora answer. The first example there uses a pair of "find the differences" pictures, and then a third "abstraction" picture that is the same as the two others where those two pictures are equal but has "holes" where the two pictures are different.
+
+Here's a couple of example pictures. They're bad but simple:
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><polygon fill="currentColor" points="0,0 1,0 0,1" /></g><g transform="translate(5 105) scale(90 90)"><polygon fill="currentColor" points="0,1 0.5,0 1,1" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, right-angled triangle, pointy triangle, tall rectangle.
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" /></g><g transform="translate(5 105) scale(90 90)"><polygon fill="currentColor" points="0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, circle, star, tall rectangle.
+
+Each of the pictures has like four shapes arranged in a two by two grid. The upper left and lower right shapes are the same in both pictures, but the other two are different. Here's a third picture that's the same as the two previous ones but with "holes" where those two have different shapes:
+
+``` htmlfig
+<svg width="200" height="200"><g transform="translate(5 5) scale(90 90)"><rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" /></g><g transform="translate(105 5) scale(90 90)"><rect fill="none" stroke="currentColor" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"x="0" y="0" width="1" height="1" /></g><g transform="translate(5 105) scale(90 90)"><rect fill="none" stroke="currentColor" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"x="0" y="0" width="1" height="1" /></g><g transform="translate(105 105) scale(90 90)"><rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" /></g></svg>
+``` Four things: Wide rectangle, hole, hole, tall rectangle.
+
+So we can think of this last one as an abstraction that we can use to create either of the first to pictures (as well as other pictures) by filling in the holes.
+
+Anyway it's a pretty visual example that now tends to spring to my mind when like "the nature of abstractions" or something is brought up. It aligns pretty nicely with how I think about functions and it frames or highlights certain things I'm interested in in ways I like.
+
+## Functions
+
+In something like ^../lambs/lambs.txt lambda calculus^, we can think of bound variables as holes that can be filled in. If we have, say, a function with a function in it:
+
+```
+λa.λb.a b a
+```
+
+Then with a couple of function applications:
+
+```
+(λa.λb.a b a) foo bar
+```
+
+We can like fill in those holes/variable references:
+
+```
+foo bar foo
+```
+
+In many programming languages, we can think of at least some of the function calls in the same way, and that can be a useful mental model. See also ^https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-10.html#%_sec_1.1.5 SICP: The Substitution Model for Procedure Application^. In Lua we can do stuff like:
+
+``` repl
+local function f(a, b)
+  return a .. " " .. b .. " " .. a
+end
+
+print(f("foo", "bar"))
+```
+
+Okay let's pretend we only have the number zero and successor and predecessor functions:
+
+``` run
+function s(n) return n + 1 end
+function p(n) return n - 1 end
+function positive(n) return n > 0 end
+```
+
+We could make some numbers:
+
+``` run
+four = s(s(s(s(0))))
+six = s(s(four))
+five = p(six)
+```
+
+``` repl
+print(four, five, six)
+```
+
+And let's say we wanna add two of them together, like maybe four and six. We'll start at four and then like count up from there while counting down from six:
+
+``` repl
+local result, additional = four, six
+while positive(additional) do
+  result = s(result)
+  additional = p(additional)
+  print(result, additional)
+end
+print(result);
+```
+
+If we want to add together _five_ and six instead, we can go like this:
+
+``` repl
+local result, additional = five, six
+while positive(additional) do
+  result = s(result)
+  additional = p(additional)
+  print(result, additional)
+end
+print(result);
+```
+
+Those two pieces of code are similar and we can make an abstraction that kind of works for both by turning the differences into holes. We'll make a function that takes the addends as parameters.
+
+``` run
+function foo(a, b)
+  local result, additional = a, b
+  while positive(additional) do
+    result = s(result)
+    additional = p(additional)
+    print(result, additional)
+  end
+  print(result);
+end
+```
+
+``` repl
+foo(four, six)
+foo(five, six)
+```
+
+Let's clean it up and make it return the result:
+
+``` run
+function add(a, b)
+  while positive(b) do
+    a = s(a)
+    b = p(b)
+  end
+  return a
+end
+```
+
+``` repl
+print(add(four, six))
+print(add(five, six))
+```
+
+We can get our original "addition results" by putting in the appropriate arguments. So that's cool. We can also use other arguments:
+
+``` repl
+print(add(four, five))
+print(add(add(four, five), six))
+```
+
+That's kind of like with the find the differences example, right? We have these concrete things, the actual calculations of specific numbers that are the sums of specific numbers, and we kind of look at the pattern, what changes between different sums-calcuations and what doesn't, and we make an abstraction that captures the constant part. The abstraction is not concretely _the result of adding two specific numbers together._ It has holes in it, and we can put many different numbers in those holes. In this particular case, since numbers go in the whole, and we also get a number back when we fill in the holes, we can put the result of one addition into the hole of another. It's pretty cool tbh.
+
+In a typical programming language we have have "the same hole" multiple times:
+
+``` run
+function triple(n)
+  return add(n, add(n, n))
+end
+```
+
+Passing in one number will make it appear in all the three places:
+
+``` repl
+print(triple(four))
+```
+
+I think it's reasonably clear how we can think of function abstractions as "things with holes in them" like this, particularly if they are very functional functions. It can be kind of visual, like with the "find the differences" pictures: We can look at the `triple` function and go, oh right we have this "incomplete expression" that goes `add(__, add(__, __)`, and we can "complete" it by choosing a number that will go in all the `__`-holes.
+
+## The pictures
+
+If we can return values that represent pictures, we can make function abstractions that are very much like the "picture abstraction" above.
+
+So like, assuming we have some shapes:
+
+``` run
+right_triangle = '<polygon fill="currentColor" points="0,0 1,0 0,1" />'
+pointy_triangle = '<polygon fill="currentColor" points="0,1 0.5,0 1,1" />'
+star =
+  '<polygon fill="currentColor" points=' ..
+  '"0,0.4 0.3,0.4 0.5,0 0.7,0.4 1,0.4 0.8,0.6 1,1 0.5,0.8 0,1 0.2,0.6" />'
+wrect = '<rect fill="currentColor" x="0" y="0.2" width="1" height="0.6" />'
+hrect = '<rect fill="currentColor" x="0.2" y="0" width="0.6" height="1" />'
+circle = '<circle fill="currentColor" cx="0.5" cy="0.5" r="0.5" />'
+hole =
+  '<rect fill="none" stroke="currentColor" '
+  .. 'stroke-dasharray="4 4" vector-effect="non-scaling-stroke"'
+  .. 'x="0" y="0" width="1" height="1" />'
+```
+
+And also a couple of helper functions for SVG stuff:
+
+``` run
+function svg(w, h, ...)
+  local res = { '<svg width="', w, '" height="', h, '">' }
+  for _, s in ipairs({...}) do res[#res + 1] = s end
+  res[#res + 1] = '</svg>'
+  return table.concat(res)
+end
+
+function g(x, y, w, h, ...)
+  local res = {
+    '<g transform="translate(', x, ' ', y, ') ',
+    'scale(', w, ' ', h, ')">'
+  }
+  for _, s in ipairs({...}) do res[#res + 1] = s end
+  res[#res + 1] = '</g>'
+  return table.concat(res)
+end
+```
+
+We can implement the find the differences picture abstraction as a function:
+
+``` run
+function picture_abstraction(a, b)
+  return svg(
+    200, 200,
+    g(5, 5, 90, 90, wrect),
+    g(105, 5, 90, 90, a),
+    g(5, 105, 90, 90, b),
+    g(105, 105, 90, 90, hrect))
+end
+```
+
+And make the first picture:
+
+``` repl
+web.html(picture_abstraction(right_triangle, pointy_triangle))
+```
+
+And the second picture:
+
+``` repl
+web.html(picture_abstraction(circle, star))
+```
+
+And also other pictures:
+
+``` repl
+web.html(picture_abstraction(star, right_triangle))
+print("...")
+web.html(picture_abstraction(hole, hole))
+```
+
+Is that nice? I'm at least going to claim that it is, on a techincality, an illustrative example.
+
+## Generalities, flags, ...
+
+I think it's fair to say that addition is ^./generalities.txt more general^ than one number that happens to be the sum of two numbers, and so on.
+
+Thinking of functions as "things with holes in them" might suggest one way boolean flags can feel a little "wrong." There's something direct about "find the differences" abstraction. We could imagine a similar abstraction that took a number of boolean values instead, with true meaning that we should use that part from the first of the two different pictures and false meaning we should use that part from the second. I do think the visual picture with the visible holes suggests "tiny pictures as arguments" and that that feels more direct or something.
+
+Functions are sometimes a little like this:
+
+``` run
+function square_(x, y, size, yellow)
+  local w, h = x + size + 5, y + size + 5
+  local xy = ' x="' .. x .. '" y="' .. y .. '"';
+  local wh = ' width="' .. size .. '" height="' .. size .. '"'
+  local stroke = ' stroke="' .. (yellow and "yellow" or "white") .. '"'
+  return svg(w, h, '<rect' .. xy .. wh .. stroke .. ' />')
+end
+```
+
+You know, it makes squares:
+
+``` repl
+web.html(square_(30, 40, 50, true))
+web.html(square_(10, 20, 80, false))
+```
+
+And like okay it has a hole that can be filled with true or false, but we're like, yeah and by true we mean yellow and by false we mean white. Like that hole feels more properly filled with the actual thing once we have kind of evaluated the `(yellow and "yellow" or "white")` bit in our head for the boolean value we're passing in. When we consider a function call with its arguments, something like `true` feels more indirect than something like `50`.
+
+We could do this instead:
+
+``` run
+function square(x, y, size, colour)
+  local w, h = x + size + 5, y + size + 5
+  local xy = ' x="' .. x .. '" y="' .. y .. '"';
+  local wh = ' width="' .. size .. '" height="' .. size .. '"'
+  local stroke = ' stroke="' .. colour .. '"'
+  return svg(w, h, '<rect' .. xy .. wh .. stroke .. ' />')
+end
+```
+
+I think the meaning of those arguments become a little more obvious when seeing a function call:
+
+``` repl
+web.html(square(30, 40, 50, "yellow"))
+web.html(square(10, 20, 80, "white"))
+```
+
+I think talk about abstractions, particularly "too much abstraction" and "too general" stuff, can sometimes give the impression that we're turning a knob. Like how abstract _and_ general _and_ indirect do we want it to be? But like there are different ways to go about things. I think going from booleans to colours makes it more general but also less indirect. More general in that you can make squares with outlines in many more different colours, and more direct in that uh, you directly refer to the color, not to some value that will be used by the function to choose a colour.
+
+A traditional `map` function is more general than a similar function that takes a boolean or another enumerated type that is used to decide which operation should be performed on all the elements: Passing in the operation opens it up with regards to which operations it can support. It also makes it more direct: You don't have to look inside the implementation of `map` to see which operation it chooses if you pass in `true`, or `5` or `"GCD"` or something. The operation is referred to right there, and you can either see it there as a lambda function or you can find it with very regular "go to definition" stuff that is not concerned with how it will be used in the `map` function.
+
+And so on. I think "general and direct" is often good for doing reusability without making a _complete_ mess of things.
+
+## Aside: Inversion of control
+
+If the `add` function "depends on" two numbers then we can say that it has its dependencies "injected." We can "inject" numbers like four and five by passing them in as arguments, and the function body of `add` isn't concerned with how those numbers got there. It doesn't need to construct those numbers and it doesn't need to go find them somewhere.
+
+We could imagine an addition function that does not have its dependencies injected but instead looks for them itself, in a specific place. We'll have the place be a "container:"
+
+``` run
+local Container = {
+  getBean = function(t, k) return t[k] end,
+  setBean = function(t, k, v) t[k] = v end
+}
+applicationContext = setmetatable({}, { __index = Container })
+```
+
+And then we can make an addition function that does not use dependency injection:
+
+``` run
+function addBean()
+  local a = applicationContext:getBean("a")
+  local b = applicationContext:getBean("b")
+  while positive(b) do
+    a = s(a)
+    b = p(b)
+  end
+  return a
+end
+```
+
+Now we can call the function with different inputs by putting different numbers in the container.
+
+``` repl
+applicationContext:setBean("a", four)
+applicationContext:setBean("b", five)
+print(addBean())
+
+applicationContext:setBean("a", six)
+print(addBean())
+```
+
+It's not exactly a way to live but like it's something you could do. Building a "container" would be a very strange thing to do if you wanted to encourage dependency injection.
+
+## Okay
+
+So anyway yeah okay I think the "thing with holes in it" stuff can be nice for thinking about functions. It's possibly to think about which functions are more and less like such abstractions and why. How directly can we apply the substitution model when thinking about them? How pure and functional are they? Can configuring a bean be considered filling a hole in the same way? Should it? Does it depend? There's some stuff.
+
+I also think the "thing with holes in it" stuff can be like valid for various other abstract things and that it can be interesting to think about stuff like when is it more and when is it less useful to think about things that way. Don't wanna do that right now though.
