@@ -1,0 +1,149 @@
+# bla bla bla
+:todo
+:template lua
+
+``` run
+filenames = {}
+function filename(name)
+  local source = debug.getinfo(2).source
+  filenames[source] = name
+  filenames[name] = source
+end
+```
+
+``` run
+filename("file1.lua")
+
+Casenumber_ = {}
+
+function Casenumber_.new(str)
+  str = str:upper()
+  local letters, digits = str:match("%s*(%a*)-(%d*)%s*")
+  if not letters then
+    error("bad pattern")
+  end
+  str = letters .. "-" .. digits
+  if #letters < 2 or #letters > 4 then
+    error("bad letters")
+  end
+  if #digits < 3 or #digits > 10 then
+    error("bad digits")
+  end
+  return {
+    tag = function()
+      return "casenumber"
+    end,
+    number = function()
+      return str
+    end
+  } 
+end
+
+```
+
+``` repl
+start()
+local n = Casenumber_.new("asd-12356")
+print(n.number());
+stop()
+```
+
+``` repl
+start()
+local n = Casenumber_.new("QWE-12356543")
+print(n.tag());
+stop()
+```
+
+----
+
+Testing framework:
+
+``` run
+web.html([[<style>.covered { text-decoration: none; background-color: #d4fcbc; color: #000000; }</style>]])
+
+local current
+local function trace(event, line)
+  if not current then return end
+  local file = filenames[debug.getinfo(2).source]
+  if not file then return end
+  local lines = current[file] or {}
+  lines[line] = true
+  current[file] = lines
+end
+
+local function linehtml(str, covered)
+  local class = covered and [[ class="covered"]] or ""
+  return "<span" .. class .. ">" .. str .. "</span><br>"
+end
+
+local function reportcoverage(t)
+  local res = { "<pre><code>" }
+  for k, v in pairs(t) do
+    res[#res + 1] = linehtml(k)
+    local i = 0
+    for line in filenames[k]:gmatch("[^\n]*") do
+      i = i + 1
+      res[#res + 1] = linehtml("  " .. line, v[i])
+    end
+  end
+  res[#res + 1] = "</code></pre>"
+  web.html(table.concat(res))
+end
+
+function start()
+  current = {}
+  debug.sethook(trace, "l")
+end
+
+function stop()
+  debug.sethook(nil, "l")
+  local res = current
+  current = nil
+  reportcoverage(res)
+  return current
+end
+
+local escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+local function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+function runtests(...)
+  local str = { '<p>' }
+  local passes, failures = 0, 0
+  for i, f in ipairs({...}) do
+    local success, res = pcall(f)
+    if success then
+      passes = passes + 1
+    else
+      failures = failures + 1
+      table.insert(str, 'test ' .. i .. ' failed: ')
+      table.insert(str, escape(tostring(res)) .. '<br>')
+    end
+  end
+  table.insert(str, '<span style="background-color:')
+  if failures == 0 then
+    table.insert(str, 'green;">this is a green bar ')
+  else
+    table.insert(str, 'red;">this is a red bar ')
+  end
+  table.insert(str,  '(' .. passes .. ' tests passed. ')
+  table.insert(str,  failures .. ' tests failed)</span></p>')
+  web.html(table.concat(str))
+end
+
+function assertEq(e, a)
+  if e ~= a then
+    error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
+  end
+end
+```
