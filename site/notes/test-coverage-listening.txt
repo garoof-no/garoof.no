@@ -3,54 +3,172 @@
 :template lua
 
 ``` run
-filename("file1.lua")
+traced()
 
 ItemNumber_ = {}
-
 function ItemNumber_.new(str)
-  str = str:upper()
-  str = str:match("^%s*(%a%a[-]%d+)%s*$")
+  str = trim(str):upper()
+  str = str:match("^%a%a[-]%d+$")
   if not str then
-    error({ message = "bad pattern" })
+    error("bad format")
   end
-  str = str:upper()
   if #str < 5 then
-    error({ message = "few chars" })
+    error("bad format")
   end
   if #str > 10 then
-    error({ message = "many chars" })
+    error("bad format")
   end
   return {
-    tag = function()
-      return "itemnumber"
+    type = function()
+      return ItemNumber_
     end,
     number = function()
       return str
     end
   } 
 end
-
 ```
 
 ``` repl
 runtests(
   function()
-    assertEq(ItemNumber_.new("as-123456").number(), "AS-123456")
+    assertEqual("AS-123456", ItemNumber_.new("as-123456").number())
   end,
   function()
-    local err = assertError(function() ItemNumber_.new("asd-123456") end)
-    assertEq("bad pattern", err.message)
+    assertEqual("RT-5432", ItemNumber_.new(" RT-5432  ").number())
   end,
   function()
-    local err = assertError(function() ItemNumber_.new("qw-1") end)
-    assertEq("few chars", err.message)
+    assertError(function() ItemNumber_.new("asd-123456") end)
   end,
   function()
-    local err = assertError(function() ItemNumber_.new("ab-123456789") end)
-    assertEq("many chars", err.message)
+    assertError(function() ItemNumber_.new("QW-1") end)
+  end,
+  function()
+    assertError(function() ItemNumber_.new("ab-123456789") end)
   end
 )
 ```
+
+``` run
+traced()
+
+ItemNumber__ = {}
+
+function ItemNumber__.valid(str)
+  str = str:match("^%a%a[-]%d+$")
+  if not str then
+    return false
+  end
+  if #str < 5 then
+    return false
+  end
+  if #str > 10 then
+    return false
+  end
+  return true
+end
+
+function ItemNumber__.new(str)
+  str = trim(str):upper()
+  if not valid(str) then
+    error("bad format")
+  end
+  return {
+    type = function()
+      return ItemNumber__
+    end,
+    number = function()
+      return str
+    end
+  }
+end
+function ItemNumber__.maybe(str)
+  str = trim(str):upper()
+  str = str:match("^%a%a[-]%d+$")
+  if not valid(str) then
+    error("bad format")
+  end
+  return ItemNumber__.new(str)
+end
+```
+
+``` repl
+runtests(
+  function()
+    assertEqual(true, ItemNumber__.valid("AS-123456"))
+  end,
+  function()
+    assertEqual(true, ItemNumber__.valid("RT-5432"))
+  end,
+  function()
+    assertEqual(false, ItemNumber__.valid("ASD-123456"))
+  end,
+  function()
+    assertEqual(false, ItemNumber__.valid("QW-1"))
+  end,
+  function()
+    assertEqual(false, ItemNumber__.valid("AB-123456789"))
+  end
+)
+```
+
+``` run
+traced()
+
+ItemNumber = {}
+
+function ItemNumber.valid(str)
+  str = trim(str):upper()
+  str = str:match("^%a%a[-]%d+$")
+  if not str then
+    return Result.bad("bad format")
+  end
+  if #str < 5 then
+    return Result.bad("bad format")
+  end
+  if #str > 10 then
+    return Result.bad("bad format")
+  end
+  return Result.good(str)
+end
+
+function ItemNumber.new(str)
+  str = valid(str).orError()
+  return {
+    type = function()
+      return ItemNumber__
+    end,
+    number = function()
+      return str
+    end
+  }
+end
+function ItemNumber.maybe(str)
+  return valid(str).map(ItemNumber.new)
+end
+```
+
+``` repl
+runtests(
+  function()
+    assertEqual("AS-123456", ItemNumber.valid("as-123456").value())
+  end,
+  function()
+    assertEqual("RT-5432", ItemNumber.valid(" RT-5432  ").value())
+  end,
+  function()
+    assertEqual("bad format", ItemNumber.valid("asd-123456").message())
+  end,
+  function()
+    assertEqual("bad format", ItemNumber.valid("QW-1").message())
+  end,
+  function()
+    assertEqual("bad format", ItemNumber.valid("ab-123456789").message())
+  end
+)
+```
+
+
 
 
 ----
@@ -58,11 +176,12 @@ runtests(
 Testing framework:
 
 ``` prelude
-local filenames = {}
-function filename(name)
+local files = {}
+function traced()
+  local n = #files + 1
   local source = debug.getinfo(2).source
-  filenames[source] = name
-  filenames[name] = source
+  files[source] = n
+  files[n] = source
 end
 
 web.html([[<style>.covered { text-decoration: none; background-color: #d4fcbc; color: #000000; }</style>]])
@@ -70,7 +189,7 @@ web.html([[<style>.covered { text-decoration: none; background-color: #d4fcbc; c
 local current = {}
 local function trace(event, line)
   if not current then return end
-  local file = filenames[debug.getinfo(2).source]
+  local file = files[debug.getinfo(2).source]
   if not file then return end
   local lines = current[file] or {}
   lines[line] = true
@@ -82,14 +201,25 @@ local function linehtml(str, covered)
   return "<span" .. class .. ">" .. str .. "</span><br>"
 end
 
+local function blank(s)
+  return not not s:match("^%s*$")
+end
+
+local function endline(s)
+  return not not s:match("^%s*end%s*$")
+end
+
 local function reportcoverage(t)
   local res = { "<details><summary>Code coverage report</summary><pre><code>" }
-  for k, v in pairs(t) do
-    res[#res + 1] = linehtml(k)
+  for n, v in pairs(t) do
+    res[#res + 1] = linehtml("file " .. n .. ":")
+    local prev = false
     local i = 0
-    for line in filenames[k]:gmatch("[^\n]*") do
+    for line in files[n]:gmatch("[^\n]*") do
       i = i + 1
-      res[#res + 1] = linehtml("  " .. line, v[i])
+      local covered = v[i] or (prev and (blank(line) or endline(line)))
+      prev = covered
+      res[#res + 1] = linehtml("  " .. line, covered)
     end
   end
   res[#res + 1] = "</code></pre></details>"
@@ -118,6 +248,7 @@ function runtests(...)
   coveragestart()
   local str = { '<p>' }
   local passes, failures = 0, 0
+ 
   for i, f in ipairs({...}) do
     local success, res = pcall(f)
     if success then
@@ -140,7 +271,7 @@ function runtests(...)
   reportcoverage(current)
 end
 
-function assertEq(e, a)
+function assertEqual(e, a)
   if e ~= a then
     error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
   end
@@ -150,5 +281,28 @@ function assertError(f)
   local success, res = pcall(f)
   if success then error("expected: error, got: success") end
   return res
+end
+
+Result = {}
+function Result.good(v)
+  return {
+    value = function() return v end,
+    orError = function() return v end,
+    map = function(f) return Result.ok(f(v)) end
+  }
+end
+
+function Result.bad(m)
+  local self
+  self = {
+    message = function() return m end,
+    orError = function() error(m) end,
+    map = function(f) return self end
+  }
+  return self
+end
+
+function trim(s)
+  return s:match("^%s*(.-)%s*$")
 end
 ```
