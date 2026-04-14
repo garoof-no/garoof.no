@@ -183,8 +183,9 @@ const luarun = (() => {
       run(luarun, str, handler(out));
     };
 
-    if (element.classList.contains("run")) {
-      myrun(ta.value)
+    if (element.classList.contains("run") || element.classList.contains("prelude")) {
+      console.log("runnim:\n" + ta.value);
+      myrun(ta.value);
     }
     if (element.classList.contains("repl")) {
       ta.onkeyup = e => {
@@ -276,10 +277,13 @@ const luarun = (() => {
         end
       end
       `]);
-      for (const el of document.querySelectorAll(".lua.prelude")) {
+      for (const el of document.querySelectorAll(".prelude")) {
         create(el)
       };
-      for (const el of document.querySelectorAll(".lua:not(.prelude)")) {
+      for (const el of document.querySelectorAll(".run")) {
+        create(el)
+      };
+      for (const el of document.querySelectorAll(".repl")) {
         create(el)
       };
     });
