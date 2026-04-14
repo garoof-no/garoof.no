@@ -5,24 +5,24 @@
 ``` run
 filename("file1.lua")
 
-Casenumber_ = {}
+ItemNumber_ = {}
 
-function Casenumber_.new(str)
+function ItemNumber_.new(str)
   str = str:upper()
-  local letters, digits = str:match("%s*(%a*)-(%d*)%s*")
-  if not letters then
-    error("bad pattern")
+  str = str:match("^%s*(%a%a[-]%d+)%s*$")
+  if not str then
+    error({ message = "bad pattern" })
   end
-  str = letters .. "-" .. digits
-  if #letters < 2 or #letters > 4 then
-    error("bad letters")
+  str = str:upper()
+  if #str < 5 then
+    error({ message = "few chars" })
   end
-  if #digits < 3 or #digits > 10 then
-    error("bad digits")
+  if #str > 10 then
+    error({ message = "many chars" })
   end
   return {
     tag = function()
-      return "casenumber"
+      return "itemnumber"
     end,
     number = function()
       return str
@@ -33,18 +33,25 @@ end
 ```
 
 ``` repl
-start()
-local n = Casenumber_.new("asd-12356")
-print(n.number());
-stop()
+runtests(
+  function()
+    assertEq(ItemNumber_.new("as-123456").number(), "AS-123456")
+  end,
+  function()
+    local err = assertError(function() ItemNumber_.new("asd-123456") end)
+    assertEq("bad pattern", err.message)
+  end,
+  function()
+    local err = assertError(function() ItemNumber_.new("qw-1") end)
+    assertEq("few chars", err.message)
+  end,
+  function()
+    local err = assertError(function() ItemNumber_.new("ab-123456789") end)
+    assertEq("many chars", err.message)
+  end
+)
 ```
 
-``` repl
-start()
-local n = Casenumber_.new("QWE-12356543")
-print(n.tag());
-stop()
-```
 
 ----
 
@@ -60,7 +67,7 @@ end
 
 web.html([[<style>.covered { text-decoration: none; background-color: #d4fcbc; color: #000000; }</style>]])
 
-local current
+local current = {}
 local function trace(event, line)
   if not current then return end
   local file = filenames[debug.getinfo(2).source]
@@ -76,7 +83,7 @@ local function linehtml(str, covered)
 end
 
 local function reportcoverage(t)
-  local res = { "<pre><code>" }
+  local res = { "<details><summary>Code coverage report</summary><pre><code>" }
   for k, v in pairs(t) do
     res[#res + 1] = linehtml(k)
     local i = 0
@@ -85,21 +92,13 @@ local function reportcoverage(t)
       res[#res + 1] = linehtml("  " .. line, v[i])
     end
   end
-  res[#res + 1] = "</code></pre>"
+  res[#res + 1] = "</code></pre></details>"
   web.html(table.concat(res))
 end
 
-function start()
+local function coveragestart()
   current = {}
   debug.sethook(trace, "l")
-end
-
-function stop()
-  debug.sethook(nil, "l")
-  local res = current
-  current = nil
-  reportcoverage(res)
-  return current
 end
 
 local escapechar = {
@@ -116,6 +115,7 @@ local function escape(str)
 end
 
 function runtests(...)
+  coveragestart()
   local str = { '<p>' }
   local passes, failures = 0, 0
   for i, f in ipairs({...}) do
@@ -137,11 +137,18 @@ function runtests(...)
   table.insert(str,  '(' .. passes .. ' tests passed. ')
   table.insert(str,  failures .. ' tests failed)</span></p>')
   web.html(table.concat(str))
+  reportcoverage(current)
 end
 
 function assertEq(e, a)
   if e ~= a then
     error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
   end
+end
+
+function assertError(f)
+  local success, res = pcall(f)
+  if success then error("expected: error, got: success") end
+  return res
 end
 ```
