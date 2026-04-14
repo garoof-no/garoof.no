@@ -2,8 +2,9 @@ local templates = require("templates")
 local gd = require("gd")
 
 local pretable = gd.basepre()
-pretable.repl = gd.prewriterf("lua repl")
-pretable.run = gd.prewriterf("lua run")
+pretable.repl = gd.prewriterf("repl")
+pretable.run = gd.prewriterf("run")
+pretable.prelude = gd.prewriterf("prelude")
 pretable.prelude = gd.prewriterf("lua prelude run")
 
 local function scripttags(url)
@@ -29,4 +30,3 @@ return {
   scripttags = scripttags,
   pretable = pretable
 }
-
