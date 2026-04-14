@@ -3,15 +3,6 @@
 :template lua
 
 ``` run
-filenames = {}
-function filename(name)
-  local source = debug.getinfo(2).source
-  filenames[source] = name
-  filenames[name] = source
-end
-```
-
-``` run
 filename("file1.lua")
 
 Casenumber_ = {}
@@ -59,7 +50,14 @@ stop()
 
 Testing framework:
 
-``` run
+``` prelude
+local filenames = {}
+function filename(name)
+  local source = debug.getinfo(2).source
+  filenames[source] = name
+  filenames[name] = source
+end
+
 web.html([[<style>.covered { text-decoration: none; background-color: #d4fcbc; color: #000000; }</style>]])
 
 local current
