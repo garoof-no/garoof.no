@@ -198,7 +198,7 @@ end
 
 local function linehtml(str, covered)
   local class = covered and [[ class="covered"]] or ""
-  return "<span" .. class .. ">" .. str .. "</span><br>"
+  return "  <span" .. class .. ">" .. str .. "</span><br>"
 end
 
 local function blank(s)
@@ -212,14 +212,14 @@ end
 local function reportcoverage(t)
   local res = { "<details><summary>Code coverage report</summary><pre><code>" }
   for n, v in pairs(t) do
-    res[#res + 1] = linehtml("file " .. n .. ":")
+    res[#res + 1] = "file " .. n .. ":"
     local prev = false
     local i = 0
     for line in files[n]:gmatch("[^\n]*") do
       i = i + 1
       local covered = v[i] or (prev and (blank(line) or endline(line)))
       prev = covered
-      res[#res + 1] = linehtml("  " .. line, covered)
+      res[#res + 1] = linehtml(line, covered)
     end
   end
   res[#res + 1] = "</code></pre></details>"
