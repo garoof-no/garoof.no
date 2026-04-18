@@ -2,12 +2,17 @@
 :todo
 :template lua
 
-Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here.
+Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here. It's also about stuff like unit testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
 
-Okay. Let's say we're doing Enterprise Software Engineering and we're making a system for _things._ And let's say that the things have unique identifiers of some kind:
+This is a made up example but all the steps are based on actual things I have seen happen multiple times.
+
+## The IDs of things
+
+Let's say we're doing Enterprise Software Engineering and we're making a system for _things._ And let's say that the things have unique identifiers of some kind:
 
 ``` run
 traced()
+
 function isValidThingID(str)
   if not str:match("^%u%u[-]%d+$") then
     return false
@@ -22,19 +27,22 @@ function isValidThingID(str)
 end
 ```
 
-The code here isn't particularly "idiomatic" according to any existing set of idioms. I wanna write Lua, but I wanna make it feel a little "enterprisey" and I also wanna make it play nice with the code coverage thing I hacked together that only deals with line numbers. (The call to `traced` makes the code coverage thing care about that piece of source code btw.) Anyway:
+The code is a little different from how I'd probably actually implement a function like that. I wanna write Lua, but I wanna make it feel a little "enterprisey" and I also wanna make it play nice with the code coverage thing I hacked together that only deals with line numbers, so it's a little _something._ (The call to `traced` makes the code coverage thing care about that piece of source code btw.) Anyway:
 
 ``` repl
-local function test(expected, str)
-  return function() assertEqual(expected, isValidThingID(str)) end
+local function valid(str)
+  return function() assertEqual(true, isValidThingID(str)) end
+end
+local function invalid(str)
+  return function() assertEqual(false, isValidThingID(str)) end
 end
 
 runtests(
-  test(true, "AS-123456"),
-  test(false, "as-123456"),
-  test(false, "AS-abcde"),
-  test(false, "AS-1"),
-  test(false, "AS-12345678910"))
+  valid("AS-123456"),
+  invalid("as-123456"),
+  invalid("AS-abcde"),
+  invalid("AS-1"),
+  invalid("AS-12345678910"))
 ```
 
 This is sometimes what it's like in Enterprise Software Engineering. I've seen better and I've seen worse. Sometimes the check to see if a string is a valid ID is implemented inline here and there where it's needed, and then maybe some of those implemetations disagree with each other. Stuff like that happens. Here it's extracted into a function so that we have that knowledge in one place and we also have some tests for that function. It's not all bad or anything.
@@ -43,6 +51,8 @@ What would and would not be improvements here is kind of hard to say. It's a mad
 
 * A `true` or `false` value doesn't "contain" much information and callers of the `isValidThingID` function will kind of just have to know what those values "mean." For example, having unit tests for `isValidThingID` will not catch some other code using that function in an if-statement and getting the then and else branches switched around.
 * Also that returned boolean will typically be acted upon and then discarded. If you're writing some code that deals with an ID you often can't know some code has previously called `isValidThingID` on the string in question and it is "validated" or if you should call the function and validate it yourself.
+
+## A thing ID kind of thing
 
 A fairly enterprise-compliant thing we can do is to make a data structure for this kind of ID. We can do some smart constructor kind of stuff so that when we have a value of that kind we know that the string it contains has been through validation and is a proper thing ID.
 
@@ -96,7 +106,14 @@ I don't love writing tests that checks for errors thrown from a function. Errors
 
 Anyway this kind of thing has usually been like good enough and a definite improvement on just passing strings around.
 
-...
+## Extracting the validation function back out again
+
+So in this situation, a thing that sometimes happens is that the constructor that potentially throws an error isn't _always_ what you want. Sometimes there's input from a user or something that you should expect to be sometimes mistyped and so on. If a bad idea is something kind of expected that we should handle, and not just something that can be dealt with as a generic error-of-some-kind, I generally prefer to use return values and not "errors" for it. Even if we really enjoy using error handling mechanisms for this kind of stuff, there's good chance we would like some kind of distinction here, and have like:
+
+* One function we can use when we our string comes from a trusted source and just want our general "rollback and undo and abort everything" error handling to deal with it if it's bad.
+* A different function we can use when our string comes from a less trusted source and we want to deal with "bad input" situations more directly.
+
+One of the things I've seen happen here goes kind of like this:
 
 ``` run
 traced()
@@ -141,6 +158,10 @@ function ThingID__.maybe(str)
 end
 ```
 
+This kind of does the trick. It also reintroduces some of that blindless, although probably as a more isolated thing. It can make some things a little awkward when testing it.
+
+I think it makes sense to want to test the `isValid` function. That's the function that does the actual checking. It is used in two functions and if we can cover it directly then we shouldn't need to test those two other functions with as many different strings.
+
 ``` repl
 local function valid(str)
   return function() assertEqual(true, ThingID__.isValid(str)) end
@@ -156,6 +177,10 @@ runtests(
   invalid("QW-1"),
   invalid("AB-123456789"))
 ```
+
+Like we can do that. We cover like the core checking stuff with tests and that's good. Same as with the `isValidThingID` in the beginning, testing the validation function doesn't actually give us much confidence that the results are used correctly by callers of the function. In this case the idea is that only `new` and `maybe` needs to use the function, so the problem should be a lot smaller.
+
+The `new` and `maybe` function have just one if-else each so we should be able to cover them with just two tests for each. In practice, when things are organized like this, I tend to just test the outer functions instead of the inner, but with test data that covers all of the inner one. Something like:
 
 ``` repl
 local function valid(expected, str)
@@ -180,6 +205,16 @@ runtests(
   invalid("AB-123456789"))
 ```
 
+That's okay I think. We can then also consider making the `isValid` function local/private so that other code don't get to just use it. Then we can kind of know that we have covered it its callers with tests and we're more likely to catch it if other callers start cropping up.
+
+And I think there's something a little unsatisfying about it. It's not majorly major and important stuff, but:
+
+- We are kind of double-testing the `isValid` function.
+- `isValid` is basically a pure function and uh. It might not be a function we particularly want to expose to the surrounding world anyway, but it does feel maybe a little silly to consider hiding it because it's like _dangerous._ Like, because it returns booleans, we know that if anyone uses it they're probably going to if-else on it or something like that, and we know that that's a thing that can be done the wrong way around. Like I dunno are we "tainting" callers with the booleans?
+
+## Results
+
+Okay. Bla blah. I generally like moving things in this direction:
 
 ``` run
 traced()
