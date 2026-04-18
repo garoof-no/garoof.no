@@ -1,0 +1,417 @@
+# bla bla bla
+:todo
+:template lua
+
+Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here.
+
+Okay. Let's say we're doing Enterprise Software Engineering and we're making a system for _things._ And let's say that the things have unique identifiers of some kind:
+
+``` run
+traced()
+function isValidThingID(str)
+  if not str:match("^%u%u[-]%d+$") then
+    return false
+  end
+  if #str < 5 then
+    return false
+  end
+  if #str > 10 then
+    return false
+  end
+  return true
+end
+```
+
+The code here isn't particularly "idiomatic" according to any existing set of idioms. I wanna write Lua, but I wanna make it feel a little "enterprisey" and I also wanna make it play nice with the code coverage thing I hacked together that only deals with line numbers. (The call to `traced` makes the code coverage thing care about that piece of source code btw.) Anyway:
+
+``` repl
+local function test(expected, str)
+  return function() assertEqual(expected, isValidThingID(str)) end
+end
+
+runtests(
+  test(true, "AS-123456"),
+  test(false, "as-123456"),
+  test(false, "AS-abcde"),
+  test(false, "AS-1"),
+  test(false, "AS-12345678910"))
+```
+
+This is sometimes what it's like in Enterprise Software Engineering. I've seen better and I've seen worse. Sometimes the check to see if a string is a valid ID is implemented inline here and there where it's needed, and then maybe some of those implemetations disagree with each other. Stuff like that happens. Here it's extracted into a function so that we have that knowledge in one place and we also have some tests for that function. It's not all bad or anything.
+
+What would and would not be improvements here is kind of hard to say. It's a made up example without enough made up context. But if we think of the kind of Enterprise Software Engineering code that I have in mind, there is something that we _might possibly_ want to make changes to. There are different ways to frame it, but one way is to say that there's a bit of ^https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/ boolean blindness^ going on:
+
+* A `true` or `false` value doesn't "contain" much information and callers of the `isValidThingID` function will kind of just have to know what those values "mean." For example, having unit tests for `isValidThingID` will not catch some other code using that function in an if-statement and getting the then and else branches switched around.
+* Also that returned boolean will typically be acted upon and then discarded. If you're writing some code that deals with an ID you often can't know some code has previously called `isValidThingID` on the string in question and it is "validated" or if you should call the function and validate it yourself.
+
+A fairly enterprise-compliant thing we can do is to make a data structure for this kind of ID. We can do some smart constructor kind of stuff so that when we have a value of that kind we know that the string it contains has been through validation and is a proper thing ID.
+
+Maybe we typically had code near the calls to `isValidThingID` to deal with case sensitivity and whitespace stuff in order to more leniently accept input. Since our constructor is constructing the value that is going to be used, and not just checking some value and answering yes/no, we can bake this stuff into the constructor. That's not always a good idea or anything, but like just for the sake of the example let's do it:
+
+``` run
+traced()
+
+ThingID_ = {}
+function ThingID_.new(str)
+  str = trim(str):upper()
+  str = str:match("^%u%u[-]%d+$")
+  if not str then
+    error("bad format")
+  end
+  if #str < 5 then
+    error("few characters")
+  end
+  if #str > 10 then
+    error("many characters")
+  end
+  return {
+    tag = ThingID_,
+    identifier = str
+  } 
+end
+```
+
+``` repl
+local function valid(expected, str)
+  return function() assertEqual(expected, ThingID_.new(str).identifier) end
+end
+local function invalid(str)
+  return function() assertError(function() ThingID_.new(str) end) end
+end
+
+runtests(
+  valid("AS-123456", "AS-123456"),
+  valid("AS-123456", "as-123456"),
+  valid("RT-5432", " RT-5432  "),
+  invalid("asd-123456"),
+  invalid("QW-1"),
+  invalid("ab-123456789"))
+```
+
+I've seen a lot of stuff like this and it seems to usually work out pretty good. Strings can be turned into `ThingID`s as soon as is reasonable and code that deals with `ThingID`s can trust that those IDs are good. Code using `Thing.new` can't mess up in the same way that code using `isValidThingID(str)` could.
+
+In a typed language you typically get some typecheking for it, and in an untyped language you typically get some "fail reasonably fast" kind of deal since you tend to use specific data structures in specific ways: If we pass a string into a function that expects a `ThingID` things will fail the moment we try to access its `identifier`, whereas passing a string that has not been validated into a function that expects a string that has been validated is more likely to lead to stuff like storing an invalid string in the database and discovering that it's invalid three years later. (Of course it's also possible to add our own tag-checking in places.)
+
+I don't love writing tests that checks for errors thrown from a function. Errors can come from further down the call stack than expected and I think tests checking return values are like more "naturally reliable" with regards to breaking when they should and not when they should not. You can make the error-checking ones more reliable by doing more work to check that you're getting the correct error, and then if the function under test isn't too complex things are _fine._
+
+Anyway this kind of thing has usually been like good enough and a definite improvement on just passing strings around.
+
+...
+
+``` run
+traced()
+
+ThingID__ = {}
+local function construct(str)
+  return {
+    tag = ThingID__,
+    identifier = str
+  }
+end
+
+function ThingID__.isValid(str)
+  str = str:match("^%u%u[-]%d+$")
+  if not str then
+    return false
+  end
+  if #str < 5 then
+    return false
+  end
+  if #str > 10 then
+    return false
+  end  
+  return true
+end
+
+function ThingID__.new(str)
+  str = trim(str):upper()
+  if not ThingID__.isValid(str) then
+    error("bad format")
+  end
+  return construct(str)
+end
+
+function ThingID__.maybe(str)
+  str = trim(str):upper()
+  if ThingID__.isValid(str) then
+    return Optional.of(construct(str))
+  else
+    return Optional.empty()
+  end
+end
+```
+
+``` repl
+local function valid(str)
+  return function() assertEqual(true, ThingID__.isValid(str)) end
+end
+local function invalid(str)
+  return function() assertEqual(false, ThingID__.isValid(str)) end
+end
+
+runtests(
+  valid("AS-123456"),
+  invalid("as-123456"),
+  invalid("asd-123456"),
+  invalid("QW-1"),
+  invalid("AB-123456789"))
+```
+
+``` repl
+local function valid(expected, str)
+  return function()
+    assertEqual(expected, ThingID__.new(str).identifier)
+    assertEqual(expected, ThingID__.maybe(str).value.identifier)
+  end
+end
+local function invalid(str)
+  return function()
+    assertError(function() ThingID__.new(str) end)
+    assertEqual(nil, ThingID__.maybe(str).value)
+  end
+end
+
+runtests(
+  valid("AS-123456", "AS-123456"),
+  valid("AS-123456", "as-123456"),
+  valid("RT-5432", " RT-5432  "),
+  invalid("asd-123456"),
+  invalid("QW-1"),
+  invalid("AB-123456789"))
+```
+
+
+``` run
+traced()
+
+ThingID = {}
+local function construct(str)
+  return {
+    tag = ThingID__,
+    identifier = str
+  }
+end
+
+function ThingID.valid(str)
+  str = trim(str):upper()
+  str = str:match("^%a%a[-]%d+$")
+  if not str then
+    return Result.bad("bad format")
+  end
+  if #str < 5 then
+    return Result.bad("few characters")
+  end
+  if #str > 10 then
+    return Result.bad("many characters")
+  end
+  return Result.good(str)
+end
+
+function ThingID.new(str)
+  return construct(ThingID.valid(str).orError())
+end
+
+function ThingID.maybe(str)
+  return ThingID.valid(str).map(construct)
+end
+```
+
+``` repl
+local function valid(expected, str)
+  return function() assertEqual(expected, ThingID.valid(str).value) end
+end
+local function invalid(str)
+  return function() assertEqual(nil, ThingID.valid(str).value) end
+end
+
+runtests(
+  valid("AS-123456", "AS-123456"),
+  valid("AS-123456", "as-123456"),
+  valid("RT-5432", " RT-5432  "),
+  invalid("asd-123456"),
+  invalid("QW-1"),
+  invalid("AB-123456789"))
+```
+
+``` repl
+local function valid(expected, str)
+  return function() assertEqual(expected, ThingID.valid(str).value) end
+end
+local function invalid(str)
+  return function() assertEqual(nil, ThingID.valid(str).value) end
+end
+
+runtests(
+  valid("AS-123456", "AS-123456"),
+  valid("AS-123456", "as-123456"),
+  valid("RT-5432", " RT-5432  "),
+  invalid("asd-123456"),
+  invalid("QW-1"),
+  invalid("AB-123456789"),
+  function()
+    assertEqual("AS-123456", ThingID.new("AS-123456").identifier)
+    assertEqual("AS-123456", ThingID.maybe("AS-123456").value.identifier)
+  end)
+```
+
+----
+
+Testing framework:
+
+``` prelude
+local files = {}
+function traced()
+  local n = #files + 1
+  local source = debug.getinfo(2).source
+  files[source] = n
+  files[n] = source
+end
+
+web.html([[<style>
+  .coveredgood { background-color: #d4fcbc; color: #000000; }
+  .coveredbad { background-color: #ffbbbb; color: #555555; }
+</style>]])
+
+local good, bad = ' class="coveredgood"', ' class="coveredbad"'
+
+local current
+local lastline
+local lastfile
+local function trace(event, line)
+  if not current then return end
+  local file = files[debug.getinfo(2).source]
+  if not file then return end
+  lastline, lastfile = line, file
+  local lines = current[file] or {}
+  if lines[line] ~= bad then lines[line] = good end
+  current[file] = lines
+end
+
+local function linehtml(str, class)
+  return "  <span" .. (class or "") .. ">" .. str .. "</span><br>"
+end
+
+local function blank(s)
+  return not not s:match("^%s*$")
+end
+
+local function endline(s)
+  return not not s:match("^%s*end%s*$")
+end
+
+local function reportcoverage(t)
+  local res = { "<details><summary>Code coverage report</summary><pre><code>" }
+  for n, v in pairs(t) do
+    res[#res + 1] = "file " .. n .. ":\n"
+    local prev = false
+    local i = 0
+    for line in files[n]:gmatch("[^\n]*") do
+      i = i + 1
+      local covered = v[i] or ((blank(line) or endline(line)) and prev)
+      prev = covered
+      res[#res + 1] = linehtml(line, covered)
+    end
+  end
+  res[#res + 1] = "</code></pre></details>"
+  web.html(table.concat(res))
+end
+
+local escapechar = {
+  ["<"] = "&lt;",
+  [">"] = "&gt;",
+  ['"'] = "&quot;",
+  ["'"] =  "&apos;",
+  ["&"] = "&amp;"
+}
+
+local function escape(str)
+  local res, _ = (str or ""):gsub("[<>\"'&]", escapechar)
+  return res
+end
+
+function runtests(...)
+  current = {}
+  debug.sethook(trace, "l")
+
+  local str = { '<p>' }
+  local passes, failures = 0, 0
+ 
+  for i, f in ipairs({...}) do
+    lastline, lastfile = nil, nil
+    local success, res = pcall(f)
+    if success then
+      passes = passes + 1
+    else
+      if lastfile then
+        current[lastfile][lastline] = bad
+      end
+      failures = failures + 1
+      table.insert(str, 'test ' .. i .. ' failed: ')
+      table.insert(str, escape(tostring(res)) .. '<br>')
+    end
+  end
+  table.insert(str, '<span style="background-color:')
+  if failures == 0 then
+    table.insert(str, 'green;">this is a green bar ')
+  else
+    table.insert(str, 'red;">this is a red bar ')
+  end
+  table.insert(str,  '(' .. passes .. ' tests passed. ')
+  table.insert(str,  failures .. ' tests failed)</span></p>')
+  web.html(table.concat(str))
+  reportcoverage(current)
+end
+
+function assertEqual(e, a)
+  if e ~= a then
+    error("expected: " .. tostring(e).. ", actual: " .. tostring(a))
+  end
+end
+
+function assertError(f)
+  local success, res = pcall(f)
+  if success then error("expected: error, got: success") end
+  return res
+end
+
+Optional = {}
+function Optional.of(v)
+  return {
+    value = v,
+    orError = function() return v end,
+    map = function(f) return Optional.of(f(v)) end
+  }
+end
+
+function Optional.empty(m)
+  local self
+  self = {
+    orError = function() error("no such element") end,
+    map = function(f) return self end
+  }
+  return self
+end
+
+Result = {}
+function Result.good(v)
+  return {
+    value = v,
+    orError = function() return v end,
+    map = function(f) return Result.good(f(v)) end
+  }
+end
+
+function Result.bad(m)
+  local self
+  self = {
+    message = m,
+    orError = function() error(m) end,
+    map = function(f) return self end
+  }
+  return self
+end
+
+function trim(s)
+  return s:match("^%s*(.-)%s*$")
+end
+```
