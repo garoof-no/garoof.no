@@ -1,0 +1,20 @@
+# tdd stuf or sth
+:todo
+
+^https://www.youtube.com/watch?v=_zpT4pCBZgc How BAD is Test Driven Development? | Standup #6^
+
+My transcriptions, so probably a little misquoted (it's from the minute 2-3 of the video):
+
+> This sounds like the TDD pinacle problem. There's a black box, there's a few operations.
+
+> I did the whole thing, designed the entire API in the tests, then set up all the tests, set up it all to fail. (...) Then it failed, then I made it work, and it worked and it was great. And everything was perfect (...)
+
+> And I went to integrate it into the game, and realized I made an interface that's super-good for testing and not actually good for the actual thing I was making. And I had to redo it.
+
+^https://tidyfirst.substack.com/p/canon-tdd Canon TDD^
+
+> 1. Write a list of the test scenarios you want to cover
+> 2. Turn exactly one item on the list into an actual, concrete, runnable test
+> 3. Change the code to make the test (& all previous tests) pass (adding items to the list as you discover them)
+> 4. Optionally refactor to improve the implementation design
+> 5. Until the list is empty, go back to #2
