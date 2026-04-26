@@ -273,7 +273,9 @@ runtests(
   invalid("AB-123456789"))
 ```
 
-In this case I'm more comfortable with testing only the `ThingID.valid` function and not its callers. _If_ I want to cover it more fully, I'll just add one test for each of the outer functions. They basically just compose other functions without having any branching of their own. We could imagine testing for both valid and invalid IDs, but that'd more or less just amount to additional testing of `ThingID.valid` and `Result`'s `map` and `orError` functions.
+I tend to be happier with designs like this. `ThingID.valid` feels more complete to me. If I test that one function, or do some other formal or informal analysis of it, it doesn't feel like I'm leaving some important part of it out.
+
+So in this case I'm more comfortable with testing only the `ThingID.valid` function and not its callers. _If_ I want to cover it more fully, I'll just add one test for each of the outer functions. They basically just compose other functions without having any branching of their own. We could imagine testing for both valid and invalid IDs, but that'd more or less just amount to additional testing of `ThingID.valid` and `Result`'s `map` and `orError` functions.
 
 ``` repl
 local function valid(expected, str)
@@ -309,7 +311,7 @@ Are those last two tests important? Depends I guess. I mean, that's the case wit
 
 I don't care about stuff like test coverage as a number, but I think coverage can sometimes be a tool for thinking about the way something feels off or something. Testing a piece of logic directly and "where it actually is" sometimes feels unsatisfactory. That could sometimes be a smell worth investigating, and then thinking about it in terms of coverage _could_ be useful.
 
-A thing: This is an example of something where, to me, it does kind of feel like the tests are "driving" something. I "listen to the tests" and I do some refactoring. But like it pushes the design of the code in the direction of a design that I happen to like. What a surprise! I sometimes see people, I dunno, "expecting" something from their tests? Like they expect that if they follow some steps in a particular order the design will "improve" in a kind of mechanical way that isn't much related to the tastes and skills of the programmer. I don't think that's the case at all.
+A thing: This is an example of something where, to me, it does kind of feel like the tests are "driving" something. I "listen to the tests" and I make some changes. But like it pushes the design of the code in the direction of a design that I happen to like. What a surprise! I sometimes see people, I dunno, "expecting" something from their tests? Like they expect that if they follow some steps in a particular order the design will "improve" in a kind of mechanical way that isn't much related to the tastes and skills of the programmer. I don't think that's the case at all.
 
 Anyway there's one way to look at it where, if we push the branching into like the leaf nodes of our computation, then we can microtest those and e.g. have a few tests covering the branches of one such node, and then get away with single tests covering larger things. Few tests more large things and more tests for small things seems more sustainable than some other approaches at least.
 
