@@ -1,14 +1,14 @@
-# bla bla bla
+# bool unbool and something to do with tests, coverage, listening
 :todo
 :template lua
 
-Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here. It's also about stuff like unit testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
+Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here. It's also about stuff like unit/micro testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
 
 This is a made up example but all the steps are based on actual things I have seen happen multiple times.
 
 ## The IDs of things
 
-Let's say we're doing Enterprise Software Engineering and we're making a system for _things._ And let's say that the things have unique identifiers of some kind:
+Let's say we're doing Enterprise Software Engineering and we're making a system for _things._ And let's say that the things have unique identifiers of some kind and that those identifiers have to look a certain way:
 
 ``` run
 traced()
@@ -100,7 +100,7 @@ runtests(
 
 I've seen a lot of stuff like this and it seems to usually work out pretty good. Strings can be turned into `ThingID`s as soon as is reasonable and code that deals with `ThingID`s can trust that those IDs are good. Code using `Thing.new` can't mess up in the same way that code using `isValidThingID(str)` could.
 
-In a typed language you typically get some typecheking for it, and in an untyped language you typically get some "fail reasonably fast" kind of deal since you tend to use specific data structures in specific ways: If we pass a string into a function that expects a `ThingID` things will fail the moment we try to access its `identifier`, whereas passing a string that has not been validated into a function that expects a string that has been validated is more likely to lead to stuff like storing an invalid string in the database and discovering that it's invalid three years later. (Of course it's also possible to add our own tag-checking in places.)
+In a typed language you typically get some typecheking for it, and in an untyped language you typically get some "fail reasonably fast" kind of deal since you tend to use specific data structures in specific ways: If we pass a string into a function that expects a `ThingID` things will fail the moment we try to access its `identifier`, whereas passing a string that has not been validated into a function that expects a string that has been validated is more likely to lead to stuff like storing an invalid string in the database and discovering that it's invalid three years later. (Of course it's also possible to add our own tag-checking here and there if there are places where we want to make very sure we crash very fast.)
 
 I don't love writing tests that checks for errors thrown from a function. Errors can come from further down the call stack than expected and I think tests checking return values are like more "naturally reliable" with regards to breaking when they should and not when they should not. You can make the error-checking ones more reliable by doing more work to check that you're getting the correct error, and then if the function under test isn't too complex things are _fine._
 
@@ -108,7 +108,7 @@ Anyway this kind of thing has usually been like good enough and a definite impro
 
 ## Extracting the validation function back out again
 
-So in this situation, a thing that sometimes happens is that the constructor that potentially throws an error isn't _always_ what you want. Sometimes there's input from a user or something that you should expect to be sometimes mistyped and so on. If a bad idea is something kind of expected that we should handle, and not just something that can be dealt with as a generic error-of-some-kind, I generally prefer to use return values and not "errors" for it. Even if we really enjoy using error handling mechanisms for this kind of stuff, there's good chance we would like some kind of distinction here, and have like:
+So in this situation, a thing that sometimes happens is that the constructor that potentially throws an error isn't _always_ what you want. Sometimes there's input from a user or something that you should expect to be sometimes mistyped and so on. If a bad ID is something kind of expected that we should handle, and not just something that can be dealt with as a generic error-of-some-kind, I generally prefer to use return values and not "errors" for it. Even if we really enjoy using error handling mechanisms for this kind of stuff, there's good chance we would like some kind of distinction here, and have like:
 
 * One function we can use when we our string comes from a trusted source and just want our general "rollback and undo and abort everything" error handling to deal with it if it's bad.
 * A different function we can use when our string comes from a less trusted source and we want to deal with "bad input" situations more directly.
@@ -214,7 +214,7 @@ And I think there's something a little unsatisfying about it. It's not majorly m
 
 ## Results
 
-Okay. Bla blah. I generally like moving things in this direction:
+Yeah I guess I think that is what is happening: Our function solves a little logic problem. It ifs and it elses and it figures things out. But in the end it sort of returns a tiny logic problem to its caller. Like here's a boolean value for you to deal with, and let's see if you if-else on it the way you should. IME a lot of problems can be avoided by returning something more "usable." In this case I think a "result" value that potentially contains the validated ID string is a good fit:
 
 ``` run
 traced()
@@ -222,7 +222,7 @@ traced()
 ThingID = {}
 local function construct(str)
   return {
-    tag = ThingID__,
+    tag = ThingID,
     identifier = str
   }
 end
@@ -251,6 +251,8 @@ function ThingID.maybe(str)
 end
 ```
 
+(Since we, when validation succeeds, return a data structure containing the actually validated string, it's possible to move the stuff dealing with casing and whitespace into the validation function. Again, this may or may not be a good idea, depending on circumstances, but now it's an option.)
+
 ``` repl
 local function valid(expected, str)
   return function() assertEqual(expected, ThingID.valid(str).value) end
@@ -267,6 +269,8 @@ runtests(
   invalid("QW-1"),
   invalid("AB-123456789"))
 ```
+
+In this case I'm more comfortable with testing only the `ThingID.valid` function and not its callers. _If_ I want to cover it more fully, I'll just add one test for each of the outer functions. They basically just compose other functions without having any branching of their own. We could imagine testing for both valid and invalid IDs, but that'd more or less just amount to additional testing of `ThingID.valid` and `Result`'s `map` and `orError` functions.
 
 ``` repl
 local function valid(expected, str)
@@ -285,13 +289,32 @@ runtests(
   invalid("AB-123456789"),
   function()
     assertEqual("AS-123456", ThingID.new("AS-123456").identifier)
+  end,
+  function()
     assertEqual("AS-123456", ThingID.maybe("AS-123456").value.identifier)
   end)
 ```
 
+Are those last two tests important? Depends I guess. I mean, that's the case with all the tests, but. For those last two I think there's stuff like:
+
+* How bad are different kinds of errors? I'm usually more worried about errors where the program might carry on and keep acting on bad data than about errors where things throw and stop and crash. Mistakes caught by the last two tests seem more likely to be in the second category. But then in some contexts errors like that are more important than in the ones I'm typically in. Eh...
+* If we have some larger tests outside of this anyway, maybe we're happy with some of them covering `ThingID.new` and `ThinkID.maybe` indirectly instead.
+* Maybe we trust that some other stuff will catch mistakes here. I guess this could be a case where it might be like "I trust the type system/some tooling thing to catch any mistake that could really be introduced here" in one language/environment while in another it could make more sense to add like one test for each outer function.
+* ...
+
+## Bla blah
+
+I don't care about stuff like test coverage as a number, but I think coverage can sometimes be a tool for thinking about the way something feels off or something. Testing a piece of logic directly and "where it actually is" sometimes feels unsatisfactory. That could sometimes be a smell worth investigating, and then thinking about it in terms of coverage _could_ be useful.
+
+A thing: This is an example of something where, to me, it does kind of feel like the tests are "driving" something. I "listen to the tests" and I do some refactoring. But like it pushes the design of the code in the direction of a design that I happen to like. What a surprise! I sometimes see people, I dunno, "expecting" something from their tests? Like they expect that if they follow some steps in a particular order the design will "improve" in a kind of mechanical way that isn't much related to the tastes and skills of the programmer. I don't think that's the case at all.
+
+Anyway there's one way to look at it where, if we push the branching into like the leaf nodes of our computation, then we can microtest those and e.g. have a few tests covering the branches of one such node, and then get away with single tests covering larger things. Few tests more large things and more tests for small things seems more sustainable than some other approaches at least.
+
+And like booleans are mean.
+
 ----
 
-Testing framework:
+The post has ended, but here's the testing framework and some stuff:
 
 ``` prelude
 local files = {}
@@ -334,6 +357,10 @@ local function endline(s)
   return not not s:match("^%s*end%s*$")
 end
 
+local function elseline(s)
+  return not not s:match("^%s*else%s*$")
+end
+
 local function reportcoverage(t)
   local res = { "<details><summary>Code coverage report</summary><pre><code>" }
   for n, v in pairs(t) do
@@ -342,7 +369,10 @@ local function reportcoverage(t)
     local i = 0
     for line in files[n]:gmatch("[^\n]*") do
       i = i + 1
-      local covered = v[i] or ((blank(line) or endline(line)) and prev)
+      local covered =
+        v[i]
+        or ((blank(line) or endline(line)) and prev)
+        or (elseline(line) and v[i + 1])
       prev = covered
       res[#res + 1] = linehtml(line, covered)
     end
