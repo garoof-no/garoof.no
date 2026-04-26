@@ -1,8 +1,11 @@
 # bool unbool and something to do with tests, coverage, listening
 :todo
+:blurb 
 :template lua
 
-Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider very satisfying, and then about what has worked best for me here. It's also about stuff like unit/micro testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
+Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider _extremely_ satisfying, and then about what has worked best for me here. It's also about stuff like unit/micro testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
+
+Also about booleans.
 
 This is a made up example but all the steps are based on actual things I have seen happen multiple times.
 
@@ -27,7 +30,7 @@ function isValidThingID(str)
 end
 ```
 
-The code is a little different from how I'd probably actually implement a function like that. I wanna write Lua, but I wanna make it feel a little "enterprisey" and I also wanna make it play nice with the code coverage thing I hacked together that only deals with line numbers, so it's a little _something._ (The call to `traced` makes the code coverage thing care about that piece of source code btw.) Anyway:
+The code is a little different from how I'd probably actually implement a function like that. I wanna write Lua, but I wanna make it feel a little "enterprisey" and I also wanna make it play nice with the code coverage thing I hacked together that only deals with line numbers, so it's a little _something._ (The call to `traced` makes the code coverage thing care about that chunk of source code btw.) Anyway:
 
 ``` repl
 local function valid(str)
@@ -332,18 +335,37 @@ web.html([[<style>
 
 local good, bad = ' class="coveredgood"', ' class="coveredbad"'
 
-local current
-local lastline
-local lastfile
+local currentrun
+local currenttest
+
+local function applygood(all, res)
+  for f, lines in pairs(res) do
+    local allf = all[f] or {}
+    for l, _ in pairs(lines) do
+      if not allf[l] then allf[l] = good end
+    end
+    all[f] = allf
+  end
+end
+
+local function applybad(all, res)
+  for f, lines in pairs(res) do
+    local allf = all[f] or {}
+    for l, _ in pairs(lines) do allf[l] = bad end
+    all[f] = allf
+  end
+end
+
 local function trace(event, line)
-  if not current then return end
+  if not currenttest then return end
   local file = files[debug.getinfo(2).source]
   if not file then return end
   lastline, lastfile = line, file
-  local lines = current[file] or {}
-  if lines[line] ~= bad then lines[line] = good end
-  current[file] = lines
+  local lines = currenttest[file] or {}
+  lines[line] = true
+  currenttest[file] = lines
 end
+
 
 local function linehtml(str, class)
   return "  <span" .. (class or "") .. ">" .. str .. "</span><br>"
@@ -395,7 +417,7 @@ local function escape(str)
 end
 
 function runtests(...)
-  current = {}
+  currentrun = {}
   debug.sethook(trace, "l")
 
   local str = { '<p>' }
@@ -403,16 +425,18 @@ function runtests(...)
  
   for i, f in ipairs({...}) do
     lastline, lastfile = nil, nil
+    currenttest = {}
     local success, res = pcall(f)
+    local coverage = currenttest
+    currenttest = nil
     if success then
       passes = passes + 1
+      applygood(currentrun, coverage)
     else
-      if lastfile then
-        current[lastfile][lastline] = bad
-      end
       failures = failures + 1
       table.insert(str, 'test ' .. i .. ' failed: ')
       table.insert(str, escape(tostring(res)) .. '<br>')
+      applybad(currentrun, coverage)
     end
   end
   table.insert(str, '<span style="background-color:')
@@ -424,7 +448,7 @@ function runtests(...)
   table.insert(str,  '(' .. passes .. ' tests passed. ')
   table.insert(str,  failures .. ' tests failed)</span></p>')
   web.html(table.concat(str))
-  reportcoverage(current)
+  reportcoverage(currentrun)
 end
 
 function assertEqual(e, a)
