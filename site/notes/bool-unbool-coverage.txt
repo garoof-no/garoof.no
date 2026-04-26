@@ -1,6 +1,6 @@
 # bool unbool and something to do with tests, coverage, listening
 :todo
-:blurb 
+:blurb Software Engineering!!
 :template lua
 
 Hi hello I guess this is about a kind of tidying and refactoring that I often attempt or see attempted, and about how those attempts don't always result states of affairs that I consider _extremely_ satisfying, and then about what has worked best for me here. It's also about stuff like unit/micro testing and test coverage. There's something about: As much as I dislike the way people do meaningless test coverage measurements and then act on the "information" they get in bizarre ways, I also think that these ideas are sometimes useful ideas that we can use when thinking about code. And I kind of want to have an example around where ^./coverage-not-additive.txt dealing with test coverage stuff is not a "naturally additive" activity that just consists of throwing more tests at stuff^.
@@ -52,7 +52,7 @@ This is sometimes what it's like in Enterprise Software Engineering. I've seen b
 
 What would and would not be improvements here is kind of hard to say. It's a made up example without enough made up context. But if we think of the kind of Enterprise Software Engineering code that I have in mind, there is something that we _might possibly_ want to make changes to. There are different ways to frame it, but one way is to say that there's a bit of ^https://existentialtype.wordpress.com/2011/03/15/boolean-blindness/ boolean blindness^ going on:
 
-* A `true` or `false` value doesn't "contain" much information and callers of the `isValidThingID` function will kind of just have to know what those values "mean." For example, having unit tests for `isValidThingID` will not catch some other code using that function in an if-statement and getting the then and else branches switched around.
+* A `true` or `false` value doesn't "contain" much information and callers of the `isValidThingID` function will kind of just have to know what those values "mean." For example, having microtests for `isValidThingID` will not catch some other code using that function in an if-statement and getting the then and else branches switched around.
 * Also that returned boolean will typically be acted upon and then discarded. If you're writing some code that deals with an ID you often can't know some code has previously called `isValidThingID` on the string in question and it is "validated" or if you should call the function and validate it yourself.
 
 ## A thing ID kind of thing
