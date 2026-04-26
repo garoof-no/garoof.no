@@ -1,5 +1,5 @@
 # bool unbool and something to do with tests, coverage, listening
-:todo
+:pub Zm4SGE
 :blurb Software Engineering!!
 :template lua
 
