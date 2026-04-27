@@ -116,5 +116,4 @@ An then use it like this:
 
 I dunno. A little cute at least. When it's like this, it's also straightforward to overload `toggled` if we wanna. Like we could have one that had the arguments in the other order, like `toggled(Test<T> test, Production<T> prod)`, to mimic the Smalltalky thing where they have e.g. an `ifTrue:ifFalse:` method but also an `ifFalse:ifTrue:` method. You could still look at the code and be like "I guess it's the `test` code that is run in the test environment."
 
-And it'd be possible to lock things more down. Like we could turn `Production` and `Test` into classes that kept their `supplier` objects more private, and make it so there's no reasonable way to bypass the enironment check and grab the `suppier` from a `Test`/`Production` object and just run it. Bla blah. Like we could make it a lot more Software Engineery if we wanted to I guess :/
-
+And it'd be possible to lock things more down. Like we could turn `Production` and `Test` into classes that kept their `supplier` objects more private, and make it so there's no reasonable way to bypass the enironment check and grab the `supplier` from a `Test`/`Production` object and just run it. Bla blah. Like we could make it a lot more Software Engineery if we wanted to I guess :/
