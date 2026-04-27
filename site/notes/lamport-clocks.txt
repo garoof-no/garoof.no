@@ -141,3 +141,75 @@ Okay :)
 :id clocks
 
 I DON'T KNOW.
+
+I was thinking maybe like, if we pretend that we have like the "correct" and "real" and "physical" "time" for all the events, then maybe we could animate that and also see what things would look like with lamport clocks keeping track of things. I don't know. I was thinking like maybe like an "event log" that can kind of be played back in a way or something.
+
+Let's say we have communicating "actors" and also a log of event. If two events happen at the same timestamp they'll happen in the order they were added to the log and will not be considered more or less "simultaneous" than others.
+
+``` run
+function makelog(...)
+  local actors = {}
+  local function actor(name)
+    if actors[name] then return actors[name] end
+    local i = #actors + 1
+    actors[i] = res
+    actors[name] = i
+    return i
+  end
+  for _, name in ipairs({...}) do actor(name) end
+  local events, times = {}, {}
+
+  local dirty = false
+  local function add(t, e)
+    local k = times[t]
+    if not k then
+      dirty = true
+      k = #events + 1
+      times[t] = k
+      events[k] = { time = t }
+    end
+    local l = events[k]
+    l[#l + 1] = e
+  end
+  local function message(name, from, to, start, stop)
+    actor(from)
+    actor(to)
+    local message = { name = name, send = false, receive = false, start = start, stop = stop }
+    local send = { from = from, message = message }
+    local receive = { to = to, message = message }
+    message.send = send
+    message.receive = receive
+    add(start, send)
+    add(stop, receive)
+  end
+  return {
+    actor = actor,
+    message = message,
+    events = function()
+      if dirty then
+        table.sort(events, function(a, b) return a.time < b.time end)
+        dirty = false
+      end
+      return events
+    end
+  }
+end
+```
+
+``` repl
+local log = makelog("a", "b")
+log.message("x", "a", "b", 1, 2)
+log.message("y", "b", "c", 2, 3)
+log.message("z", "c", "b", 3, 6)
+log.message("blep", "c", "a", 4, 5)
+for _, t in ipairs(log.events()) do
+  for _, e in ipairs(t) do
+    print(
+      t.time,
+      e.message.name,
+      e.from and (e.from .."->") or (e.to and ("->" .. e.to)))
+  end 
+end
+```
+
+
