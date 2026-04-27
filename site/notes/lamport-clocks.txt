@@ -2,7 +2,123 @@
 :todo
 :template lua
 
-asdasd
+It's possible to skip the SVG details and to straight to ^#id-clocks the Lamport clock stuff^.
+
+## animating some svg arrows
+
+We're gonna draw some stuff so vectors could be handy:
+
+``` run
+local vecs = setmetatable({}, { __mode = "v" })
+local Vec = {}
+
+function vec(x, y)
+  local key = x .. "," .. y
+  local found = vecs[key]
+  if found then return found end
+  local v = setmetatable({ x = x, y = y}, Vec)
+  vecs[key] = v
+  return v
+end
+```
+
+We're gonna draw some stuff so SVG could be handy:
+
+``` run
+function svg(v, ...)
+  local res = {
+    '<svg width="', v.x * 2, '" height="', v.y * 2,
+    '" viewBox="0 0 ', v.x, ' ', v.y, '">'
+  }
+  for _, s in ipairs({...}) do res[#res + 1] = s end
+  res[#res + 1] = '</svg>'
+  return table.concat(res)
+end
+
+web.html([[
+<style>
+  svg { stroke: currentColor; fill: none; }
+  circle { stroke: currentColor; fill: currentColor; }
+  path { stroke: currentColor; fill: currentColor; }
+  line { stroke: currentColor; fill: currentColor; }
+</style>
+<svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="line-start" viewBox="0 0 10 10" refX="2" refY="2" markerUnits="strokeWidth" markerWidth="10" markerHeight="10" orient="auto">
+      <circle cx="2" cy="2" r="1.5" />
+    </marker>
+    <marker id="line-end" viewBox="0 0 10 10" refX="1" refY="2" markerUnits="strokeWidth" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M 0 0 L 4 2 L 0 4 z" fill="black" />
+    </marker>
+  </defs>
+</svg>]])
+```
+
+We'll test it and draw an arrow:
+
+``` repl
+web.html(
+  svg(
+    vec(100, 100),
+    '<line x1="10" y1="10" x2="90" y2="50" stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'))
+```
+
+Umm. Helper functions:
+
+``` run
+function a(n, v, s)
+  return n .. (s or "") .. '="' .. v .. '"'
+end
+
+function xy(v, s)
+  return a('x', v.x, s) .. ' ' .. a('y', v.y, s)
+end
+```
+
+Then:
+
+``` repl
+web.html(
+  svg(
+    vec(100, 100),
+    '<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(90, 10), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'))
+```
+
+Okay I thing you can do to the svg things is you can add animate elements to them in order to animate stuff.
+
+``` run
+function animate(n, start, duration, from, to)
+    return '<animate ' .. a('attributeName', n) .. ' ' .. a('begin', start)
+      .. ' ' .. a('dur', duration) .. ' ' .. a('from', from) .. ' '
+      .. a('to', to) .. ' repeatCount="1" fill="freeze" />'
+end
+```
+
+``` repl
+web.html(
+  svg(
+    vec(100, 100),
+    '<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(10, 90), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
+    .. animate("x2", 0, 2, 10, 90) .. animate("y2", 0, 2, 90, 10) .. '</line>'))
+```
+
+We can make an arrow appear at a certain point in time by animating its opacity and then we can animate its x2/y2 to make to go like so.
+
+``` prelude
+function arrow(from, to, start, duration)
+  start = start .. "s"
+  duration = duration .. "s"
+  return
+    '<line ' .. xy(from, '1') .. ' ' .. xy(from, '2')
+    .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
+    .. animate('x2', start, duration, from.x, to.x)
+    .. animate('y2', start, duration, from.y, to.y)
+    .. '<animate dur="' .. start .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
+    .. '</line>'
+end
+```
+
+Teting it:
 
 ``` repl
 local a = vec(10, 10)
@@ -19,82 +135,9 @@ web.html(
     arrow(d, a, 4, 1.5)))
 ```
 
-``` prelude
-vecs = setmetatable({}, { __mode = "v" })
-Vec = {}
+Okay :)
 
-function vec(x, y)
-  local key = x .. "," .. y
-  local found = vecs[key]
-  if found then return found end
-  local v = setmetatable({ x = x, y = y}, Vec)
-  vecs[key] = v
-  return v
-end
+## actually the clock stuf though
+:id clocks
 
-local function a(n, v, s)
-  
-  return n .. (s or "") .. '="' .. v .. '"'
-end
-
-local function xy(v, s)
-  return a('x', v.x, s) .. ' ' .. a('y', v.y, s)
-end
-
-local function animate(n, start, duration, from, to)
-    return '<animate ' .. a('attributeName', n) .. ' ' .. a('begin', start) .. ' ' .. a('dur', duration) .. ' ' .. a('from', from) .. ' ' .. a('to', to) .. ' repeatCount="1" fill="freeze" />'
-end
-
-function arrow(from, to, start, duration)
-  start = start .. "s"
-  duration = duration .. "s"
-  return
-    '<line ' .. xy(from, '1') .. ' ' .. xy(from, '2')
-    .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
-    .. animate('x2', start, duration, from.x, to.x)
-    .. animate('y2', start, duration, from.y, to.y)
-    .. '<animate dur="' .. start .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
-    .. '</line>'
-end
-
-function svg(v, ...)
-  local res = { '<svg width="', v.x * 2, '" height="', v.y * 2, '" viewBox="0 0 ', v.x, ' ', v.y, '">' }
-  for _, s in ipairs({...}) do res[#res + 1] = s end
-  res[#res + 1] = '</svg>'
-  return table.concat(res)
-end
-
-web.html([[
-<style>
-  svg { stroke: currentColor; fill: none; }
-  circle { stroke: currentColor; fill: currentColor; }
-  path { stroke: currentColor; fill: currentColor; }
-  line { stroke: currentColor; fill: currentColor; }
-</style>
-<svg width="200" height="1000" viewBox="0 0 200 1000" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <marker
-      id="line-start"
-      viewBox="0 0 10 10"
-      refX="2"
-      refY="2"
-      markerUnits="strokeWidth"
-      markerWidth="10"
-      markerHeight="10"
-      orient="auto">
-      <circle cx="2" cy="2" r="1.5" />
-    </marker>
-    <marker
-      id="line-end"
-      viewBox="0 0 10 10"
-      refX="1"
-      refY="2"
-      markerUnits="strokeWidth"
-      markerWidth="10"
-      markerHeight="10"
-      orient="auto">
-      <path d="M 0 0 L 4 2 L 0 4 z" fill="black" />
-    </marker>
-  </defs>
-</svg>]])
-```
+I DON'T KNOW.
