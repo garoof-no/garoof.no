@@ -25,12 +25,12 @@ end
 We're gonna draw some stuff so SVG could be handy:
 
 ``` run
-function svg(v, ...)
+function svg(v, stuff)
   local res = {
     '<svg width="', v.x * 2, '" height="', v.y * 2,
     '" viewBox="0 0 ', v.x, ' ', v.y, '">'
   }
-  for _, s in ipairs({...}) do res[#res + 1] = s end
+  for _, s in ipairs(stuff) do res[#res + 1] = s end
   res[#res + 1] = '</svg>'
   return table.concat(res)
 end
@@ -60,7 +60,7 @@ We'll test it and draw an arrow:
 web.html(
   svg(
     vec(100, 100),
-    '<line x1="10" y1="10" x2="90" y2="50" stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'))
+    {'<line x1="10" y1="10" x2="90" y2="50" stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'}))
 ```
 
 Umm. Helper functions:
@@ -73,7 +73,13 @@ end
 function xy(v, s)
   return a('x', v.x, s) .. ' ' .. a('y', v.y, s)
 end
+
+function s(n, v, s)
+  return a(n, (v // 10) .. "." .. (v % 10), s)
+end
 ```
+
+(We'll pass around time values as like tenths a second.)
 
 Then:
 
@@ -81,15 +87,15 @@ Then:
 web.html(
   svg(
     vec(100, 100),
-    '<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(90, 10), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'))
+    {'<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(90, 10), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)" />'}))
 ```
 
 Okay I thing you can do to the svg things is you can add animate elements to them in order to animate stuff.
 
 ``` run
 function animate(n, start, duration, from, to)
-    return '<animate ' .. a('attributeName', n) .. ' ' .. a('begin', start)
-      .. ' ' .. a('dur', duration) .. ' ' .. a('from', from) .. ' '
+    return '<animate ' .. a('attributeName', n) .. ' ' .. s('begin', start)
+      .. ' ' .. s('dur', duration) .. ' ' .. a('from', from) .. ' '
       .. a('to', to) .. ' repeatCount="1" fill="freeze" />'
 end
 ```
@@ -98,22 +104,20 @@ end
 web.html(
   svg(
     vec(100, 100),
-    '<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(10, 90), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
-    .. animate("x2", 0, 2, 10, 90) .. animate("y2", 0, 2, 90, 10) .. '</line>'))
+    {'<line ' .. xy(vec(10, 90), '1') .. ' ' .. xy(vec(10, 90), '2') .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
+    .. animate("x2", 0, 20, 10, 90) .. animate("y2", 0, 20, 90, 10) .. '</line>'}))
 ```
 
 We can make an arrow appear at a certain point in time by animating its opacity and then we can animate its x2/y2 to make to go like so.
 
-``` prelude
+``` run
 function arrow(from, to, start, duration)
-  start = start .. "s"
-  duration = duration .. "s"
   return
     '<line ' .. xy(from, '1') .. ' ' .. xy(from, '2')
     .. ' stroke="black" marker-start="url(#line-start)" marker-end="url(#line-end)">'
     .. animate('x2', start, duration, from.x, to.x)
     .. animate('y2', start, duration, from.y, to.y)
-    .. '<animate dur="' .. start .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
+    .. '<animate ' .. s('dur', start) .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
     .. '</line>'
 end
 ```
@@ -129,10 +133,12 @@ local d = vec(90, 60)
 web.html(
   svg(
     vec(200, 100),
-    arrow(a, b, 0.5, 2),
-    arrow(b, c, 2.5, 1),
-    arrow(c, d, 3.5, 0.5),
-    arrow(d, a, 4, 1.5)))
+    {
+      arrow(a, b, 5, 20),
+      arrow(b, c, 25, 10),
+      arrow(c, d, 35, 5),
+      arrow(d, a, 40, 15)
+    }))
 ```
 
 Okay :)
@@ -152,7 +158,7 @@ function makelog(...)
   local function actor(name)
     if actors[name] then return actors[name] end
     local i = #actors + 1
-    actors[i] = res
+    actors[i] = name
     actors[name] = i
     return i
   end
@@ -184,6 +190,7 @@ function makelog(...)
   end
   return {
     actor = actor,
+    actors = function() return actors end,
     message = message,
     events = function()
       if dirty then
@@ -196,12 +203,19 @@ function makelog(...)
 end
 ```
 
+``` run
+function examplelog()
+  local log = makelog("a", "b")
+  log.message("x", "a", "b", 10, 20)
+  log.message("y", "b", "c", 20, 30)
+  log.message("z", "c", "b", 30, 60)
+  log.message("blep", "c", "a", 40, 50)
+  return log
+end
+```
+
 ``` repl
-local log = makelog("a", "b")
-log.message("x", "a", "b", 1, 2)
-log.message("y", "b", "c", 2, 3)
-log.message("z", "c", "b", 3, 6)
-log.message("blep", "c", "a", 4, 5)
+local log = examplelog()
 for _, t in ipairs(log.events()) do
   for _, e in ipairs(t) do
     print(
@@ -212,4 +226,54 @@ for _, t in ipairs(log.events()) do
 end
 ```
 
+I've decided that the times values we're using are thenths of a second.
 
+``` run
+function line(from, to)
+  return
+    '<line ' .. xy(from, '1') .. ' ' .. xy(to, '2') .. ' stroke="black""/>'
+end
+
+function animatelog(log)
+  local events = log.events()
+  local actors = log.actors()
+  function actorx(name)
+    return (actors[name] * 50) - 25
+  end
+  local last = events[#events]
+  local size =
+    vec(
+      (#actors + 1) * 50,
+      30 + (last and last.time or 0))
+  local l = {}
+  for _, n in ipairs(actors) do
+    local x = actorx(n)
+    l[#l + 1] = '<text text-anchor="middle" stroke="none" fill="currentColor" ' .. xy(vec(x, 15)) .. '>' .. n .. '</text>'
+    l[#l + 1] = line(vec(x, 25), vec(x, size.y))
+  end
+  for _, t in ipairs(events) do
+    for _, e in ipairs(t) do
+      if e.from then
+        local m = e.message
+        l[#l + 1] =
+          arrow(
+            vec(actorx(e.from), 25 + m.start),
+            vec(actorx(m.receive.to), 25 + m.stop),
+            m.start,
+            m.stop - m.start)
+      end
+    end
+  end
+  return svg(size, l)
+end
+```
+
+``` repl
+local log = makelog("a", "b")
+log.message("x", "a", "b", 5, 25)
+log.message("y", "b", "c", 30, 35)
+log.message("z", "c", "b", 40, 50)
+log.message("blop", "b", "a", 45, 60)
+log.message("blep", "c", "a", 20, 55)
+web.html(animatelog(log))
+```
