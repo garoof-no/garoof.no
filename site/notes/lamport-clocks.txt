@@ -10,7 +10,11 @@ We're gonna draw some stuff so vectors could be handy:
 
 ``` run
 local vecs = setmetatable({}, { __mode = "v" })
-local Vec = {}
+local Vec = {
+  __add = function(a, b) return vec(a.x + b.x, a.y + b.y) end,
+  __sub = function(a, b) return vec(a.x - b.x, a.y - b.y) end,
+  __idiv = function(a, i) return vec(a.x // i, a.y // i) end
+}
 
 function vec(x, y)
   local key = x .. "," .. y
@@ -203,19 +207,14 @@ function makelog(...)
 end
 ```
 
-``` run
-function examplelog()
-  local log = makelog("a", "b")
-  log.message("x", "a", "b", 10, 20)
-  log.message("y", "b", "c", 20, 30)
-  log.message("z", "c", "b", 30, 60)
-  log.message("blep", "c", "a", 40, 50)
-  return log
-end
-```
+We'll test it and print out some events to check if they're sorted the way we expect:
 
 ``` repl
-local log = examplelog()
+local log = makelog("a", "b")
+log.message("y", "b", "c", 20, 30)
+log.message("blep", "c", "a", 40, 50)
+log.message("z", "c", "b", 30, 60)
+log.message("x", "a", "b", 10, 20)
 for _, t in ipairs(log.events()) do
   for _, e in ipairs(t) do
     print(
@@ -226,13 +225,24 @@ for _, t in ipairs(log.events()) do
 end
 ```
 
-I've decided that the times values we're using are thenths of a second.
+Seems fine. Should be able to animate it:
 
 ``` run
 function line(from, to)
   return
     '<line ' .. xy(from, '1') .. ' ' .. xy(to, '2') .. ' stroke="black""/>'
 end
+
+function text(str, start, duration, from, to)
+  return '<text text-anchor="middle" stroke="none" fill="currentColor" font-size="0.5rem"'
+    .. xy(from) .. '>' .. str
+    .. animate('x', start, duration, from.x, to.x)
+    .. animate('y', start, duration, from.y, to.y)
+    .. '<animate ' .. s('dur', start) .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'    
+    .. '</text>'
+end
+
+local offy = vec(0, 4)
 
 function animatelog(log)
   local events = log.events()
@@ -255,12 +265,17 @@ function animatelog(log)
     for _, e in ipairs(t) do
       if e.from then
         local m = e.message
+        local from = vec(actorx(e.from), 25 + m.start)
+        local to = vec(actorx(m.receive.to), 25 + m.stop)
+        local duration = m.stop - m.start
+        l[#l + 1] = arrow(from, to, m.start, duration)
         l[#l + 1] =
-          arrow(
-            vec(actorx(e.from), 25 + m.start),
-            vec(actorx(m.receive.to), 25 + m.stop),
+          text(
+            m.name,
             m.start,
-            m.stop - m.start)
+            duration // 2,
+            from - offy,
+            ((from + to) // 2) - offy)
       end
     end
   end
