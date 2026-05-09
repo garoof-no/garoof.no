@@ -337,6 +337,6 @@ It's not exactly a way to live but like it's something you could do. Building a 
 
 ## Okay
 
-So anyway yeah okay I think the "thing with holes in it" stuff can be nice for thinking about functions. It's possibly to think about which functions are more and less like such abstractions and why. How directly can we apply the substitution model when thinking about them? How pure and functional are they? Can configuring a bean be considered filling a hole in the same way? Should it? Does it depend? There's some stuff.
+So anyway yeah okay I think the "thing with holes in it" stuff can be nice for thinking about functions. It's possible to think about which functions are more and less like such abstractions and why. How directly can we apply the substitution model when thinking about them? How pure and functional are they? Can configuring a bean be considered filling a hole in the same way? Should it? Does it depend? There's some stuff.
 
 I also think the "thing with holes in it" stuff can be like valid for various other abstract things and that it can be interesting to think about stuff like when is it more and when is it less useful to think about things that way. Don't wanna do that right now though.
