@@ -181,9 +181,9 @@ function makelog(...)
 
   local dirty = false
   local function add(t, e)
+    dirty = true
     local k = times[t]
     if not k then
-      dirty = true
       k = #events + 1
       times[t] = k
       events[k] = { time = t }
