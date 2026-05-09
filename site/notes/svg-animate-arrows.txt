@@ -1,0 +1,314 @@
+# using svg animate elements to animate some arrows, messages
+:todo
+:template lua
+
+I read the ^https://lamport.azurewebsites.net/pubs/time-clocks.pdf Lamport clock paper^ again and then I was thinking about visualizing/animating some stuff, maybe pretend to have the "correct" physical time for some events and then see how different a total order gotten from Lamport clocks could be from the "correct" one. And then I got distracted before doing any of the Lamport stuff, so here are some SVG arrows animated with `animate` elements and some animations of some "message log" stuff or something. Maybe I'll get back to the Lamport stuff later I dunno...
+
+## animating some svg arrows
+
+We're gonna draw some stuff so ^./aoc-lua.txt#id-vec vectors^ could be handy:
+
+``` run
+local vecs = setmetatable({}, { __mode = "v" })
+local Vec = {
+  __add = function(a, b) return vec(a.x + b.x, a.y + b.y) end,
+  __sub = function(a, b) return vec(a.x - b.x, a.y - b.y) end,
+  __idiv = function(a, i) return vec(a.x // i, a.y // i) end
+}
+
+function vec(x, y)
+  local key = x .. "," .. y
+  local found = vecs[key]
+  if found then return found end
+  local v = setmetatable({ x = x, y = y}, Vec)
+  vecs[key] = v
+  return v
+end
+```
+
+We'll add a couple of `defs` we can use at the ends of lines to make arrows and some style for the SVG stuff:
+
+``` run
+web.html([[
+<svg width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="line-start" viewBox="0 0 10 10" refX="2" refY="2" markerUnits="strokeWidth" markerWidth="10" markerHeight="10" orient="auto">
+      <circle cx="2" cy="2" r="1.5" />
+    </marker>
+    <marker id="line-end" viewBox="0 0 10 10" refX="5" refY="2" markerUnits="strokeWidth" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M 1 1 L 4 2 L 1 3 z" />
+    </marker>
+  </defs>
+</svg>
+<style>
+  svg { stroke: currentColor; fill: currentColor; }
+  text { stroke: none; fill: currentColor; text-anchor: middle; }
+  line.arrow { marker-start: url(#line-start); marker-end: url(#line-end); }
+  text.smol { font-size: 0.5rem; }
+</style>
+]])
+```
+
+And also some helper functions for making SVG:
+
+``` run
+function svg(size, stuff)
+  local res = {
+    '<svg width="', size.x * 2, '" height="', size.y * 2,
+    '" viewBox="0 0 ', size.x, ' ', size.y, '">'
+  }
+  for _, s in ipairs(stuff) do res[#res + 1] = s end
+  res[#res + 1] = '</svg>'
+  return table.concat(res)
+end
+
+function a(n, v, s)
+  return n .. (s or "") .. '="' .. v .. '"'
+end
+
+function xy(v, s)
+  return a('x', v.x, s) .. ' ' .. a('y', v.y, s)
+end
+function xyxy(a, b)
+  return xy(a, '1') .. ' ' .. xy(b, '2')
+end
+```
+
+Let's draw an arrow:
+
+``` repl
+web.html(
+  svg(
+    vec(100, 100),
+    { '<line class="arrow" ' .. xyxy(vec(10, 90), vec(90, 10)) .. ' />' }))
+```
+
+It looks like an arrow.
+
+Okay a thing we can do to the SVG stuff is we can add `animate` elements to them in order to animate stuff. It's kind of cool: You can like pick out an attribute in the SVG element you wanna animate with the `attributeName` attribute in the `animate` element, and then specify the start and end values for that attribute and stuff like when the animation will start and how long it will last. Btw the `fil="freeze"` means that when the animation is over the SVG value its animating will keep the value from the end of the animation (and not like switch back to the value originall specified in the element being animated.
+
+(We'll pass around time values as like tenths a second because I dunno.)
+
+``` run
+function s(n, v, s)
+  return a(n, (v // 10) .. "." .. (v % 10), s)
+end
+
+function animate(n, start, duration, from, to)
+    return
+      '<animate ' .. a('attributeName', n)
+      .. ' ' .. s('begin', start) .. ' ' .. s('dur', duration)
+      .. ' ' .. a('from', from) .. ' ' .. a('to', to)
+      .. ' repeatCount="1" fill="freeze" />'
+end
+```
+
+We'll test it and animate the x2/y2-values on an arrow, so that the arrowhead will like move and extend the line towards where it's going:
+
+``` repl
+local arrow = 
+  '<line class="arrow" ' .. xyxy(vec(10, 90), vec(10, 90)) .. '>'
+  .. animate("x2", 0, 20, 10, 90)
+  .. animate("y2", 0, 20, 90, 10)
+  .. '</line>'
+
+web.html(
+  svg(
+    vec(100, 100),
+    { arrow }))
+```
+
+And then by animating the opacity of the element we can make it appear at a certain point in time. Here's our full animated-arrow-function:
+
+``` run
+function arrow(from, to, start, duration)
+  return
+    '<line class="arrow" ' .. xyxy(from, from) .. '>'
+    .. animate('x2', start, duration, from.x, to.x)
+    .. animate('y2', start, duration, from.y, to.y)
+    .. '<animate ' .. s('dur', start)
+    .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
+    .. '</line>'
+end
+```
+
+Testing it:
+
+``` repl
+local a = vec(10, 10)
+local b = vec(70, 30)
+local c = vec(50, 40)
+local d = vec(90, 60)
+
+web.html(
+  svg(
+    vec(200, 100),
+    {
+      arrow(a, b, 5, 20),
+      arrow(b, c, 25, 10),
+      arrow(c, d, 35, 5),
+      arrow(d, a, 40, 15)
+    }))
+```
+
+Okay! There might be something a bit wonky about the the arrow like just when it appears but, _very fortunately,_ I don't mind :)
+
+## some timey events-and-messages stuff
+
+I DON'T KNOW.
+
+Let's say we have communicating "actors" and also a log of event. If two events happen at the same timestamp they'll happen in the order they were added to the log and will not be considered more or less "simultaneous" than others.
+
+The message log thing wil be an *~*~*OBJECT*~*~*:
+
+* We can pass in actor names when constructing it if we wanna make sure the actors are ordered a particular way
+* After construction we can add messages with its `message(name, from, to, start, stop)` function
+* And then use the `events`, `actors` and `actor` methods to like get stuff from it
+
+``` run
+function makelog(...)
+  local actors = {}
+  local function actor(name)
+    if actors[name] then return actors[name] end
+    local i = #actors + 1
+    actors[i] = name
+    actors[name] = i
+    return i
+  end
+  for _, name in ipairs({...}) do actor(name) end
+  local events, times = {}, {}
+
+  local dirty = false
+  local function add(t, e)
+    local k = times[t]
+    if not k then
+      dirty = true
+      k = #events + 1
+      times[t] = k
+      events[k] = { time = t }
+    end
+    local l = events[k]
+    l[#l + 1] = e
+  end
+  local function message(name, from, to, start, stop)
+    actor(from)
+    actor(to)
+    local message =
+      {
+        name = name,
+        send = false,
+        receive = false,
+        start = start,
+        stop = stop
+      }
+    local send = { from = from, message = message }
+    local receive = { to = to, message = message }
+    message.send = send
+    message.receive = receive
+    add(start, send)
+    add(stop, receive)
+  end
+  return {
+    actor = actor,
+    actors = function() return actors end,
+    message = message,
+    events = function()
+      if dirty then
+        table.sort(events, function(a, b) return a.time < b.time end)
+        dirty = false
+      end
+      return events
+    end
+  }
+end
+```
+
+We'll test it and print out some events to check if they're sorted the way we expect:
+
+``` repl
+local log = makelog("a", "b")
+log.message("y", "b", "c", 20, 30)
+log.message("blep", "c", "a", 40, 50)
+log.message("z", "c", "b", 30, 60)
+log.message("x", "a", "b", 10, 20)
+for _, t in ipairs(log.events()) do
+  for _, e in ipairs(t) do
+    print(
+      t.time,
+      e.message.name,
+      e.from and (e.from .."->") or ("->" .. e.to))
+  end 
+end
+```
+
+Seems fine. Should be able to animate it:
+
+``` run
+function line(from, to)
+  return
+    '<line ' .. xyxy(from, to) .. ' />'
+end
+
+function text(str, start, duration, from, to)
+  return '<text class="smol"'
+    .. xy(from) .. '>' .. str
+    .. animate('x', start, duration, from.x, to.x)
+    .. animate('y', start, duration, from.y, to.y)
+    .. '<animate ' .. s('dur', start) .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'    
+    .. '</text>'
+end
+
+local offy = vec(0, 4)
+
+function animatelog(log)
+  local events = log.events()
+  local actors = log.actors()
+  function actorx(name)
+    return (actors[name] * 50) - 25
+  end
+  local last = events[#events]
+  local size =
+    vec(
+      (#actors + 1) * 50,
+      30 + (last and last.time or 0))
+  local l = {}
+  for _, n in ipairs(actors) do
+    local x = actorx(n)
+    l[#l + 1] = '<text ' .. xy(vec(x, 15)) .. '>' .. n .. '</text>'
+    l[#l + 1] = line(vec(x, 25), vec(x, size.y))
+  end
+  for _, t in ipairs(events) do
+    for _, e in ipairs(t) do
+      if e.from then
+        local m = e.message
+        local from = vec(actorx(e.from), 25 + m.start)
+        local to = vec(actorx(m.receive.to), 25 + m.stop)
+        local duration = m.stop - m.start
+        l[#l + 1] = arrow(from, to, m.start, duration)
+        l[#l + 1] =
+          text(
+            m.name,
+            m.start,
+            duration // 2,
+            from - offy,
+            ((from + to) // 2) - offy)
+      end
+    end
+  end
+  return svg(size, l)
+end
+```
+
+``` repl
+local log = makelog("a", "b")
+log.message("x", "a", "b", 5, 25)
+log.message("y", "b", "c", 30, 35)
+log.message("z", "c", "b", 40, 50)
+log.message("blop", "b", "a", 45, 60)
+log.message("blep", "c", "a", 20, 55)
+web.html(animatelog(log))
+```
+
+SEEMS OKAY.
+
+Maybe actually take a look at Lamport stuff later but also maybe not I dunno. Anyway bye.
