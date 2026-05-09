@@ -1,5 +1,6 @@
 # using svg animate elements to animate some arrows, messages
-:todo
+:pub Zm5BHl
+:blurb sculpt sculp sculpt
 :template lua
 
 I read the ^https://lamport.azurewebsites.net/pubs/time-clocks.pdf Lamport clock paper^ again and then I was thinking about visualizing/animating some stuff, maybe pretend to have the "correct" physical time for some events and then see how different a total order gotten from Lamport clocks could be from the "correct" one. And then I got distracted before doing any of the Lamport stuff, so here are some SVG arrows animated with `animate` elements and some animations of some "message log" stuff or something. Maybe I'll get back to the Lamport stuff later I dunno...
