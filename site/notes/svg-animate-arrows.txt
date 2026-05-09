@@ -255,7 +255,8 @@ function text(str, start, duration, from, to)
     .. xy(from) .. '>' .. str
     .. animate('x', start, duration, from.x, to.x)
     .. animate('y', start, duration, from.y, to.y)
-    .. '<animate ' .. s('dur', start) .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'    
+    .. '<animate ' .. s('dur', start)
+    .. '" attributeName="opacity" from="0" to="0" repeatCount="1" />'
     .. '</text>'
 end
 
