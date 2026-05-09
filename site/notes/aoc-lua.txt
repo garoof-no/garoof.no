@@ -64,6 +64,7 @@ print(found, stop)
 ^https://www.lua.org/manual/5.4/manual.html#6.4.1 This area of the Lua manual^ is sometimes handy.
 
 ## 2D maps and vectors
+:id vec
 
 If I want to e.g. use x,y-positions as keys in a table, for each unique x,y-value there should be only one table. "Constructing" the same position twice gives me two references to the same table, and not two tables with equal x and y values:
 
