@@ -86,4 +86,4 @@ Now all that remains is to pick the numbers we care about, then feed to `read-st
   (read-string (number->string n)))
 ```
 
-You can get the full program at blah. Put it into your DrRacket, press F5 or so, and voi—some 20 seconds wait—là, you will have an answer.
+You can get the ^./42.rkt full program here^. Put it into your DrRacket, press F5 or so, and voi—some 20 seconds wait—là, you will have an answer.
