@@ -71,7 +71,7 @@ Every reachable position gets a colour :)
 The data structure we get from the `flood` function also has information about how we got to it. When we look up a position and get a result if it's reachable, the result we get will contain a `from` table, with directions as keys and positions as values. A way to find a path to a position is to start with that position and then step back towards where we started the flood filling by always following the first `from` value we find:
 
 ``` run
-local function stepback(p, fill)
+function stepback(p, fill)
     local seen = fill[p]
     if not seen then return nil end
     for _, d in ipairs(dirs) do
@@ -80,7 +80,7 @@ local function stepback(p, fill)
     return nil
 end
 
-function test(str)
+function steppy(str, stepback)
   local map = mappy(str)
   local start, stop = next(map.S), next(map.E)
   local q = flood(map, start)
@@ -102,10 +102,10 @@ end
 Now we can find one path:
 
 ``` repl
-test(complicated)
+steppy(complicated, stepback)
 ```
 
-The artificialness shows up a couple of times here, but it's clearer in a simpler example map:
+The alleged artificialness shows up a couple of times here, but it's clearer in a simpler example map:
 
 ``` run
 simple =
@@ -120,12 +120,34 @@ simple =
 ```
 
 ``` repl
-test(simple)
+steppy(simple, stepback)
 ```
 
 Okay.
 
-Aside: When I'm trying out different stuff here, I'm always using the same flood filling part and I'm only changing the part where I construct a path from its result. In _some_ cases it might kind of make more sense to make modifications to the part that searches from the start position instead of to the part that constructs the path from the end position. E.g. a typical hereustic function seems like a more sensible thing to use for guiding the initial search rather than the construction of a path after that, I guess. But in other cases I kind of want to use the completed set of paths _when_ constructing my final path. So in my mind it's easier to just let the initial flood fill thing be the same for everything here.
+## aside: leaving the flood fill alone
+
+When I'm trying out different stuff here, I'm always using the same flood filling part and I'm only changing the part where I construct a path from its result. In _some_ cases it might kind of make more sense to make modifications to the part that searches from the start position instead of to the part that constructs the path from the end position. E.g. the stepback function above checks for allowed diagonal steps before orthogonal steps (which makes the diagonal movement come last, since we're stepping from the end position when constructing the path). We can make an alternative version of stepback that does it the other way around:
+
+``` run
+function altstepback(p, fill)
+    local seen = fill[p]
+    if not seen then return nil end
+    for i = #dirs, 1, -1 do
+      local d = dirs[i]
+      if seen.from[d] then return seen.from[d] end
+    end
+    return nil
+end
+```
+
+Which should make the diagonal movement come first:
+
+``` repl
+steppy(simple, altstepback)
+```
+
+Often changes like that are made to the initial search part instead of to the later construct a path part and in a number of cases that can make more sense. But for some of the stuff I wanted to try I needed all the possible paths or all the positions hit by all the possible paths, so here it seemed easier to do the flood fill stuff the same way for all the things and only make changes to the construct the path part. Bla blah.
 
 ## comparing paths
 
