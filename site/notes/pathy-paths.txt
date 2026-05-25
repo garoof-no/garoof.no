@@ -6,31 +6,41 @@ I don't _very_ know what I'm doing with this stuff. Like I don't know too much a
 
 ## """problem statement"""
 
-So if we're using something like Disjktra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths, according to some way of calculating costs. The mental model could be something like a turn based strategy game: There could be roads and different terrain types having different movement costs and more expensive does not need to mean more moves made or more locations visited.
+So if we're using something like Disjktra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths, according to some way of calculating costs. The mental model could be something like a turn based strategy game: There could be roads and different terrain types having different movement costs and more expensive does not need to mean more moves made or more positions visited.
 
 In these examples things will be fairly simple:
 
 * Terrain is intraversable (`#`) or intraversable (typically space characters)
 * Movement cost is 2 for orthogonal movement and 3 for diagonal
 
-Anyway it can be the case that a lot of different paths from one location to another have the same cost. A thing that's been on my mind is something about picking a path that looks kind of "natural." We'll get back to what I mean by that after running some code.
+Anyway it can be the case that a lot of different paths from one position to another have the same cost. A thing that's been on my mind is something about picking a path that looks kind of "natural." Particularly with stuff like: If we're moving to a position and in order to get there we have to move east 10 times and diagonally to the northeast 3 times, we might get paths like:
+
+```
+            o
+           o
+          o
+oooooooooo
+``` 10 moves west followed by 3 moves to the northwest
+
+While if we're making the moves by hand we might make a path that looks more like one line (despite both paths being equally good wrt cost). Maybe something like:
+
+```
+          ooo
+       ooo
+   oooo
+ooo
+``` 3 west, 1 northwest, 4 west, 1 northwest, 3 west, 1 northwest, 3 west
+
+So something to do with that has been on my mind. How would I go about choosing paths that look less "artificial," when the artificial movement cost rules make the "artifical" ones technically as good as the "natural" ones?
 
 ## filling a map
 
 ^#id-flood-fill The more dijkstrian code is at the bottom of the post.^ I won't get into details here. It's mostly the same as in ^./aoc-dijkstra.txt the Advent of Dijkstra post^. Some kind of minor changes to some data structure stuff and how much information is included in the result, and like it fills the map completely and doesn't take a target node into consideration or anything.
 
-``` run
-function coloured(s, n, max)
-  local h = (1 - (n / max)) * 240
-  return
-    '<span style="background-color: hsl(' .. h .. ', 100%, 50%);">'
-    .. s .. '</span>'
-end
-```
+Here's a kind of complicated map:
 
-``` repl
-local map, start, stop, w, h = mappy(
-[[
+``` run
+complicated = [[
 ###################################
 #  #     #         #        #     #
 ####     #########   ######   #   #
@@ -44,31 +54,61 @@ local map, start, stop, w, h = mappy(
 #                                 #
 ###################################
 ]]
-)
-local fill = flood(map, start)
-local max = 0
-for _, s in pairs(fill) do max = math.max(max, s.cost) end
-local html = { '<pre><code>' }
-for y = 1, h do
-  for x = 1, w do
-    local p = vec(x, y)
-    local seen = fill[p]
-    local c =
-     (p == start and 'S')
-     or (p == stop and 'E')
-     or map[p] or ' '
-    html[#html + 1] = seen and coloured(c, seen.cost, max) or c
-  end
-  html[#html + 1] = '\n'
-end
-html[#html + 1] = '</code></pre>'
-web.html(table.concat(html))
 ```
 
+And here we kind of Dikjstra-flood-fill it from the `S` and then show the result kind of heatmappy with things being like red if it's more costly to get there and stuff:
 
+``` repl
+local map = mappy(complicated)
+local q = flood(map, next(map.S))
+web.html(maphtml(map, function(c, p) return heatcoloured(c, p, q) end))
+```
+
+Every reachable position gets a colour :)
+
+## a found path
+
+The data structure we get from the `flood` function also has information about how we got to it. When we look up a position and get a result if it's reachable, the result we get will contain a `from` table, with directions as keys and positions as values. A way to find a path to a position is to start with that position and then step back towards where we started the flood filling by always following the first `from` value we find:
 
 ``` run
-mapstr =
+local function stepback(p, fill)
+    local seen = fill[p]
+    if not seen then return nil end
+    for _, d in ipairs(dirs) do
+      if seen.from[d] then return seen.from[d] end
+    end
+    return nil
+end
+
+function test(str)
+  local map = mappy(str)
+  local start, stop = next(map.S), next(map.E)
+  local q = flood(map, start)
+  local path = { [stop] = true }
+  local p = stepback(stop, q.seen)
+  while p do
+    path[p] = true
+    p = stepback(p, q.seen)
+  end
+  local function heat(c, p)
+    if not path[p] then return c end
+    c = c == " " and "o" or c
+    return heatcoloured(c, p, q)
+  end
+  web.html(maphtml(map, heat))
+end
+```
+
+Now we can find one path:
+
+``` repl
+test(complicated)
+```
+
+The artificialness shows up a couple of times here, but it's clearer in a simpler example map:
+
+``` run
+simple =
 [[
 ###############################################
 #                             E               #
@@ -79,29 +119,15 @@ mapstr =
 ]]
 ```
 
-``` run
-local function stepback(p, fill)
-    local seen = fill[p]
-    if not seen then return nil end
-    local _, res = next(seen.from)
-    return res
-end
-
-function test(str)
-  local map, start, stop, w, h = mappy(str)
-  local fill = flood(map, start)
-  local p = stepback(stop, fill)
-  while p do
-    map[p] = "o"
-    p = stepback(p, fill)
-  end
-  printmap(map, start, stop, w, h)
-end
-```
-
 ``` repl
-test(mapstr)
+test(simple)
 ```
+
+Okay.
+
+Aside: When I'm trying out different stuff here, I'm always using the same flood filling part and I'm only changing the part where I construct a path from its result. In _some_ cases it might kind of make more sense to make modifications to the part that searches from the start position instead of to the part that constructs the path from the end position. E.g. a typical hereustic function seems like a more sensible thing to use for guiding the initial search rather than the construction of a path after that, I guess. But in other cases I kind of want to use the completed set of paths _when_ constructing my final path. So in my mind it's easier to just let the initial flood fill thing be the same for everything here.
+
+## comparing paths
 
 ``` run
 local function better(a, b)
@@ -156,18 +182,19 @@ local function findbest(fill, start, stop)
 end 
 
 function test2(str)
-  local map, start, stop, w, h = mappy(str)
-  local fill = flood(map, start)
+  local map = mappy(str)
+  local start, stop = next(map.S), next(map.E)
+  local fill = flood(map, start).seen
   local path = findbest(fill, start, stop)
   for _, p in ipairs(path) do
     map[p] = "o"
   end
-  printmap(map, start, stop, w, h)
+  web.html(maphtml(map))
 end
 ```
 
 ``` repl
-test2(mapstr)
+test2(simple)
 ```
 ``` repl
 local function off(from, to, p)
@@ -273,8 +300,9 @@ local function stepback(p, back, fill)
 end
 
 function test3(str)
-  local map, start, stop, w, h = mappy(str)
-  local fill = flood(map, start)
+  local map = mappy(str)
+  local start, stop = next(map.S), next(map.E)
+  local fill = flood(map, start).seen
   local back = fillback(fill, stop)
   for p, _ in pairs(back) do map[p] = "." end
   local p = stepback(stop, back, fill)
@@ -282,19 +310,10 @@ function test3(str)
     map[p] = "o"
     p = stepback(p, back, fill)
   end
-  printmap(map, start, stop, w, h)
+  web.html(maphtml(map))
 end
 
-test3(
-[[
-###############################################
-#                             E               #
-#                                             #
-#                                             #
-# S                                           #
-###############################################
-]]
-)
+test3(simple)
 ```
 
 ## appendix: the dijkstrarian flood fill stuff
@@ -315,7 +334,7 @@ end
 
 Vec = {}
 vec = memo(
-  function(x, y) return tostring(x) .. "," .. y end,
+  function(x, y) return x .. "," .. y end,
   function(x, y) return setmetatable({ x = x, y = y }, Vec) end)
 
 function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
@@ -388,7 +407,7 @@ end
 
 function mappy(str)
   local lines = str:gmatch("[^\n]+")
-  local map, start, stop = {}, nil, nil
+  local map = {}
   local y = 0
   local w = 0
   for line in lines do
@@ -399,33 +418,32 @@ function mappy(str)
       local v = vec(x, y)
       if c == "#" then
         map[v] = c
-      elseif c == "S" then
-        start = v
-      elseif c == "E" then
-        stop = v
       end
+      local set = map[c] or {}
+      set[v] = true
+      map[c] = set
     end
     w = math.max(w, x)
   end
-  return map, start, stop, w, y
+  map.size = vec(w, y)
+  return map
 end
 
-function printmap(map, start, stop, w, h)
-  for y = 1, h do
-    for x = 1, w do
-      local v = vec(x, y)
-      io.write(
-        v == start and "S"
-        or v == stop and "E"
-        or map[v]
-        or " "
-      )
+function maphtml(map, f)
+  local html = { '<pre><code>' }
+  for y = 1, map.size.y do
+    for x = 1, map.size.x do
+      local p = vec(x, y)
+      local c =
+        (map.S[p] and 'S')
+        or (map.E[p] and 'E')
+        or map[p] or ' '
+      html[#html + 1] = f and f(c, p) or c
     end
-    io.write("\n")
+    html[#html + 1] = '\n'
   end
-  return map, start, stop
+  return table.concat(html)
 end
-
 
 function neighbours(p, map)
   local i = 1
@@ -458,6 +476,20 @@ function flood(map, start)
   q:put(start, 0)
   local current = true
   while current do current = step(map, q, stop) end
-  return q.seen
+  return q
+end
+
+function span(str, style)
+  return '<span style="' .. style .. '">' .. str .. '</span>'
+end
+
+function heatstyle(n, max)
+  local h = (1 - (n / max)) * 240
+  return 'background-color: hsl(' .. h .. ', 100%, 50%)'
+end
+
+function heatcoloured(c, p, q)
+  local seen = q.seen[p]
+  return seen and span(c, heatstyle(seen.cost, q.highest)) or c
 end
 ```
