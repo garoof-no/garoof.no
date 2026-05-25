@@ -1,0 +1,463 @@
+# dumb notes on finding more pathier paths
+:template lua
+:todo
+
+I don't _very_ know what I'm doing with this stuff. Like I don't know too much about what is and is not usually done and so on. It's just stuff that's been kind of on my mind re some pathfinding stuff.
+
+## """problem statement"""
+
+So if we're using something like Disjktra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths, according to some way of calculating costs. The mental model could be something like a turn based strategy game: There could be roads and different terrain types having different movement costs and more expensive does not need to mean more moves made or more locations visited.
+
+In these examples things will be fairly simple:
+
+* Terrain is intraversable (`#`) or intraversable (typically space characters)
+* Movement cost is 2 for orthogonal movement and 3 for diagonal
+
+Anyway it can be the case that a lot of different paths from one location to another have the same cost. A thing that's been on my mind is something about picking a path that looks kind of "natural." We'll get back to what I mean by that after running some code.
+
+## filling a map
+
+^#id-flood-fill The more dijkstrian code is at the bottom of the post.^ I won't get into details here. It's mostly the same as in ^./aoc-dijkstra.txt the Advent of Dijkstra post^. Some kind of minor changes to some data structure stuff and how much information is included in the result, and like it fills the map completely and doesn't take a target node into consideration or anything.
+
+``` run
+function coloured(s, n, max)
+  local h = (1 - (n / max)) * 240
+  return
+    '<span style="background-color: hsl(' .. h .. ', 100%, 50%);">'
+    .. s .. '</span>'
+end
+```
+
+``` repl
+local map, start, stop, w, h = mappy(
+[[
+###################################
+#  #     #         #        #     #
+####     #########   ######   #   #
+#    #    #      #####    ######  #
+# S  #        #        ##         #
+########## ##### ##################
+#   #      #   #        #   #     #
+# ###      # # #        # # # #   #
+# #        # # #          # E #   #
+###        ### ################   #
+#                                 #
+###################################
+]]
+)
+local fill = flood(map, start)
+local max = 0
+for _, s in pairs(fill) do max = math.max(max, s.cost) end
+local html = { '<pre><code>' }
+for y = 1, h do
+  for x = 1, w do
+    local p = vec(x, y)
+    local seen = fill[p]
+    local c =
+     (p == start and 'S')
+     or (p == stop and 'E')
+     or map[p] or ' '
+    html[#html + 1] = seen and coloured(c, seen.cost, max) or c
+  end
+  html[#html + 1] = '\n'
+end
+html[#html + 1] = '</code></pre>'
+web.html(table.concat(html))
+```
+
+
+
+``` run
+mapstr =
+[[
+###############################################
+#                             E               #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]]
+```
+
+``` run
+local function stepback(p, fill)
+    local seen = fill[p]
+    if not seen then return nil end
+    local _, res = next(seen.from)
+    return res
+end
+
+function test(str)
+  local map, start, stop, w, h = mappy(str)
+  local fill = flood(map, start)
+  local p = stepback(stop, fill)
+  while p do
+    map[p] = "o"
+    p = stepback(p, fill)
+  end
+  printmap(map, start, stop, w, h)
+end
+```
+
+``` repl
+test(mapstr)
+```
+
+``` run
+local function better(a, b)
+  for i = 1, math.min(#a, #b) do
+    if a[i].count < b[i].count then return true end
+    if a[i].count > b[i].count then return false end
+  end
+  return (#a < #b) and a or b
+end
+
+local function best(path, currentbest)
+  local prev = path[#path]
+  local list, stuf = { prev }, {}
+  for i = #path - 1, 1, -1 do
+    local p = path[i]
+    list[#list + 1] = p
+    local dir = prev - p
+    if stuf[#stuf] and stuf[#stuf].dir == dir then
+      stuf[#stuf].count = stuf[#stuf].count + 1
+    else
+      stuf[#stuf + 1] = { dir = dir, count = 1 }
+    end
+    prev = p
+  end
+  table.sort(stuf, function(a, b) return a.count > b.count end)
+  local res = { path = list, stuf = stuf }
+  if not currentbest then return res end
+  return better(stuf, currentbest.stuf) and res or currentbest
+end
+
+local function findbest(fill, start, stop)
+  local path = { stop }
+  local currentbest
+  local function halp()
+  local p = path[#path]
+    if p == start then
+      currentbest = best(path, currentbest)
+      return
+    end
+    local seen = fill[p]
+    if not seen then return end
+    local i = #path + 1
+    for _, pp in pairs(seen.from) do
+      path[i] = pp
+      halp()
+    end
+    path[i] = nil
+    return
+  end
+  halp()
+  return currentbest.path
+end 
+
+function test2(str)
+  local map, start, stop, w, h = mappy(str)
+  local fill = flood(map, start)
+  local path = findbest(fill, start, stop)
+  for _, p in ipairs(path) do
+    map[p] = "o"
+  end
+  printmap(map, start, stop, w, h)
+end
+```
+
+``` repl
+test2(mapstr)
+```
+``` repl
+local function off(from, to, p)
+  local fx, fy, tx, ty, x, y, dx, dy
+  local d = to - from
+  if math.abs(d.x) >= math.abs(d.y) then
+    fx, fy, tx, ty, x, y, dx, dy = from.x, from.y, to.x, to.y, p.x, p.y, d.x, d.y
+  else
+    fx, fy, tx, ty, x, y, dx, dy = from.y, from.x, to.y, to.x, p.y, p.x, d.y, d.x
+  end
+  if dx == 0 then return math.abs(y - fy) end
+  local target
+  if fx == x then target = fy
+  else target = fy + (((x - fx) * dy + (dx // 2)) // dx)
+  end
+  return math.abs(y - target)
+end
+
+local s = vec(8, 6)
+local res = {}
+for y = 0, s.y do
+  for x = 0, s.x do
+    res[#res + 1] = off(vec(0, 0), s, vec(x, y))
+  end
+  res[#res + 1] = "\n"
+end
+  res[#res + 1] = "\n"
+for y = 0, s.y do
+  for x = 0, s.x do
+    res[#res + 1] = off(vec(0, 0), s, vec(x, y)) == 0 and "x" or " "
+  end
+  res[#res + 1] = "\n"
+end
+print(table.concat(res))
+
+local function fillback(fill, p)
+  local set, visited = { [p] = true }, { [p] = true }
+  while next(set) do
+    local p = next(set)
+    set[p] = nil
+    local seen = fill[p]
+    for _, d in ipairs(dirs) do
+      local from = seen.from[d]
+      if from and not visited[from] then
+        set[from] = true
+        visited[from] = true
+      end
+    end
+  end
+  return visited
+end
+
+local function shoot(p, dir, back)
+  local prev = p
+  while back[p] do
+    prev = p
+    p = p + dir
+  end
+  return prev
+end
+
+local function stepback(p, back, fill)
+  local seen = fill[p]
+  if not seen then return nil end
+  local from = seen.from
+  local function regular()
+    local _, res = next(from)
+    return res
+  end
+  if seen.dirs ~= 2 then return regular() end
+  local n, e, s, w = shoot(p, N, back).y, shoot(p, E, back).x, shoot(p, S, back).y, shoot(p, W, back).x
+  local start, stop
+  local d1, d2
+  if from[W] and from[NW] then
+    d1, d2 = W, NW
+    start, stop = vec(e, s), vec(w, n)
+  elseif from[N] and from[NW] then
+    d1, d2 = N, NW
+    start, stop = vec(e, s), vec(w, n)
+  elseif from[N] and from[NE] then
+    d1, d2 = N, NE
+    start, stop = vec(w, s), vec(e, n)
+  elseif from[E] and from[NE] then
+    d1, d2 = E, NE
+    start, stop = vec(w, s), vec(e, n)
+  elseif from[E] and from[SE] then
+    d1, d2 = E, SE
+    start, stop = vec(w, n), vec(e, s)
+  elseif from[S] and from[SE] then
+    d1, d2 = S, SE
+    start, stop = vec(w, n), vec(e, s)
+  elseif from[S] and from[SW] then
+    d1, d2 = S, SW
+    start, stop = vec(e, n), vec(w, s)
+  elseif from[E] and from[SW] then
+    d1, d2 = E, SW
+    start, stop = vec(e, n), vec(w, s)
+  else return regular()
+  end
+  local p1, p2 = from[d1], from[d2]
+  print(start, stop, p1, p2, (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2)
+  return (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2
+end
+
+function test3(str)
+  local map, start, stop, w, h = mappy(str)
+  local fill = flood(map, start)
+  local back = fillback(fill, stop)
+  for p, _ in pairs(back) do map[p] = "." end
+  local p = stepback(stop, back, fill)
+  while p do
+    map[p] = "o"
+    p = stepback(p, back, fill)
+  end
+  printmap(map, start, stop, w, h)
+end
+
+test3(
+[[
+###############################################
+#                             E               #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]]
+)
+```
+
+## appendix: the dijkstrarian flood fill stuff
+:id flood-fill
+
+``` prelude
+function memo(key, new)
+  local all = setmetatable({}, { __mode = "v" })
+  return function(...)
+    local k = key(...)
+    local found = all[k]
+    if found then return found end
+    local v = new(...)
+    all[k] = v
+    return v
+  end
+end
+
+Vec = {}
+vec = memo(
+  function(x, y) return tostring(x) .. "," .. y end,
+  function(x, y) return setmetatable({ x = x, y = y }, Vec) end)
+
+function Vec.__add(a, b) return vec(a.x + b.x, a.y + b.y) end
+function Vec.__sub(a, b) return vec(a.x - b.x, a.y - b.y) end
+N, E, S, W = vec(0, -1), vec(1, 0), vec(0, 1), vec(-1, 0)
+NW, NE, SE, SW = N + W, N + E, S + E, S + W
+function Vec.__tostring(v) return v.x .. "," .. v.y end
+dirs = { NW, NE, SE, SW, N, E, S, W }
+
+Lazy = {}
+function Lazy.__index(t, k)
+  local list = {}
+  t[k] = list
+  return list
+end
+
+Queue = {}
+Queue.__index = Queue
+function Queue.new()
+    local q = {
+        highest = 0,
+        lowest = 0,
+        seen = {},
+        lists = setmetatable({}, Lazy)
+    }
+    setmetatable(q, Queue)
+    return q
+end
+
+function Queue.put(q, pos, cost, dir, from)
+  local seen = q.seen[pos]
+  if seen then
+    if seen.cost == cost then
+      seen.from[dir] = from
+      seen.dirs = seen.dirs + 1
+      return
+    elseif seen.cost < cost then
+      return
+    end
+    local prev = q.lists[seen.cost]
+    local current = prev.next
+    while current do
+      if current.pos == pos then
+        prev.next = current.next
+        break
+      end
+      local next = current.next
+      prev = current
+      current = next
+    end
+  end
+  q.seen[pos] = { cost = cost, from = dir and { [dir] = from } or {}, dirs = dir and 1 or 0 }
+  q.lists[cost].next = { pos = pos, next = q.lists[cost].next }
+  q.highest = math.max(q.highest, cost)
+end
+
+function Queue.get(q)
+  local i = q.lowest
+  for i = q.lowest, q.highest do
+    local list = q.lists[i]
+    if list.next then
+      local entry = list.next
+       list.next = entry.next
+       local pos = entry.pos
+       q.lowest = i
+       return pos, i
+    end
+  end
+end
+
+function mappy(str)
+  local lines = str:gmatch("[^\n]+")
+  local map, start, stop = {}, nil, nil
+  local y = 0
+  local w = 0
+  for line in lines do
+    y = y + 1
+    local x = 0
+    for c in line:gmatch(".") do
+      x = x + 1
+      local v = vec(x, y)
+      if c == "#" then
+        map[v] = c
+      elseif c == "S" then
+        start = v
+      elseif c == "E" then
+        stop = v
+      end
+    end
+    w = math.max(w, x)
+  end
+  return map, start, stop, w, y
+end
+
+function printmap(map, start, stop, w, h)
+  for y = 1, h do
+    for x = 1, w do
+      local v = vec(x, y)
+      io.write(
+        v == start and "S"
+        or v == stop and "E"
+        or map[v]
+        or " "
+      )
+    end
+    io.write("\n")
+  end
+  return map, start, stop
+end
+
+
+function neighbours(p, map)
+  local i = 1
+  local cost = 3
+  return function()
+    while i <= 8 do
+      local dir = dirs[i]
+      local np = p + dir
+      if i == 5 then cost = 2 end
+      i = i + 1
+      if not map[np] then
+        return np, cost, dir
+      end
+    end
+    return nil
+  end
+end
+
+function step(map, q)
+  local p, cost = q:get()
+  if not p then return false end
+  for np, c, dir in neighbours(p, map) do
+    q:put(np, cost + c, dir, p)
+  end
+  return true
+end
+
+function flood(map, start)
+  local q = Queue.new()
+  q:put(start, 0)
+  local current = true
+  while current do current = step(map, q, stop) end
+  return q.seen
+end
+```
