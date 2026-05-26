@@ -149,7 +149,47 @@ steppy(simple, altstepback)
 
 Often changes like that are made to the initial search part instead of to the later construct a path part and in a number of cases that can make more sense. But for some of the stuff I wanted to try I needed all the possible paths or all the positions hit by all the possible paths, so here it seemed easier to do the flood fill stuff the same way for all the things and only make changes to the construct the path part. Bla blah.
 
-## comparing paths
+## rectangles
+
+If we look at the positions in all of the possible minimally expensive paths between two positions, the "problem areas" appear to be some fairly rectangular areas of positions. After flood filling and choosing a stop position, we can kind of flood fill back to the start positions by visting all the positions we can reach through the `from` values:
+
+``` run
+function fillback(fill, p)
+  local set, visited = { [p] = true }, { [p] = true }
+  while next(set) do
+    local p = next(set)
+    set[p] = nil
+    local seen = fill[p]
+    for _, d in ipairs(dirs) do
+      local from = seen.from[d]
+      if from and not visited[from] then
+        set[from] = true
+        visited[from] = true
+      end
+    end
+  end
+  return visited
+end
+```
+
+Now we can look at the rectangle:
+
+``` repl
+local map = mappy(simple)
+local start, stop = next(map.S), next(map.E)
+local q = flood(map, start)
+local back = fillback(q.seen, stop)
+local function heat(c, p)
+  if not back[p] then return c end
+  c = c == " " and "." or c
+  return heatcoloured(c, p, q)
+end
+web.html(maphtml(map, heat))
+```
+
+So the kind of rectangular area has a bunch of positions in it that can be reached through at least one of the minimally expensive paths. In this case most of them can be reached directly from the position to the west and the position to the southwest. IMO paths look more "natural" if the look more like a line from the southwest corner to the northeast corner of the rectangle. So that's a thing.
+
+## a probably bad path comparison idea
 
 ``` run
 local function better(a, b)
@@ -181,11 +221,13 @@ local function best(path, currentbest)
 end
 
 local function findbest(fill, start, stop)
+  local pathcount = 0
   local path = { stop }
   local currentbest
   local function halp()
   local p = path[#path]
     if p == start then
+      pathcount = pathcount + 1
       currentbest = best(path, currentbest)
       return
     end
@@ -200,14 +242,15 @@ local function findbest(fill, start, stop)
     return
   end
   halp()
-  return currentbest.path
+  return currentbest.path, pathcount
 end 
 
 function test2(str)
   local map = mappy(str)
   local start, stop = next(map.S), next(map.E)
   local fill = flood(map, start).seen
-  local path = findbest(fill, start, stop)
+  local path, count = findbest(fill, start, stop)
+  print("found " .. count .. " paths")
   for _, p in ipairs(path) do
     map[p] = "o"
   end
@@ -218,6 +261,9 @@ end
 ``` repl
 test2(simple)
 ```
+
+## maybe a less bad rectangles and lines idea
+
 ``` repl
 local function off(from, to, p)
   local fx, fy, tx, ty, x, y, dx, dy
@@ -251,23 +297,6 @@ for y = 0, s.y do
   res[#res + 1] = "\n"
 end
 print(table.concat(res))
-
-local function fillback(fill, p)
-  local set, visited = { [p] = true }, { [p] = true }
-  while next(set) do
-    local p = next(set)
-    set[p] = nil
-    local seen = fill[p]
-    for _, d in ipairs(dirs) do
-      local from = seen.from[d]
-      if from and not visited[from] then
-        set[from] = true
-        visited[from] = true
-      end
-    end
-  end
-  return visited
-end
 
 local function shoot(p, dir, back)
   local prev = p
