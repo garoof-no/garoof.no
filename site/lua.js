@@ -71,26 +71,52 @@ const luarun = (() => {
             console.log("html: " + str);
           }
         },
+        clear: (str) => {
+          if (currentOut) {
+            currentOut.replaceChildren(elem("pre", { className: "output" }));
+          } else {
+            console.log("clear");
+          }
+        },
+        buttons: (str) => {
+          if (currentOut) {
+            const names = [...str.matchAll(/\S+/g)].map(a => a[0]);
+            const buttons = names.map(s =>
+              elem(
+                "button",
+                { onclick: () => run(luaresume, `return ${luastr(s)}`, res) },
+                s));
+            resume = buttons;
+            buttons.forEach((b, i) => {
+              if (i > 0) currentOut.lastElementChild.append(" ");
+              currentOut.lastElementChild.append(b);
+            });
+            currentOut.lastElementChild.append("\n");
+          } else {
+            console.log("buttons: " + str);
+          }
+        },
         read: (str) => {
-          if (currentOut === null) {
+          if (currentOut) {
+            const inp = elem("input");
+            const myrun = () => run(luaresume, `return ${luastr(inp.value)}`, res);
+            inp.onkeyup = (e) => {
+              if (e.key === "Enter") {
+                myrun();
+              }
+            };
+            const el = str === "" ? inp : elem("label", {}, `${str} `, inp);
+            const button = elem(
+              "button",
+              { onclick: myrun },
+              "▶"
+            );
+            resume = [inp, button];
+            currentOut.lastElementChild.append(el, button, "\n");
+            inp.focus();
+          } else {
             console.log("read: " + str);
           }
-          const inp = elem("input");
-          const myrun = () => run(luaresume, `return ${luastr(inp.value)}`, res);
-          inp.onkeyup = (e) => {
-            if (e.key === "Enter") {
-              myrun();
-            }
-          };
-          const el = str === "" ? inp : elem("label", {}, `${str} `, inp);
-          const button = elem(
-            "button",
-            { onclick: myrun },
-            "▶"
-          );
-          resume = [inp, button];
-          currentOut.lastElementChild.append(el, button, "\n");
-          inp.focus();
         }
       });
       res[outStrKey] = "";
@@ -184,7 +210,6 @@ const luarun = (() => {
     };
 
     if (element.classList.contains("run") || element.classList.contains("prelude")) {
-      console.log("runnim:\n" + ta.value);
       myrun(ta.value);
     }
     if (element.classList.contains("repl")) {
@@ -244,6 +269,19 @@ const luarun = (() => {
         read = function(str)
           web.co = coroutine.running()
           send("read", str)
+          local thunk = coroutine.yield()
+          local res = thunk()
+          return res
+        end,
+        buttons = function(...)
+          local args = {...}
+          for _, arg in ipairs(args) do
+            if arg:match("%s") then
+              error("plx no spaces in button names?")
+            end
+          end
+          web.co = coroutine.running()
+          send("buttons", table.concat(args, " "))
           local thunk = coroutine.yield()
           local res = thunk()
           return res
