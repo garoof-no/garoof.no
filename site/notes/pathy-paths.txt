@@ -85,17 +85,15 @@ function steppy(str, stepback)
   local start, stop = next(map.S), next(map.E)
   local q = flood(map, start)
   local path = { [stop] = true }
-  local p = stepback(stop, q.seen)
+  local p = stepback(stop, q.seen, start)
   while p do
     path[p] = true
-    p = stepback(p, q.seen)
+    p = stepback(p, q.seen, start)
   end
-  local function heat(c, p)
-    if not path[p] then return c end
-    c = c == " " and "o" or c
-    return heatcoloured(c, p, q)
+  local function drawpath(c, p)
+    return path[p] and c == " " and "o" or c
   end
-  web.html(maphtml(map, heat))
+  web.html(maphtml(map, drawpath))
 end
 ```
 
@@ -149,47 +147,29 @@ steppy(simple, altstepback)
 
 Often changes like that are made to the initial search part instead of to the later construct a path part and in a number of cases that can make more sense. But for some of the stuff I wanted to try I needed all the possible paths or all the positions hit by all the possible paths, so here it seemed easier to do the flood fill stuff the same way for all the things and only make changes to the construct the path part. Bla blah.
 
-## rectangles
-
-If we look at the positions in all of the possible minimally expensive paths between two positions, the "problem areas" appear to be some fairly rectangular areas of positions. After flood filling and choosing a stop position, we can kind of flood fill back to the start positions by visting all the positions we can reach through the `from` values:
-
-``` run
-function fillback(fill, p)
-  local set, visited = { [p] = true }, { [p] = true }
-  while next(set) do
-    local p = next(set)
-    set[p] = nil
-    local seen = fill[p]
-    for _, d in ipairs(dirs) do
-      local from = seen.from[d]
-      if from and not visited[from] then
-        set[from] = true
-        visited[from] = true
-      end
-    end
-  end
-  return visited
-end
-```
-
-Now we can look at the rectangle:
-
-``` repl
-local map = mappy(simple)
-local start, stop = next(map.S), next(map.E)
-local q = flood(map, start)
-local back = fillback(q.seen, stop)
-local function heat(c, p)
-  if not back[p] then return c end
-  c = c == " " and "." or c
-  return heatcoloured(c, p, q)
-end
-web.html(maphtml(map, heat))
-```
-
-So the kind of rectangular area has a bunch of positions in it that can be reached through at least one of the minimally expensive paths. In this case most of them can be reached directly from the position to the west and the position to the southwest. IMO paths look more "natural" if the look more like a line from the southwest corner to the northeast corner of the rectangle. So that's a thing.
-
 ## a probably bad path comparison idea
+
+Looking at the two paths from earlier again. One goes almost all the way to the east and then turns and goes notheast:
+
+```
+            o
+           o
+          o
+oooooooooo
+``` 10 moves west followed by 3 moves to the northwest
+
+The other goes a few steps to the east then one step northeast then a few steps east and so on:
+
+```
+          ooo
+       ooo
+   oooo
+ooo
+``` 3 west, 1 northwest, 4 west, 1 northwest, 3 west, 1 northwest, 3 west
+
+If we prefer the latter then: Maybe the best pats are the ones with the shortest sequences of movement in the same direction. Like the first one has consecutive steps to the east, while the last one has at most 4. An idea could be to find the best path by checking all the alternatives when backstepping and choosing the paths with the shortest sequences of same-direction steps.
+
+There's some stuff that could be done to the code below but I dropped the idea before doing more so uh it is what it is. Also won't get into too much details. When a path back to the start is found, we make a list of all the "segments" and sort that list. We remember the best path found so far and compare new ones to that one. Anyway the code:
 
 ``` run
 local function better(a, b)
@@ -245,7 +225,7 @@ local function findbest(fill, start, stop)
   return currentbest.path, pathcount
 end 
 
-function test2(str)
+function bestpath(str)
   local map = mappy(str)
   local start, stop = next(map.S), next(map.E)
   local fill = flood(map, start).seen
@@ -258,14 +238,60 @@ function test2(str)
 end
 ```
 
+It works I guess:
+
 ``` repl
-test2(simple)
+bestpath(simple)
 ```
 
-## maybe a less bad rectangles and lines idea
+But the number of paths found can kind of explode, so eh.
+
+## rectangles
+
+If we look at the positions in all of the possible minimally expensive paths between two positions, the "problem areas" appear to be some fairly rectangular areas of positions. After flood filling and choosing a stop position, we can kind of flood fill back to the start positions by visting all the positions we can reach through the `from` values:
+
+``` run
+function fillback(fill, p)
+  local set, visited = { [p] = true }, { [p] = true }
+  while next(set) do
+    local p = next(set)
+    set[p] = nil
+    local seen = fill[p]
+    for _, d in ipairs(dirs) do
+      local from = seen.from[d]
+      if from and not visited[from] then
+        set[from] = true
+        visited[from] = true
+      end
+    end
+  end
+  return visited
+end
+```
+
+Now we can look at the rectangle:
 
 ``` repl
-local function off(from, to, p)
+local map = mappy(simple)
+local start, stop = next(map.S), next(map.E)
+local q = flood(map, start)
+local back = fillback(q.seen, stop)
+local function heat(c, p)
+  if not back[p] then return c end
+  c = c == " " and "." or c
+  return heatcoloured(c, p, q)
+end
+web.html(maphtml(map, heat))
+```
+
+So the kind of rectangular area has a bunch of positions in it that can be reached through at least one of the minimally expensive paths. In this case most of them can be reached directly from the position to the west and the position to the southwest. IMO paths look more "natural" if the look more like a line from the southwest corner to the northeast corner of the rectangle. So that's a thing.
+
+## maybe a less bad idea?
+
+Here's a function to see how far off we are:
+
+``` run
+function off(from, to, p)
   local fx, fy, tx, ty, x, y, dx, dy
   local d = to - from
   if math.abs(d.x) >= math.abs(d.y) then
@@ -280,24 +306,34 @@ local function off(from, to, p)
   end
   return math.abs(y - target)
 end
+```
 
-local s = vec(8, 6)
-local res = {}
-for y = 0, s.y do
-  for x = 0, s.x do
-    res[#res + 1] = off(vec(0, 0), s, vec(x, y))
-  end
-  res[#res + 1] = "\n"
-end
-  res[#res + 1] = "\n"
-for y = 0, s.y do
-  for x = 0, s.x do
-    res[#res + 1] = off(vec(0, 0), s, vec(x, y)) == 0 and "x" or " "
-  end
-  res[#res + 1] = "\n"
-end
-print(table.concat(res))
+That is, if we imagine a line between two points, `from` and `to`, then this should give us the number of steps we need to go east or west or north or south in order to get to be on top of the line. It rotates some numbers around a bit to account for lines that are more vertical than horizontal vs. lines that are more horizontal than vertical. Uuuh:
 
+``` repl
+local from, to = vec(0, 0), vec(8, 3)
+for y = 0, 3 do
+  for x = 0, 8 do
+    io.write(off(from, to, vec(x, y)))
+  end
+  io.write("\n")
+end
+```
+
+Anyway the idea is that if you're trying to move kind of along a line and you have to decide between a couple of positions, then you wanna choose the one with the lowest off-number.
+
+So a plan can go something like:
+
+We use the `fillback` function from earlier to get like a pretend map that might have rectangles in it. And then when we're constructing the path and are stepping from one position to the next (or previous, I guess), we look into some things:
+
+* What rectangle are we in? We'll make a pretty low-effort attempt at determining.
+* Are we choosing between exactly two "ajacent" directions. (E.g. nort and northwest, or east and southeast.)
+* What would be good positions for a line to go from/to?
+* Which move gets us closer to the line?
+
+We do the rectangle check by "shooting" rays through the "backfilled" data structure that potentially has rectangles in it. We shoot one ray in each of the four main directions and see how far it goes. We could do something more clever instead but this seems to be mostly okay. We use the directions available for moving to determinge which corners of the rectangle the imagined line should go from/to. Some stuff:
+
+``` run
 local function shoot(p, dir, back)
   local prev = p
   while back[p] do
@@ -307,65 +343,80 @@ local function shoot(p, dir, back)
   return prev
 end
 
-local function stepback(p, back, fill)
-  local seen = fill[p]
-  if not seen then return nil end
-  local from = seen.from
-  local function regular()
-    local _, res = next(from)
-    return res
+function rectback()
+  local back
+  return function(p, fill)
+    if not back then back = fillback(fill, p) end
+    local seen = fill[p]
+    if not seen then return nil end
+    local from = seen.from
+    local function regular()
+      local _, res = next(from)
+      return res
+    end
+    if seen.dirs ~= 2 then return regular() end
+    local n, e, s, w = shoot(p, N, back).y, shoot(p, E, back).x, shoot(p, S, back).y, shoot(p, W, back).x
+    local start, stop
+    local d1, d2
+    if from[W] and from[NW] then
+      d1, d2 = W, NW
+      start, stop = vec(e, s), vec(w, n)
+    elseif from[N] and from[NW] then
+      d1, d2 = N, NW
+      start, stop = vec(e, s), vec(w, n)
+    elseif from[N] and from[NE] then
+      d1, d2 = N, NE
+      start, stop = vec(w, s), vec(e, n)
+    elseif from[E] and from[NE] then
+      d1, d2 = E, NE
+      start, stop = vec(w, s), vec(e, n)
+    elseif from[E] and from[SE] then
+      d1, d2 = E, SE
+      start, stop = vec(w, n), vec(e, s)
+    elseif from[S] and from[SE] then
+      d1, d2 = S, SE
+      start, stop = vec(w, n), vec(e, s)
+    elseif from[S] and from[SW] then
+      d1, d2 = S, SW
+      start, stop = vec(e, n), vec(w, s)
+    elseif from[E] and from[SW] then
+      d1, d2 = E, SW
+      start, stop = vec(e, n), vec(w, s)
+    else return regular()
+    end
+    local p1, p2 = from[d1], from[d2]
+    return (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2
   end
-  if seen.dirs ~= 2 then return regular() end
-  local n, e, s, w = shoot(p, N, back).y, shoot(p, E, back).x, shoot(p, S, back).y, shoot(p, W, back).x
-  local start, stop
-  local d1, d2
-  if from[W] and from[NW] then
-    d1, d2 = W, NW
-    start, stop = vec(e, s), vec(w, n)
-  elseif from[N] and from[NW] then
-    d1, d2 = N, NW
-    start, stop = vec(e, s), vec(w, n)
-  elseif from[N] and from[NE] then
-    d1, d2 = N, NE
-    start, stop = vec(w, s), vec(e, n)
-  elseif from[E] and from[NE] then
-    d1, d2 = E, NE
-    start, stop = vec(w, s), vec(e, n)
-  elseif from[E] and from[SE] then
-    d1, d2 = E, SE
-    start, stop = vec(w, n), vec(e, s)
-  elseif from[S] and from[SE] then
-    d1, d2 = S, SE
-    start, stop = vec(w, n), vec(e, s)
-  elseif from[S] and from[SW] then
-    d1, d2 = S, SW
-    start, stop = vec(e, n), vec(w, s)
-  elseif from[E] and from[SW] then
-    d1, d2 = E, SW
-    start, stop = vec(e, n), vec(w, s)
-  else return regular()
-  end
-  local p1, p2 = from[d1], from[d2]
-  print(start, stop, p1, p2, (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2)
-  return (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2
 end
-
-function test3(str)
-  local map = mappy(str)
-  local start, stop = next(map.S), next(map.E)
-  local fill = flood(map, start).seen
-  local back = fillback(fill, stop)
-  for p, _ in pairs(back) do map[p] = "." end
-  local p = stepback(stop, back, fill)
-  while p do
-    map[p] = "o"
-    p = stepback(p, back, fill)
-  end
-  web.html(maphtml(map))
-end
-
-test3(simple)
 ```
+
+``` repl
+steppy(simple, rectback())
+```
+
+``` repl
+steppy(complicated, rectback())
+```
+
+``` repl
+steppy(
+[[
+###############################################
+#                                             #
+# #####################                       #
+#                     #                       #
+#                     #                       #
+#                     #                     E #
+####################  #########################
+#                                             #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]], rectback())
+```
+
+Bla blah :)
 
 ## appendix: the dijkstrarian flood fill stuff
 :id flood-fill
