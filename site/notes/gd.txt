@@ -107,13 +107,13 @@ https://loremflickr.com/320/240/dog
 
 ## Text
 
-Other lines are empty or they're lines with regular text. Text can be formatted a little. Text between two `\``-characters is code. Text between two `_`-characters is emphasized. Formatting cannot be nested. `\\` is used for escaping. Escaping works for any character, but can be useful for formatting characters, escape characters, and characters at the start of a line (e.g. if you want a regular text line to start with `=>`).
+Other lines are empty or they're lines with regular text. Text can be formatted a little. Text between two `\``-characters is code. Text between two `_`-characters is emphasized. Formatting cannot be nested. `\\` is used for escaping. Escaping works for any character, but can be useful for formatting characters, escape characters, and characters at the start of a line (e.g. if you want a regular text line to start with `>`).
 
 ```
-\=> Text line with `code with \`-character` and _emphasis with `-character_.
+\> Text line with `code with \`-character` and _emphasis with `-character_.
 ```
 
-\=> Text line with `code with \`-character` and _emphasis with `-character_.
+\> Text line with `code with \`-character` and _emphasis with `-character_.
 
 And `^` is used for links. Mostly same mechanism as for formatting. So you cannot emphasise text within a link and so on...
 
