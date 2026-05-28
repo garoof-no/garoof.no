@@ -556,8 +556,11 @@ function neighbours(p, map)
       local np = p + dir
       if i == 5 then cost = 2 end
       i = i + 1
-      if not map[np] then
-        return np, cost, dir
+      if
+        np.x > 0 and np.x <= map.size.x
+        and np.y > 0 and np.y <= map.size.y
+        and not map[np]
+      then return np, cost, dir
       end
     end
     return nil
