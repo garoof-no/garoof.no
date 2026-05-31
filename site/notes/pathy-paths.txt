@@ -391,7 +391,7 @@ steppy(largerooms, rectback())
 steppy(complicated, rectback())
 ```
 
-Bla blah. I think those paths are oh kay :)
+Bla blah. I think those paths are okay :)
 
 ## appendix: the dijkstrarian flood fill and stuf
 :id flood-fill
