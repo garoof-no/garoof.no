@@ -212,8 +212,8 @@ That's okay I think. We can then also consider making the `isValid` function loc
 
 And I think there's something a little unsatisfying about it. It's not majorly major and important stuff, but:
 
-- We are kind of double-testing the `isValid` function.
-- `isValid` is basically a pure function and uh. It might not be a function we particularly want to expose to the surrounding world anyway, but it does feel maybe a little silly to consider hiding it because it's like _dangerous._ Like, because it returns booleans, we know that if anyone uses it they're probably going to if-else on it or something like that, and we know that that's a thing that can be done the wrong way around. Like I dunno are we "tainting" callers with the booleans?
+* We are kind of double-testing the `isValid` function.
+* `isValid` is basically a pure function and uh. It might not be a function we particularly want to expose to the surrounding world anyway, but it does feel maybe a little silly to consider hiding it because it's like _dangerous._ Like, because it returns booleans, we know that if anyone uses it they're probably going to if-else on it or something like that, and we know that that's a thing that can be done the wrong way around. Like I dunno are we "tainting" callers with the booleans?
 
 ## Results
 
