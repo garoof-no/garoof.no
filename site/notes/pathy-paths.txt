@@ -1,21 +1,26 @@
 # dumb notes on finding more pathier paths
+:pub Zm5XLp
+:blurb I guess we could find even more pathier paths if we knew mathier maths.
 :template lua
-:todo
 
-Hi I don't know much about stuff.
-I'm probably doing something kind of dumb and there's probably something smart that could be done instead.
-Either way some pathfinding thing has been on my mind.
+Hi I don't know.
+Some pathfinding thing has been on my mind.
+This might be mostly dumb, or at least it's dumb enough that I can kind of understand each part of it.
+Anyway some notes in case I wanna remember it later...
 
 ## """problem statement"""
 
 Maybe think of a turn based strategy game or something.
-If we're using something like Dijkstra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths.
+If we're using something like Dijkstra's algorithm on something like a tilemap we tend to get _one of_ the good paths between two positions.
+(Good meaning it has the lowest possible total movement cost.)
+
 In these examples the movement cost rules are fairly simple:
 
-* Terrain is intraversable (`#`) or traversable (typically space characters)
+* `#`-characters are walls and can't be moved through
+* Everything else (mostly space characters) is traversable
 * Movement cost is 2 for orthogonal movement and 3 for diagonal
 
-It can be the case that a lot of different paths from one position to another have the same cost.
+It can be the case that a lot of different paths from one position to another are equally good.
 E.g. we could be moving to the east and a little to the north north like this:
 
 ```
@@ -25,7 +30,7 @@ E.g. we could be moving to the east and a little to the north north like this:
 oooooooooo
 ``` 10 moves to the west followed by 3 moves to the northwest
 
-And an equally expensive path might go like this:
+And another path might cost the same:
 
 ```
           ooo
@@ -113,10 +118,13 @@ reachable(complicated)
 
 Every reachable position gets a colour :)
 
+It'd also be possible to stop filling when reaching a certain movement cost or something?
+But here we're just filling the entire map.
+
 ## a found path
 
-The data structure we get from the `flood` function also has information about how we got to it.
-When we look up a reachable position, the result we get will contain a `from` table with directions and positions.
+The data structure we get from the `flood` function also has information about how we got to each position.
+The result from looking up a reachable position will contain a `from` table with directions and positions.
 A way to find a path to a position is to start with that position and then use those `from` tables to step back toward the start position:
 
 ``` run
@@ -146,7 +154,7 @@ function steppy(str, stepback)
 end
 ```
 
-Given one of the maps we can find a  path:
+We can find a path for each map:
 
 ``` repl
 steppy(oneroom, stepback)
@@ -160,7 +168,7 @@ Okay.
 
 ## rectangles
 
-Given a start and a stop position, we can find all the positions we can possibly visit by following one of the minimally expensive paths.
+Given a start and a stop position, we can find all the positions we can possibly visit by following one of the good paths.
 After flood filling and choosing a stop position, we can kind of flood fill back to the start position through all the `from` values:
 
 ``` run
@@ -204,7 +212,7 @@ possiblepositions(largerooms)
 possiblepositions(complicated)
 ```
 
-So we get these almost-rectangular areas of positions that are all visited by at least one of the minimally expensive paths.
+So we get these almost-rectangular areas where each position is visited by at least one good path.
 Those are the areas where I'd maybe like to choose paths differently.
 Like within such a rectangle, maybe have the path be more like a line between opposite corners.
 
@@ -218,7 +226,7 @@ From ^https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm the Wikipedia a
     `x1 - x0`
 ``` An equation: y = ((y1 - y0) / (x1 - x0)) (x - x0) + y0
 
-Here's a function to see how far off we are:
+Here's a function that calculates how far off we are:
 
 ``` run
 function off(from, to, p)
@@ -252,6 +260,8 @@ for y = 0, 3 do
   io.write("\n")
 end
 ```
+
+That's like a line of zeroes.
 
 Anyway the idea is something like:
 If we're trying to move along some line and we have some possible positions for the next step, we can choose the one with the lowest `off`-number.
@@ -312,9 +322,8 @@ showrect(largerooms, vec(30, 2))
 showrect(largerooms, vec(30, 3))
 ```
 
-If we decide that that's good enought then that's good enough.
 In some positions the rectangles seem pretty okay but in others they aren't _exactly_ the ones we're after.
-We're only using them to choose between paths that are all like good though.
+We're only using them to choose between paths that are all good though.
 So it's not like using a weird rectangle for a few steps will make us choose a _bad path._
 I dunno, it's maybe okay.
 
@@ -326,11 +335,11 @@ And then when we're constructing the path and are stepping from one position to 
 
 * Pew pew shoot shoot, what rectangle are we in?
 * Are we choosing between exactly two "adjacent" directions? (e.g. north and northwest, or east and southeast)
-* So which corners of the rectangle should we use for imagining a line?
-* Which of the allowed moves gets us closer to that line?
+* Then which corners of the rectangle should we use for pretending there's a line?
+* And which of the allowed moves gets us closer to that line?
 
 The `rectback` function puts the stuff together.
-It's a kind of large function because it does a bunch of direction checking in a repetitive and maybe kind of dumb way.
+It's a large function because it does a bunch of direction checking in a repetitive and maybe kind of dumb way.
 
 ``` run
 function rectback()
@@ -382,7 +391,7 @@ steppy(largerooms, rectback())
 steppy(complicated, rectback())
 ```
 
-Bla blah :)
+Bla blah. I think those paths are oh kay :)
 
 ## appendix: the dijkstrarian flood fill and stuf
 :id flood-fill
