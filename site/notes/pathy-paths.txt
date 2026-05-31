@@ -121,7 +121,7 @@ Every reachable position gets a colour :)
 It'd also be possible to stop filling when reaching a certain movement cost or something?
 But here we're just filling the entire map.
 
-## finding whatever path
+## finding just any old path
 
 The data structure we get from the `flood` function also has information about how we got to each position.
 The result from looking up a reachable position will contain a `from` table with directions and positions.
