@@ -21,7 +21,7 @@ In these examples the movement cost rules are fairly simple:
 * Movement cost is 2 for orthogonal movement and 3 for diagonal
 
 It can be the case that a lot of different paths from one position to another are equally good.
-E.g. we could be moving to the east and a little to the north north like this:
+E.g. we could be moving to the east and a little to the northeast like this:
 
 ```
             o
