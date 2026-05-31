@@ -2,27 +2,30 @@
 :template lua
 :todo
 
-I don't _very_ know what I'm doing with this stuff. Like I don't know too much about what is and is not usually done and so on. It's just stuff that's been kind of on my mind re some pathfinding stuff.
+Hi I don't know much about stuff.
+I'm probably doing something kind of dumb and there's probably something smart that could be done instead.
+Either way some pathfinding thing has been on my mind.
 
 ## """problem statement"""
 
-So if we're using something like Disjktra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths, according to some way of calculating costs. The mental model could be something like a turn based strategy game: There could be roads and different terrain types having different movement costs and more expensive does not need to mean more moves made or more positions visited.
+Maybe think of a turn based strategy game or something.
+If we're using something like Dijkstra's algorithm on something like a tilemap we tend to get one of the minimally expensive paths.
+In these examples the movement cost rules are fairly simple:
 
-In these examples things will be fairly simple:
-
-* Terrain is intraversable (`#`) or intraversable (typically space characters)
+* Terrain is intraversable (`#`) or traversable (typically space characters)
 * Movement cost is 2 for orthogonal movement and 3 for diagonal
 
-Anyway it can be the case that a lot of different paths from one position to another have the same cost. A thing that's been on my mind is something about picking a path that looks kind of "natural." Particularly with stuff like: If we're moving to a position and in order to get there we have to move east 10 times and diagonally to the northeast 3 times, we might get paths like:
+It can be the case that a lot of different paths from one position to another have the same cost.
+E.g. we could be moving to the east and a little to the north north like this:
 
 ```
             o
            o
           o
 oooooooooo
-``` 10 moves west followed by 3 moves to the northwest
+``` 10 moves to the west followed by 3 moves to the northwest
 
-While if we're making the moves by hand we might make a path that looks more like one line (despite both paths being equally good wrt cost). Maybe something like:
+And an equally expensive path might go like this:
 
 ```
           ooo
@@ -31,15 +34,45 @@ While if we're making the moves by hand we might make a path that looks more lik
 ooo
 ``` 3 west, 1 northwest, 4 west, 1 northwest, 3 west, 1 northwest, 3 west
 
-So something to do with that has been on my mind. How would I go about choosing paths that look less "artificial," when the artificial movement cost rules make the "artifical" ones technically as good as the "natural" ones?
+In my experience, if I code something up I'm likely to end up with code that picks paths more like the first one.
+Like maybe it tries directions in a certain order when searching so it does either all the orthogonal movement or all the diagonal movement first.
+Anyway what's been on my mind has to do with how to choose paths that look more like the second one.
+I guess that one looks less "artifical" or something to me, maybe more like how I'd go if I was making the moves by hand.
 
 ## filling a map
 
-^#id-flood-fill The more dijkstrian code is at the bottom of the post.^ I won't get into details here. It's mostly the same as in ^./aoc-dijkstra.txt the Advent of Dijkstra post^. Some kind of minor changes to some data structure stuff and how much information is included in the result, and like it fills the map completely and doesn't take a target node into consideration or anything.
+^#id-flood-fill The more dijkstrian code is at the bottom of the post.^
+I won't get into details here, but it's similar to the stuff in ^./aoc-dijkstra.txt the Advent of Dijkstra post^.
 
-Here's a kind of complicated map:
+Here are some maps:
 
 ``` run
+oneroom =
+[[
+###############################################
+#                             E               #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]]
+
+largerooms =
+[[
+###############################################
+#                                             #
+# #####################                       #
+#                     #                       #
+#                     #                       #
+#                     #                     E #
+####################  #########################
+#                                             #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]]
+
 complicated = [[
 ###################################
 #  #     #         #        #     #
@@ -56,19 +89,35 @@ complicated = [[
 ]]
 ```
 
-And here we kind of Dikjstra-flood-fill it from the `S` and then show the result kind of heatmappy with things being like red if it's more costly to get there and stuff:
+We can kind of Dikjstra-flood-fill a map from its `S` and then show the result in a kind of heatmappy way:
+
+``` run
+function reachable(str)
+  local map = mappy(str)
+  local q = flood(map, next(map.S))
+  local function heat(c, p)
+    local seen = q.seen[p]
+    if not seen then return c end
+    c = c == " " and "." or c
+    return span(c, heatstyle(seen.cost, q.highest))
+  end
+  web.html(maphtml(map, heat))
+end
+```
 
 ``` repl
-local map = mappy(complicated)
-local q = flood(map, next(map.S))
-web.html(maphtml(map, function(c, p) return heatcoloured(c, p, q) end))
+reachable(oneroom)
+reachable(largerooms)
+reachable(complicated)
 ```
 
 Every reachable position gets a colour :)
 
 ## a found path
 
-The data structure we get from the `flood` function also has information about how we got to it. When we look up a position and get a result if it's reachable, the result we get will contain a `from` table, with directions as keys and positions as values. A way to find a path to a position is to start with that position and then step back towards where we started the flood filling by always following the first `from` value we find:
+The data structure we get from the `flood` function also has information about how we got to it.
+When we look up a reachable position, the result we get will contain a `from` table with directions and positions.
+A way to find a path to a position is to start with that position and then use those `from` tables to step back toward the start position:
 
 ``` run
 function stepback(p, fill)
@@ -97,158 +146,22 @@ function steppy(str, stepback)
 end
 ```
 
-Now we can find one path:
+Given one of the maps we can find a  path:
 
 ``` repl
+steppy(oneroom, stepback)
+steppy(largerooms, stepback)
 steppy(complicated, stepback)
 ```
 
-The alleged artificialness shows up a couple of times here, but it's clearer in a simpler example map:
-
-``` run
-simple =
-[[
-###############################################
-#                             E               #
-#                                             #
-#                                             #
-# S                                           #
-###############################################
-]]
-```
-
-``` repl
-steppy(simple, stepback)
-```
-
+This does the thing where it attempts orthogonal movement before diagonal movement.
+It's more noticable in the less complicated maps.
 Okay.
-
-## aside: leaving the flood fill alone
-
-When I'm trying out different stuff here, I'm always using the same flood filling part and I'm only changing the part where I construct a path from its result. In _some_ cases it might kind of make more sense to make modifications to the part that searches from the start position instead of to the part that constructs the path from the end position. E.g. the stepback function above checks for allowed diagonal steps before orthogonal steps (which makes the diagonal movement come last, since we're stepping from the end position when constructing the path). We can make an alternative version of stepback that does it the other way around:
-
-``` run
-function altstepback(p, fill)
-    local seen = fill[p]
-    if not seen then return nil end
-    for i = #dirs, 1, -1 do
-      local d = dirs[i]
-      if seen.from[d] then return seen.from[d] end
-    end
-    return nil
-end
-```
-
-Which should make the diagonal movement come first:
-
-``` repl
-steppy(simple, altstepback)
-```
-
-Often changes like that are made to the initial search part instead of to the later construct a path part and in a number of cases that can make more sense. But for some of the stuff I wanted to try I needed all the possible paths or all the positions hit by all the possible paths, so here it seemed easier to do the flood fill stuff the same way for all the things and only make changes to the construct the path part. Bla blah.
-
-## a probably bad path comparison idea
-
-Looking at the two paths from earlier again. One goes almost all the way to the east and then turns and goes notheast:
-
-```
-            o
-           o
-          o
-oooooooooo
-``` 10 moves west followed by 3 moves to the northwest
-
-The other goes a few steps to the east then one step northeast then a few steps east and so on:
-
-```
-          ooo
-       ooo
-   oooo
-ooo
-``` 3 west, 1 northwest, 4 west, 1 northwest, 3 west, 1 northwest, 3 west
-
-If we prefer the latter then: Maybe the best pats are the ones with the shortest sequences of movement in the same direction. Like the first one has consecutive steps to the east, while the last one has at most 4. An idea could be to find the best path by checking all the alternatives when backstepping and choosing the paths with the shortest sequences of same-direction steps.
-
-There's some stuff that could be done to the code below but I dropped the idea before doing more so uh it is what it is. Also won't get into too much details. When a path back to the start is found, we make a list of all the "segments" and sort that list. We remember the best path found so far and compare new ones to that one. Anyway the code:
-
-``` run
-local function better(a, b)
-  for i = 1, math.min(#a, #b) do
-    if a[i].count < b[i].count then return true end
-    if a[i].count > b[i].count then return false end
-  end
-  return (#a < #b) and a or b
-end
-
-local function best(path, currentbest)
-  local prev = path[#path]
-  local list, stuf = { prev }, {}
-  for i = #path - 1, 1, -1 do
-    local p = path[i]
-    list[#list + 1] = p
-    local dir = prev - p
-    if stuf[#stuf] and stuf[#stuf].dir == dir then
-      stuf[#stuf].count = stuf[#stuf].count + 1
-    else
-      stuf[#stuf + 1] = { dir = dir, count = 1 }
-    end
-    prev = p
-  end
-  table.sort(stuf, function(a, b) return a.count > b.count end)
-  local res = { path = list, stuf = stuf }
-  if not currentbest then return res end
-  return better(stuf, currentbest.stuf) and res or currentbest
-end
-
-local function findbest(fill, start, stop)
-  local pathcount = 0
-  local path = { stop }
-  local currentbest
-  local function halp()
-  local p = path[#path]
-    if p == start then
-      pathcount = pathcount + 1
-      currentbest = best(path, currentbest)
-      return
-    end
-    local seen = fill[p]
-    if not seen then return end
-    local i = #path + 1
-    for _, pp in pairs(seen.from) do
-      path[i] = pp
-      halp()
-    end
-    path[i] = nil
-    return
-  end
-  halp()
-  return currentbest.path, pathcount
-end 
-
-function bestpath(str)
-  local map = mappy(str)
-  local start, stop = next(map.S), next(map.E)
-  local fill = flood(map, start).seen
-  local path, count = findbest(fill, start, stop)
-  print("found " .. count .. " paths")
-  for _, p in ipairs(path) do
-    map[p] = "o"
-  end
-  web.html(maphtml(map))
-end
-```
-
-It works I guess:
-
-``` repl
-bestpath(simple)
-```
-
-But the number of paths found can kind of explode, so eh.
 
 ## rectangles
 
-If we look at the positions in all of the possible minimally expensive paths between two positions, the "problem areas" appear to be some fairly rectangular areas of positions. After flood filling and choosing a stop position, we can kind of flood fill back to the start positions by visting all the positions we can reach through the `from` values:
+Given a start and a stop position, we can find all the positions we can possibly visit by following one of the minimally expensive paths.
+After flood filling and choosing a stop position, we can kind of flood fill back to the start position through all the `from` values:
 
 ``` run
 function fillback(fill, p)
@@ -267,26 +180,43 @@ function fillback(fill, p)
   end
   return visited
 end
+
+function possiblepositions(str)
+  local map = mappy(str)
+  local start, stop = next(map.S), next(map.E)
+  local q = flood(map, start)
+  local back = fillback(q.seen, stop)
+  local function heat(c, p)
+    if not back[p] then return c end
+    local seen = q.seen[p]
+    c = c == " " and "." or c
+    return span(c, heatstyle(seen.cost, q.highest))
+  end
+  web.html(maphtml(map, heat))
+end
 ```
 
-Now we can look at the rectangle:
+Let's take a look:
 
 ``` repl
-local map = mappy(simple)
-local start, stop = next(map.S), next(map.E)
-local q = flood(map, start)
-local back = fillback(q.seen, stop)
-local function heat(c, p)
-  if not back[p] then return c end
-  c = c == " " and "." or c
-  return heatcoloured(c, p, q)
-end
-web.html(maphtml(map, heat))
+possiblepositions(oneroom)
+possiblepositions(largerooms)
+possiblepositions(complicated)
 ```
 
-So the kind of rectangular area has a bunch of positions in it that can be reached through at least one of the minimally expensive paths. In this case most of them can be reached directly from the position to the west and the position to the southwest. IMO paths look more "natural" if the look more like a line from the southwest corner to the northeast corner of the rectangle. So that's a thing.
+So we get these almost-rectangular areas of positions that are all visited by at least one of the minimally expensive paths.
+Those are the areas where I'd maybe like to choose paths differently.
+Like within such a rectangle, maybe have the path be more like a line between opposite corners.
 
-## maybe a less bad idea?
+## lines
+
+From ^https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm the Wikipedia article on Bresenham's line algorithm^:
+
+``` drawing
+    `y1 - y0`
+`y =`-------`(x - x0) + y0` 
+    `x1 - x0`
+``` An equation: y = ((y1 - y0) / (x1 - x0)) (x - x0) + y0
 
 Here's a function to see how far off we are:
 
@@ -299,16 +229,19 @@ function off(from, to, p)
   else
     fx, fy, tx, ty, x, y, dx, dy = from.y, from.x, to.y, to.x, p.y, p.x, d.y, d.x
   end
-  if dx == 0 then return math.abs(y - fy) end
   local target
-  if fx == x then target = fy
+  if dx == 0 then target = fy
+  elseif fx == x then target = fy
   else target = fy + (((x - fx) * dy + (dx // 2)) // dx)
   end
   return math.abs(y - target)
 end
 ```
 
-That is, if we imagine a line between two points, `from` and `to`, then this should give us the number of steps we need to go east or west or north or south in order to get to be on top of the line. It rotates some numbers around a bit to account for lines that are more vertical than horizontal vs. lines that are more horizontal than vertical. Uuuh:
+Uh, um, uuh, if we imagine a line between two points, `from` and `to`, then this should give us the number of steps away from the line a position is.
+It rotates some numbers around a bit to account for lines that are more vertical vs. lines that are more horizontal.
+Like if the line is more horizontal the steps will be along the y-axis but if it's more vertical they will be along the x-axis.
+Uuuh, I'm not very good at this, but it does seem to work I _think?_
 
 ``` repl
 local from, to = vec(0, 0), vec(8, 3)
@@ -320,18 +253,13 @@ for y = 0, 3 do
 end
 ```
 
-Anyway the idea is that if you're trying to move kind of along a line and you have to decide between a couple of positions, then you wanna choose the one with the lowest off-number.
+Anyway the idea is something like:
+If we're trying to move along some line and we have some possible positions for the next step, we can choose the one with the lowest `off`-number.
 
-So a plan can go something like:
+## super-low-effort rectangle detection
 
-We use the `fillback` function from earlier to get like a pretend map that might have rectangles in it. And then when we're constructing the path and are stepping from one position to the next (or previous, I guess), we look into some things:
-
-* What rectangle are we in? We'll make a pretty low-effort attempt at determining.
-* Are we choosing between exactly two "ajacent" directions. (E.g. nort and northwest, or east and southeast.)
-* What would be good positions for a line to go from/to?
-* Which move gets us closer to the line?
-
-We do the rectangle check by "shooting" rays through the "backfilled" data structure that potentially has rectangles in it. We shoot one ray in each of the four main directions and see how far it goes. We could do something more clever instead but this seems to be mostly okay. We use the directions available for moving to determinge which corners of the rectangle the imagined line should go from/to. Some stuff:
+I don't wanna deal with stuff.
+Let's just shoot a ray in each of the 4 main directions, maybe that's good enough.
 
 ``` run
 local function shoot(p, dir, back)
@@ -343,6 +271,68 @@ local function shoot(p, dir, back)
   return prev
 end
 
+function rect(p, back)
+  return
+    shoot(p, N, back).y,
+    shoot(p, E, back).x,
+    shoot(p, S, back).y,
+    shoot(p, W, back).x
+end
+
+function showrect(str, pos)
+  local map = mappy(str)
+  local start, stop = next(map.S), next(map.E)
+  local q = flood(map, start)
+  local back = fillback(q.seen, stop)
+  local n, e, s, w = rect(pos, back)
+  local function within(p)
+    return p.y >= n and p.y <= s and p.x >= w and p.x <= e
+  end
+  local function heat(c, p)
+    if not within(p) then return p == pos and "X" or c end
+    local cost = (p == pos or not q.seen[p]) and q.highest or q.seen[p].cost
+    c =
+      (p == pos and "X")
+      or (c == " " and ".")
+      or c
+    return span(c, heatstyle(cost, q.highest))
+  end
+  web.html(maphtml(map, heat))
+end
+```
+
+Let's take a look:
+
+``` repl
+possiblepositions(largerooms)
+showrect(largerooms, vec(4, 11))
+showrect(largerooms, vec(7, 10))
+showrect(largerooms, vec(10, 2))
+showrect(largerooms, vec(30, 2))
+showrect(largerooms, vec(30, 3))
+```
+
+If we decide that that's good enought then that's good enough.
+In some positions the rectangles seem pretty okay but in others they aren't _exactly_ the ones we're after.
+We're only using them to choose between paths that are all like good though.
+So it's not like using a weird rectangle for a few steps will make us choose a _bad path._
+I dunno, it's maybe okay.
+
+## uh, let's go
+
+Okay so:
+We use the `fillback` function from earlier to get like a pretend map that might have rectangles in it.
+And then when we're constructing the path and are stepping from one position to the next (or previous, I guess), we look into some things:
+
+* Pew pew shoot shoot, what rectangle are we in?
+* Are we choosing between exactly two "adjacent" directions? (e.g. north and northwest, or east and southeast)
+* So which corners of the rectangle should we use for imagining a line?
+* Which of the allowed moves gets us closer to that line?
+
+The `rectback` function puts the stuff together.
+It's a kind of large function because it does a bunch of direction checking in a repetitive and maybe kind of dumb way.
+
+``` run
 function rectback()
   local back
   return function(p, fill)
@@ -350,12 +340,8 @@ function rectback()
     local seen = fill[p]
     if not seen then return nil end
     local from = seen.from
-    local function regular()
-      local _, res = next(from)
-      return res
-    end
-    if seen.dirs ~= 2 then return regular() end
-    local n, e, s, w = shoot(p, N, back).y, shoot(p, E, back).x, shoot(p, S, back).y, shoot(p, W, back).x
+    if seen.dirs ~= 2 then return stepback(p, fill) end
+    local n, e, s, w = rect(p, back)
     local start, stop
     local d1, d2
     if from[W] and from[NW] then
@@ -382,7 +368,7 @@ function rectback()
     elseif from[E] and from[SW] then
       d1, d2 = E, SW
       start, stop = vec(e, n), vec(w, s)
-    else return regular()
+    else return stepback(p, fill)
     end
     local p1, p2 = from[d1], from[d2]
     return (off(start, stop, p1) <= off(start, stop, p2)) and p1 or p2
@@ -391,34 +377,14 @@ end
 ```
 
 ``` repl
-steppy(simple, rectback())
-```
-
-``` repl
+steppy(oneroom, rectback())
+steppy(largerooms, rectback())
 steppy(complicated, rectback())
-```
-
-``` repl
-steppy(
-[[
-###############################################
-#                                             #
-# #####################                       #
-#                     #                       #
-#                     #                       #
-#                     #                     E #
-####################  #########################
-#                                             #
-#                                             #
-#                                             #
-# S                                           #
-###############################################
-]], rectback())
 ```
 
 Bla blah :)
 
-## appendix: the dijkstrarian flood fill stuff
+## appendix: the dijkstrarian flood fill and stuf
 :id flood-fill
 
 ``` prelude
@@ -591,10 +557,5 @@ end
 function heatstyle(n, max)
   local h = (1 - (n / max)) * 240
   return 'background-color: hsl(' .. h .. ', 100%, 50%)'
-end
-
-function heatcoloured(c, p, q)
-  local seen = q.seen[p]
-  return seen and span(c, heatstyle(seen.cost, q.highest)) or c
 end
 ```
