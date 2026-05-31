@@ -29,15 +29,16 @@ nav ul { list-style-type: none; }
 local function css(width)
   width = width or "50rem"
   return [[body { font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Nimbus Sans L", Roboto, "Noto Sans", "Segoe UI", Arial, Helvetica, "Helvetica Neue", sans-serif; padding-left: 0.5rem; padding-right: 0.5rem; max-width: ]] .. width ..[[; margin: 1rem auto 0 auto; }
-p, pre, ul, hr, figure { margin: 1rem 0 1rem 0; padding: 0; }
-h1, h2, h3 { margin: 2rem 0 0rem 0; padding: 0; }
+p, ul, hr { margin: 1rem 0; padding: 0; }
+figure { margin: 1rem 0.3rem; padding: 0; }
+h1, h2, h3 { margin: 2rem 0 0 0; padding: 0; }
 h1 { font-size: 2.2rem; } h2 { font-size: 1.4rem; }  h3 { font-size: 1.1rem; }
 blockquote { padding: 0 0 0 0.8rem; margin: 0 0 0 0rem; border-left: 0.1rem solid var(--text); }
-pre { overflow-x: auto; }
+pre { overflow-x: auto; margin: 0.5rem 0; padding: 0; }
 pre, code { font-family: Consolas, Menlo, Monaco, "Andale Mono", "Ubuntu Mono", monospace; font-size: 1.05em; white-space: pre; }
 ul { list-style-position: inside; }
-li { margin: 0;padding: 0; }
-hr { margin: 1.5rem 0 1.5rem 0; }
+li { margin: 0; padding: 0; }
+hr { margin: 1.5rem 0; }
 img { max-width: 100%; }
 textarea { width: 100%; font-size: 1.05rem; }
 time { font-style: italic; }
