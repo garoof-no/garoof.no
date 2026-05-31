@@ -3,9 +3,9 @@
 :pub ZeC7GL
 :template js
 
-^https://gist.github.com/Glorp/4c7917ad351e1340b07b1cdeb827d62c Standard ML code^
-^https://gist.github.com/Glorp/fc614dae2d91b79c4c7d4c96785da558 JavaScript code^
-^https://mitpress.mit.edu/books/little-mler The Little MLer^
+* ^https://gist.github.com/Glorp/4c7917ad351e1340b07b1cdeb827d62c Standard ML code^
+* ^https://gist.github.com/Glorp/fc614dae2d91b79c4c7d4c96785da558 JavaScript code^
+* ^https://mitpress.mit.edu/books/little-mler The Little MLer^
 
 In chapter 6 of The Little MLer there is some stuff.
 
