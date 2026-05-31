@@ -46,9 +46,7 @@ outElement.appendChild(spriteSheet);
 
 The sprite sheet is a set of 8 sprites. Each sprite is 16×16 pixels.
 
-We’ll create a canvas and put it in the `outElement`.
-^https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage Then we can get a `CanvasRenderingContext2D` and use `drawImage` on that.^
-Also we turn off image smoothing because pixels. Also also, we multiply some numbers by 3, because more pixels.
+We’ll create a canvas and put it in the `outElement`. ^https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage Then we can get a `CanvasRenderingContext2D` and use `drawImage` on that.^ Also we turn off image smoothing because pixels. Also also, we multiply some numbers by 3, because more pixels.
 
 ``` repl
 const canvas = document.createElement("canvas");
