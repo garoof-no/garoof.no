@@ -100,7 +100,7 @@ local function parse(iter)
   function emptyquote(line)
     if line.type == "quote" then
       if line.empty then
-        pusht("quotebr")
+        pusht("br")
       else
         pusht("<p")
         push(line)
@@ -551,7 +551,7 @@ local function html(url, pretable, kvtable)
     rendermeta(line.meta, res)
     return table.concat(res)
   end
-  
+
   return function(token)
     if token.type == "<p" then return "<p>"
     elseif token.type == "p>" then return "</p>\n"
@@ -572,7 +572,7 @@ local function html(url, pretable, kvtable)
     elseif token.type == "list>" then return "</ul>\n"
     elseif token.type == "text" or token.type == "quote" then
       return strhtml(token.rest, url)
-    elseif token.type == "br" or token.type == "quotebr" then return "\n<br>"
+    elseif token.type == "br" then return " "
     elseif token.type == "h1" then return tagged("h1", token)
     elseif token.type == "h2" then return tagged("h2", token)
     elseif token.type == "h3" then return tagged("h3", token)
