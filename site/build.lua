@@ -87,7 +87,7 @@ local function links(list)
     if i > #list then return nil end
       local ref = list[i]
       i = i + 1
-      return "`" .. ref.meta.pub .. ":` ^" .. ref.path .. " " .. ref.title
+      return "* `" .. ref.meta.pub .. ":` ^" .. ref.path .. " " .. ref.title
   end
 end
 
