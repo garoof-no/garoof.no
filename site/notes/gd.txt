@@ -2,7 +2,6 @@
 :pub Zk7NML
 :blurb Dawn of glorp.
 
-
 Glorpdown is plaintexty and mildly line-oriented, not totally unlike ^https://geminiprotocol.net/docs/gemtext.gmi Gemtext^. (Although at this point also _a little_ less similar to Gemtext than it used to be.) I use it for this website.
 
 * ^../gd.lua The implementation of the current version tends to be here.^.
