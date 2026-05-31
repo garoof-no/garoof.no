@@ -23,6 +23,7 @@ button:active { border-top: 1px solid var(--accent3); border-left: 1px solid var
 a { color: var(--accent); }
 a:hover { text-decoration: none; }
 nav a { color: var(--text); }
+nav ul { list-style-type: none; }
 ]]
 
 local function css(width)
