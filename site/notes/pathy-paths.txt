@@ -393,6 +393,33 @@ steppy(complicated, rectback())
 
 Bla blah. I think those paths are okay :)
 
+Final REPL for playing around with the map and comparing the paths:
+
+``` repl
+local str = [[
+###############################################
+#                                             #
+# ############# #######                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #                       #
+#                     #    E                  #
+####################  #########################
+#                                             #
+#                                             #
+#                                             #
+# S                                           #
+###############################################
+]]
+steppy(str, rectback())
+steppy(str, stepback)
+```
+
 ## appendix: the dijkstrarian flood fill and stuf
 :id flood-fill
 
