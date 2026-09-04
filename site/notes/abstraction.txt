@@ -140,7 +140,7 @@ So then, uh. I don't think abstract means or implies imprecise. I think the `gcd
 
 ## The end
 
-That's kind of it. Abstraction can be this clear and precise and not very nebulous thing. And then if an abstraction is something like for example the `gcd` function, then making things "more abstract" doesn't like naturally lead to like enterprise framework or anything. (Building an enterprise framework is more about making bad design decisions than about abstraction.)
+That's kind of it. Abstraction can be this clear and precise and not very nebulous thing. And then if an abstraction is something like for example the `gcd` function, then making things "more abstract" doesn't like naturally lead to like an enterprise framework or anything. (Building an enterprise framework is more about making bad design decisions than about abstraction.)
 
 The remainder is just functions that make pictures because we started out with find the difference pictures:
 
