@@ -61,7 +61,13 @@ local function nav(url, token)
 end
 
 local function title(token)
-  return '<title>' .. gd.strhtml(gd.titlefrom(token), nil, true) .. '</title>\n'
+  local title = gd.strhtml(gd.titlefrom(token), nil, true)
+  local blurb =
+    token.meta and token.meta.blurb
+    and gd.strhtml(token.meta.blurb, nil, true)
+  local desc =
+    blurb and '<meta name="description" content="' .. blurb .. '">\n' or ''
+  return '<title>' .. title .. '</title>\n' .. desc
 end
 
 return {
