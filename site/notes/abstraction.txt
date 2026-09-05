@@ -136,11 +136,11 @@ That tends to be what I mean with "abstraction" in programming. It's a particula
 
 In my experience, good and reusable abstractions tend to be _closer_ to the pure function stuff. I think it's good to aim for having it be as clear and obvious as possible what the holes are, how to fill them with stuff and what that results in. (There's no "A is better than B" intended here, but possibly a little bit of "I have found A to be better than B for building _this paricular kind of thing._")
 
-So then, uh. I don't think abstract means or implies imprecise. I think the `gcd` function is very precise. It is more abstract and I suppose more indirect than like `gcd_of_24_and_54`: There's an extra step where you have to supply the argument numbers, but I don't really think that results in any vagueness or anything. I think that a good abstraction kind of emphasizes both what things have in common and what is different between them. the holes being for differences and the rest being common. (Many attempts at abstraction go off the rails and it often seems to be because someone's trying to force things to have more in common than they do and smooth over their differences.)
+So then, uh. I don't think abstract means or implies imprecise. I think the `gcd` function is very precise. It is more abstract and I suppose more indirect than like `gcd_of_24_and_54`: There's an extra step where you have to supply the argument numbers, but I don't really think that results in any vagueness or anything. I think that a good abstraction kind of emphasizes both what things have in common and what is different between them, the holes being for differences and the rest being common. (Many attempts at abstraction go off the rails and it often seems to be because someone's trying to force things to have more in common than they do and smooth over their differences.)
 
 ## The end
 
-That's kind of it. Abstraction can be this clear and precise and not very nebulous thing. And then if an abstraction is something like for example the `gcd` function, then making things "more abstract" doesn't like naturally lead to like an enterprise framework or anything. (Building an enterprise framework is more about making bad design decisions than about abstraction.)
+That's kind of it. Abstraction can be this clear and precise and not very nebulous thing. And then if we mean something along these lines with abstraction, then making things "more abstract" doesn't like naturally lead to like an enterprise framework or anything. (Building an enterprise framework would then be more about making bad design decisions than about abstraction.)
 
 The remainder is just functions that make pictures because we started out with find the difference pictures:
 
